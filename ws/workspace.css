@@ -99,3 +99,4 @@ body.ws .ws-left .xspec select{font-size:13px;padding:5px 8px}
 .ws-left details.ws-sec[data-need="1"] > summary .n{background:#B45309}
 .ws-left details.ws-sec[data-need="1"] > summary .s{color:#B45309;font-weight:600}
 .geobtns{display:flex;gap:8px;flex-wrap:wrap}
+.ws-top .ws-btn{display:inline-flex;align-items:center;justify-content:center;padding:0 14px;margin:0;line-height:1;box-sizing:border-box}
