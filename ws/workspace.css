@@ -44,7 +44,7 @@ body.ws .ws-left .ctbtn button{font-size:12px;padding:6px 8px}
 
 .ws-mid{display:flex;flex-direction:column;overflow:hidden}
 .ws-tabs{display:flex;gap:4px;padding:10px 12px;border-bottom:1px solid #E4E9EF;flex-wrap:wrap;align-items:center}
-.ws-tabs button{border:0;background:transparent;border-radius:8px;padding:8px 14px;font:inherit;font-size:14px;color:#5B6B7C;cursor:pointer}
+.ws-tabs button{border:0;background:transparent;border-radius:8px;padding:8px 11px;font:inherit;font-size:14px;white-space:nowrap;color:#5B6B7C;cursor:pointer}
 .ws-tabs button.on{background:#E8F0FA;color:#0B4F9C;font-weight:600}
 .ws-status{padding:0 14px}
 .ws-status:empty{display:none}
@@ -84,3 +84,17 @@ body.ws.ws-sub3 .ws-body{display:none}
   .ws-mid{min-height:70vh}
   .ws-job b{max-width:180px}
 }
+
+/* "Specify from approval" in the Assembly section: compact, notes behind the ? icons */
+body.ws .ws-left .cspec{margin-top:10px}
+body.ws .ws-left .xspec{border:1px solid #E4E9EF;border-radius:8px;overflow:hidden}
+body.ws .ws-left .xspec .xh{background:#F7F9FC;color:#1F2A36;font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:none;padding:7px 10px;display:flex;align-items:center;gap:6px}
+body.ws .ws-left .xspec .xb{padding:8px 10px}
+body.ws .ws-left .xspec .cfields{grid-template-columns:1fr!important;gap:8px!important}
+body.ws .ws-left .xspec label.f{font-size:12px}
+body.ws .ws-left .xspec .fl{display:flex!important;align-items:center;gap:6px}
+body.ws .ws-left .xspec select{font-size:13px;padding:5px 8px}
+.fq[title]{cursor:help}
+.ws-find{width:100%;margin:0 0 10px;height:38px;font-size:13px;border-color:#B9D0EC;background:#E8F0FA;color:#0B4F9C}
+.ws-left details.ws-sec[data-need="1"] > summary .n{background:#B45309}
+.ws-left details.ws-sec[data-need="1"] > summary .s{color:#B45309;font-weight:600}

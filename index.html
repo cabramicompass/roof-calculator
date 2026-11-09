@@ -1905,6 +1905,7 @@ async function geoSuggest(q){
 }
 async function geoSugPick(o){
   const inp = $("geoQ"); if(inp) inp.value = o.t + (o.s ? ", " + o.s.replace(/ · .*$/, "") : ""); GEO.sug = []; GEO.sugTried = false; geoSugDraw();
+  GEO.useLabel = o.src === "local" ? ((o.s.match(/·\s*([^·]+?)\s*(?:·|$)/) || [])[1] || "").replace(/\d+ buildings/, "").trim() : "";
   if(o.src === "local" && o.bl && o.bl.length){
     const bs = []; for(const [qk, i] of o.bl){ const L = await geoTile(qk); if(L[+i]) bs.push(L[+i]); }
     if(bs.length){ const big = bs.slice().sort((a,b)=>geoArea(b) - geoArea(a))[0], xs = big.pts.map(p=>p[0]), ys = big.pts.map(p=>p[1]);
@@ -1986,12 +1987,43 @@ function geoOutline(b){
   const rect = P.length === 4 && P.every((p,i)=>{ const q = P[(i+1)%4]; return Math.abs(p[0]-q[0]) < 0.05 || Math.abs(p[1]-q[1]) < 0.05; });
   return {P, X:+X.toFixed(1), Y:+Y.toFixed(1), area:Math.abs(polyArea(P)), rect};
 }
-function geoUse(){
+/* county from a point: grid made from Florida Department of Revenue parcel points (about 1 km cells) */
+const FL_COUNTIES = ["Alachua","Baker","Bay","Bradford","Brevard","Broward","Calhoun","Charlotte","Citrus","Clay","Collier","Columbia","Miami-Dade","DeSoto","Dixie","Duval","Escambia","Flagler","Franklin","Gadsden","Gilchrist","Glades","Gulf","Hamilton","Hardee","Hendry","Hernando","Highlands","Hillsborough","Holmes","Indian River","Jackson","Jefferson","Lafayette","Lake","Lee","Leon","Levy","Liberty","Madison","Manatee","Marion","Martin","Monroe","Nassau","Okaloosa","Okeechobee","Orange","Osceola","Palm Beach","Pasco","Pinellas","Polk","Putnam","St. Johns","St. Lucie","Santa Rosa","Sarasota","Seminole","Sumter","Suwannee","Taylor","Union","Volusia","Wakulla","Walton","Washington"];
+let CTY = null;
+async function geoCounty(lat, lon){
+  try{ if(!CTY) CTY = JSON.parse(new TextDecoder().decode(await fetchBytes("data/county.json"))); }catch(e){ return ""; }
+  const i0 = Math.floor((lon - CTY.x0)/CTY.step), j0 = Math.floor((lat - CTY.y0)/CTY.step);
+  for(let rad = 0; rad <= 6; rad++){ const seen = {};
+    for(let j = j0-rad; j <= j0+rad; j++) for(let i = i0-rad; i <= i0+rad; i++){
+      if(Math.max(Math.abs(i-i0), Math.abs(j-j0)) !== rad || i < 0 || j < 0 || i >= CTY.cols || j >= CTY.rows) continue;
+      const v = CTY.cells.charCodeAt(j*CTY.cols + i) - 48; if(v > 0) seen[v] = (seen[v]||0) + 1; }
+    const best = Object.entries(seen).sort((a,b)=>b[1]-a[1])[0]; if(best) return FL_COUNTIES[+best[0] - 1] || ""; }
+  return "";
+}
+function geoPickOption(id, county){
+  const el = $("cf-" + id); if(!el || !county) return "";
+  const n = x => String(x||"").toLowerCase().replace(/county|\(.*?\)|saint/g, m=>m === "saint" ? "st" : "").replace(/[^a-z]/g, "");
+  const want = n(county), alt = want === "miamidade" ? "dade" : want;
+  const o = [...el.options].find(o=>n(o.text) === want) || [...el.options].find(o=>n(o.text).startsWith(want) || n(o.text) === alt || n(o.text).startsWith(alt));
+  return o ? (o.value || o.text) : "";
+}
+async function geoUse(){
   const b = GEO.cands[GEO.pick]; if(!b) return; const o = geoOutline(b), r = CALC.roofs[CALC.active];
   r.v.SHAPE = o.rect ? "Rectangle" : SHAPE_SAT; if(o.rect) delete r.v.POLY; else r.v.POLY = JSON.stringify(o.P);
-  r.v.B11 = String(o.X); r.v.B12 = String(o.Y); r.v.GEO = JSON.stringify({lat:+GEO.lat.toFixed(6), lon:+GEO.lon.toFixed(6), q:GEO.q});
-  GEO.msg = `Used: ${o.X}' x ${o.Y}'` + (o.rect ? ", rectangle." : `, ${o.P.length} corners. Zones follow the outline.`) + " Check the size against the plans or Google Earth.";
-  calcRenderForm(); calcSchedule(false);
+  r.v.B11 = String(o.X); r.v.B12 = String(o.Y);
+  // everything else the map knows fills in too: county, project name, roof name, an estimated height
+  const xs = b.pts.map(p=>p[0]), ys = b.pts.map(p=>p[1]), clat = (Math.min(...ys)+Math.max(...ys))/2, clon = (Math.min(...xs)+Math.max(...xs))/2;
+  const county = await geoCounty(clat, clon), filled = [];
+  const loc = geoPickOption("B7", county); if(loc && CALC.job.B7 !== loc){ CALC.job.B7 = loc; filled.push(county + " County"); }
+  const addr = String(GEO.q || "").replace(/\s*·.*$/, "").trim();
+  if(addr && !/^-?\d+\.\d+\s*,/.test(addr) && !String(CALC.job.B6||"").trim()){ CALC.job.B6 = addr.split(",")[0]; filled.push("project name"); }
+  if(GEO.useLabel && !String(r.v.B5||"").trim()){ r.v.B5 = GEO.useLabel; filled.push("roof name"); }
+  const hFt = b.h > 0 ? Math.round(b.h * 3.28084) : 0;
+  if(hFt >= 8 && !String(r.v.B10||"").trim()){ r.v.B10 = String(hFt); r.v.B10est = "1"; filled.push("roof height " + hFt + " ft (estimate, check it)"); }
+  r.v.GEO = JSON.stringify({lat:+GEO.lat.toFixed(6), lon:+GEO.lon.toFixed(6), q:GEO.q, county});
+  GEO.msg = `Used: ${o.X}' x ${o.Y}'` + (o.rect ? ", rectangle" : `, ${o.P.length} corners, zones follow the outline`) + (filled.length ? ". Also filled in: " + filled.join(", ") : "") + ". Check the size against the plans.";
+  calcRenderForm(); calcSchedule(true);
+  document.dispatchEvent(new CustomEvent("geo:used", {detail:{county, filled}}));
 }
 /* ---------- the photo map: Leaflet (pan, wheel and pinch zoom) + Geoman (draw and edit outlines with draggable corners) ---------- */
 const LL = p => [p[1], p[0]];           // [lon, lat] -> Leaflet [lat, lng]
@@ -2314,7 +2346,7 @@ function zoneSvg(grid, zones){
 }
 function calcRenderOut(){
   const B = CALC.book, r = CALC.roofs[CALC.active];
-  document.querySelectorAll("#calcUI label.f.need").forEach(l=>l.classList.remove("need"));
+  document.querySelectorAll("label.f.need").forEach(l=>l.classList.remove("need"));
   if(r.need && r.need.length){
     r.need.forEach(([a])=>{ const el = $("cf-"+a); if(el) el.closest("label").classList.add("need"); });
     $("calcStatus").className = "cstat warn";
@@ -2810,6 +2842,7 @@ function specApply(c, sp){
     adhListed: s.adh === "BA" ? !!(o.adh && o.adh.ba) : s.adh === "CG" ? !!(o.adh && o.adh.cg) : true, umbrella: !!((o.insul && o.insul.items.length > 1) || !!o.under || (o.cover && o.cover.items.length > 1) || (o.adh && (o.adh.ba + o.adh.cg + o.adh.other.length) > 1))};
   c.adhPref = c.spec.adhPref;
 }
+const qTip = t => `<span class="fq" tabindex="0" role="img" aria-label="${esc(t)}" title="${esc(t)}">?</span>`;
 function specRender(){
   const box = $("calcSpec"); if(!box) return;
   const r = CALC.roofs[CALC.active]; const sp = r.calc ? specFor(CALC.active) : null;
@@ -2827,7 +2860,7 @@ function specRender(){
         thk = `<label class="f cf half"><span>Thickness (in)</span><select data-spec="${tk}">${steps.map(v=>`<option value="${v}"${String(v)===String(s[tk])?" selected":""}>${v}"${Math.abs(v-mn)<1e-9?" (listed min.)":""}</option>`).join("")}</select></label>`; }
     }
     if(thk && opts.length === 1) return thk.replace('class="f cf half"', 'class="f cf"').replace("<span>Thickness (in)</span>", `<span>${esc(label)}: ${esc(opts[0].replace(/,\s*min\.\s*[\d.]+"/i, ""))}, thickness (in)</span>`);
-    return `<label class="f cf${thk?" half":""}"><span>${esc(label)} <span class="hint">(${layer.items.length} listed${layer.optional ? ", optional" : ""})</span></span><select data-spec="${key}">${opts.map(x=>`<option${x===s[key]?" selected":""}>${esc(x)}</option>`).join("")}</select></label>` + thk;
+    return `<label class="f cf${thk?" half":""}"><span class="fl">${esc(label)} ${qTip(layer.items.length + " option" + (layer.items.length === 1 ? "" : "s") + " listed in this approval" + (layer.optional ? ", optional" : ""))}</span><select data-spec="${key}">${opts.map(x=>`<option${x===s[key]?" selected":""}>${esc(x)}</option>`).join("")}</select></label>` + thk;
   };
   let adhHtml = "";
   if(o.adh && !o.fb){
@@ -2835,13 +2868,14 @@ function specRender(){
     if(o.adh.ba) items.push(["BA", L.BA]);
     if(o.adh.cg) items.push(["CG", L.CG]);
     o.adh.other.forEach(n=>items.push([n, n]));
-    if(items.length > 1) adhHtml = `<label class="f cf"><span>Membrane adhesive <span class="hint">(${items.length} listed)</span></span><select data-spec="adh">${items.map(([v,t])=>`<option value="${esc(v)}"${v===s.adh?" selected":""}>${esc(t)}</option>`).join("")}</select></label>`;
-    if(!(o.adh.ba && o.adh.cg) && (o.adh.ba || o.adh.cg)) adhHtml += `<p class="hint" style="margin:0">This approval lists ${o.adh.cg ? "CAV-GRIP only" : "bonding adhesive only"}. For ${o.adh.cg ? "bonding adhesive" : "CAV-GRIP"}, pick the ${o.adh.cg ? "bonding adhesive" : "CAV-GRIP"} approval in the Top 5 when one is listed.</p>`;
+    const adhNote = (!(o.adh.ba && o.adh.cg) && (o.adh.ba || o.adh.cg)) ? `This approval lists ${o.adh.cg ? "CAV-GRIP only" : "bonding adhesive only"}. For ${o.adh.cg ? "bonding adhesive" : "CAV-GRIP"}, pick the ${o.adh.cg ? "bonding adhesive" : "CAV-GRIP"} approval in the Top 5 when one is listed.` : "";
+    if(items.length > 1) adhHtml = `<label class="f cf"><span class="fl">Membrane adhesive ${qTip(items.length + " adhesives listed in this approval")}</span><select data-spec="adh">${items.map(([v,t])=>`<option value="${esc(v)}"${v===s.adh?" selected":""}>${esc(t)}</option>`).join("")}</select></label>`;
+    else if(adhNote) adhHtml = `<p class="hint" style="margin:0">Adhesive: ${o.adh.cg ? "CAV-GRIP" : "bonding adhesive"} ${qTip(adhNote)}</p>`;
   }
   const vbo = (/Adhered/i.test(String(calcVal(IN_S,"G6"))) && /^FBC/i.test(String(calcVal(IN_S,"G14")))) ? String(calcVal(AF_S,"AB68")||"") : "", vbs = String(calcVal(IN_S,"B14")||"");
   const vbHtml = vbs && vbs !== "None" ? `<p class="hint" style="margin:0"><b>Vapor barrier:</b> ${esc(vbs)}${vbo ? " (" + esc(vbo.split(":")[0].replace(/^Note 16A option /,"Note 16A, ")) + ")" : ""}</p>` : "";
   const body = sel("under", "Additional layer under the insulation (insulation required over it)", o.under) + sel("top", "Top insulation layer", o.top) + sel("cover", "Cover board", o.cover) + adhHtml + vbHtml;
-  box.innerHTML = body ? `<div class="xpan"><div class="xh">SPECIFY FROM THIS APPROVAL</div><div class="xb"><p class="hint">Approvals are often umbrella listings with several product options. Pick the option you are specifying; the drawing, data sheets, assembly letter request and summary use these picks.</p><div class="cfields">${body}</div>${o.raw.base||o.raw.top?`<p class="hint">As listed: ${esc([o.raw.base, o.raw.top].filter(x=>x && x!=="—").join("  |  "))}</p>`:""}</div></div>` : "";
+  box.innerHTML = body ? `<div class="xpan xspec"><div class="xh">Specify from approval ${qTip("Approvals are often umbrella listings with several product options. Pick the option you are specifying; the drawing, data sheets, assembly letter request and summary use these picks." + (o.raw.base||o.raw.top ? " As listed: " + [o.raw.base, o.raw.top].filter(x=>x && x!=="—").join(" | ") : ""))}</div><div class="xb"><div class="cfields">${body}</div></div></div>` : "";
   box.querySelectorAll("[data-spec]").forEach(el=>el.onchange=()=>{ CALC.roofs[CALC.active].spec[el.dataset.spec] = el.value; calcRunActive(true); });
 }
 function adhOptionsFor(idx){

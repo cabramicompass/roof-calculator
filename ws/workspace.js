@@ -74,6 +74,7 @@
     const S1 = sec(1, "Job and contractor", [fs("calcJob"), apLab], true);
     const S2 = sec(2, "This roof", [fs("calcRoof")], false);
     const S3 = sec(3, "Assembly", [fs("calcAsmIn"), $("calcSpec")], false);
+    { const go = el("button", "ws-btn ws-find", "Find this roof on the map"); go.type = "button"; go.onclick = ()=>show("roof"); S2.querySelector(".ws-in").prepend(go); }
 
     // middle: status line, tabs, one view at a time
     const tabs = el("div", "ws-tabs"); tabs.setAttribute("role", "tablist");
@@ -83,11 +84,12 @@
     const V = [
       ["roof", "Find roof", [$("calcGeo")]],
       ["plan", "Sheet layout", [$("calcTrace"), $("calcPlan")]],
-      ["zones", "Zones & assembly", [$("calcZones"), $("calcDraw"), $("calcAsm")]],
+      ["zones", "Assembly", [$("calcZones"), $("calcDraw"), $("calcAsm")]],
       ["appr", "Approval & warranty", [$("calcTop"), $("calcWar")]],
-      ["sum", "Summary", [$("roofList"), document.querySelector(".sumh"), $("sumWrap"), document.querySelector(".rbottom")]],
+      ["sum", "Summary Sheet Generator", [$("roofList"), document.querySelector(".sumh"), $("sumWrap"), document.querySelector(".rbottom")]],
     ];
-    let current = (()=>{ try{ return localStorage.getItem("csg-ws-tab") || "plan"; }catch(e){ return "plan"; } })();
+    let current = (()=>{ try{ return localStorage.getItem("csg-ws-tab") || "roof"; }catch(e){ return "roof"; } })();
+    const noRoofYet = () => { try{ const r = CALC.roofs[CALC.active]; return !(r && r.v && +r.v.B11 > 0); }catch(e){ return true; } };
     V.forEach(([k, label, nodes])=>{
       const b = el("button", "", label); b.type = "button"; b.setAttribute("role", "tab"); b.dataset.k = k; tabs.appendChild(b);
       const pane = el("div"); pane.dataset.v = k; nodes.filter(Boolean).forEach(x=>pane.appendChild(x)); viewBox.appendChild(pane);
@@ -100,6 +102,9 @@
       if(k === "roof" && typeof GEO !== "undefined"){ GEO.open = true; if(GEO.map) setTimeout(()=>GEO.map.invalidateSize(), 50); if(typeof geoRender === "function") geoRender(); }
     }
     show(current);
+    setTimeout(()=>{ if(noRoofYet()) show("roof"); }, 1500);   // a job with no roof yet starts on the map
+    // after an outline is used: show the sheet layout and open the next section that still needs input
+    document.addEventListener("geo:used", ()=>{ show("plan"); setTimeout(()=>{ const next = [S1, S2, S3].find(d=>d.querySelector("label.f.need")) || S3; next.open = true; }, 600); });
     // the old loading message sits in step 1: keep it visible in the middle until the calculator is ready
     const loading = $("calcLoading"); if(loading){ viewBox.insertBefore(loading, viewBox.firstChild); }
     const ui = $("calcUI"); if(ui){ body.appendChild(ui); ui.style.display = "none"; }   // its pieces were moved out above
@@ -125,6 +130,14 @@
       const proj = (c && c.project) || v.B6 || "";
       $("wsJob").textContent = proj || "New job";
       $("wsJobSub").textContent = (CALC.roofs.length > 1 ? `Roof ${CALC.active + 1} of ${CALC.roofs.length}` : "1 roof") + (v.B5 ? " · " + v.B5 : "");
+      const inf = k => c ? (((c.info || []).find(p => p[0] === k) || [])[1] || "") : "";
+      const infoW = inf("Wind speed"), infoL = inf("Length x width") || (v.B11 && v.B12 ? `${v.B11}' x ${v.B12}'` : ""), infoH = inf("Mean roof height") || (v.B10 ? v.B10 + " ft" : "");
+      // short summaries on the closed input sections
+      const sumOf = (d, txt) => { const s = d.querySelector("[data-sum]"), need = d.querySelectorAll("label.f.need").length;
+        if(s) s.textContent = need ? need + " to fill in" : txt; d.dataset.done = (txt && !need) ? "1" : ""; d.dataset.need = need ? "1" : ""; };
+      sumOf(S1, [v.B7, infoW.replace(/ -.*$/, ""), v.B8 ? "Exp. " + v.B8 : ""].filter(Boolean).join(" · "));
+      sumOf(S2, [infoL, infoH].filter(Boolean).join(" · "));
+      sumOf(S3, [c && c.system || v.G6, c && c.deck || v.G7].filter(Boolean).join(" · "));
       if(!c){ right.innerHTML = card("Results", `<div class="ws-empty">Fill in the job, roof and assembly on the left. Results show here as you type.</div>`); return; }
       const info = k => ((c.info || []).find(p => p[0] === k) || [])[1] || "";
       const appr = info("Approval");
@@ -136,13 +149,8 @@
       if(A.length) html += card("Attachment", A.map(a=>`<div class="ws-row"><span>${esc(String(a[0]).replace(/ \(.*\)/, ""))}</span><b>${esc([a[3], a[5]].filter(x=>x && !/^n\/a/i.test(x)).join(" · ") || a[2] || "")}</b></div>`).join(""));
       const war = $("calcWar"), wr = war ? [...war.querySelectorAll("tr")].find(tr=>/^\s*System allowed/i.test((tr.cells[0]||{}).textContent||"")) : null, first = wr && wr.cells[1] ? wr.cells[1].textContent.trim() : "";
       if(first) html += card("Carlisle warranty", `<div class="ws-pill ${/^yes/i.test(first) ? "ok" : /^no/i.test(first) ? "bad" : "mid"}">${esc(first)}</div>`);
-      html += card("Roof", `<div class="ws-row"><span>Size</span><b>${esc(info("Length x width"))}</b></div><div class="ws-row"><span>Area</span><b>${esc(info("Total roof area"))}</b></div><div class="ws-row"><span>Height</span><b>${esc(info("Mean roof height"))}</b></div>`);
+      html += card("Roof", `<div class="ws-row"><span>Size</span><b>${esc(String(info("Length x width")).replace(/^From satellite outline,\s*A\s*([\d.]+)'?,\s*B\s*([\d.]+)'?/i, "$1' x $2' outline"))}</b></div><div class="ws-row"><span>Area</span><b>${esc(info("Total roof area"))}</b></div><div class="ws-row"><span>Height</span><b>${esc(info("Mean roof height"))}</b></div>`);
       right.innerHTML = html;
-      // short summaries on the closed input sections
-      const sumOf = (d, txt) => { const s = d.querySelector("[data-sum]"); if(s) s.textContent = txt; d.dataset.done = txt ? "1" : ""; };
-      sumOf(S1, [v.B7, info("Wind speed").replace(/ -.*$/, ""), v.B8 ? "Exp. " + v.B8 : ""].filter(Boolean).join(" · "));
-      sumOf(S2, [info("Length x width"), info("Mean roof height")].filter(Boolean).join(" · "));
-      sumOf(S3, [c.system, c.deck].filter(Boolean).join(" · "));
     }
     let t = null; const later = ()=>{ clearTimeout(t); t = setTimeout(results, 250); };
     const mo = new MutationObserver(later); [mid, left].forEach(n=>mo.observe(n, {subtree:true, childList:true, characterData:true}));   // never the right panel itself
