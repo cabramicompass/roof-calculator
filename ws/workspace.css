@@ -1,0 +1,86 @@
+/* Workspace view: top bar, inputs on the left, one big tabbed view in the middle, results on the right.
+   Only active when <body> has class "ws"; the classic layout is untouched otherwise. */
+body.ws{background:#EEF2F7;margin:0;overflow:hidden}
+body.ws .wrap{max-width:none;margin:0;padding:0}
+body.ws .wrap > header, body.ws .ptabs{display:none}
+.ws-top{height:60px;box-sizing:border-box;background:#fff;border-bottom:1px solid #D9E1EA;display:flex;align-items:center;gap:14px;padding:0 18px;font-family:Inter,system-ui,sans-serif}
+.ws-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;color:#1F2A36;white-space:nowrap}
+.ws-mark{width:32px;height:32px;border-radius:8px;background:#0B4F9C;display:flex;align-items:center;justify-content:center}
+.ws-sep{width:1px;height:28px;background:#D9E1EA}
+.ws-job{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+.ws-job b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px}
+.ws-job span{font-size:12px;color:#5B6B7C}
+.ws-seg{display:flex;gap:4px;background:#F1F4F8;border-radius:8px;padding:4px}
+.ws-seg button{border:0;border-radius:6px;background:transparent;font:inherit;font-size:13px;padding:7px 12px;color:#5B6B7C;cursor:pointer}
+.ws-seg button.on{background:#fff;color:#1F2A36;font-weight:600;box-shadow:0 1px 2px rgba(15,30,50,.15)}
+.ws-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.ws-btn{height:40px;padding:0 14px;border-radius:8px;border:1px solid #D9E1EA;background:#fff;font:inherit;font-size:14px;font-weight:600;color:#1F2A36;cursor:pointer;white-space:nowrap}
+.ws-btn.primary{background:#0B4F9C;border-color:#0B4F9C;color:#fff}
+.ws-more{position:relative}
+.ws-menu{position:absolute;right:0;top:46px;background:#fff;border:1px solid #D9E1EA;border-radius:10px;box-shadow:0 10px 30px rgba(15,30,50,.15);padding:6px;min-width:250px;z-index:50}
+.ws-menu button,.ws-menu a{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;font-size:14px;padding:9px 10px;border-radius:6px;color:#1F2A36;cursor:pointer;text-decoration:none;box-sizing:border-box}
+.ws-menu button:hover,.ws-menu a:hover{background:#F1F4F8}
+.ws-menu small{display:block;color:#5B6B7C;font-size:12px;padding:6px 10px 2px}
+
+.ws-body{height:calc(100vh - 60px);box-sizing:border-box;display:grid;grid-template-columns:340px minmax(0,1fr) 320px;gap:14px;padding:14px}
+.ws-panel{background:#fff;border:1px solid #D9E1EA;border-radius:12px;min-height:0;overflow:auto}
+.ws-left{padding:12px}
+.ws-left .ws-h,.ws-right .ws-h{font-size:12px;font-weight:600;color:#5B6B7C;letter-spacing:.04em;text-transform:uppercase;margin:6px 4px 8px}
+.ws-left details.ws-sec{border:1px solid #E4E9EF;border-radius:10px;margin:0 0 10px;background:#fff}
+.ws-left details.ws-sec > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:11px 12px;font-weight:600;font-size:14px}
+.ws-left details.ws-sec > summary::-webkit-details-marker{display:none}
+.ws-left details.ws-sec > summary .n{width:22px;height:22px;border-radius:11px;background:#0B4F9C;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none}
+.ws-left details.ws-sec[data-done="1"] > summary .n{background:#1D7A35}
+.ws-left details.ws-sec > summary .s{display:block;font-weight:400;font-size:12px;color:#5B6B7C;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:230px}
+.ws-left details.ws-sec > summary .t{min-width:0}
+.ws-left details.ws-sec[open] > summary{border-bottom:1px solid #E4E9EF;background:#F7F9FC;border-radius:10px 10px 0 0}
+.ws-left details.ws-sec > .ws-in{padding:10px 12px}
+body.ws .ws-left .cset{border:0;padding:0;margin:0}
+body.ws .ws-left .cset > legend{display:none}
+body.ws .ws-left .cfields{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+body.ws .ws-left .ctools{display:flex;flex-direction:column;gap:8px;margin:0 0 10px}
+body.ws .ws-left .ctbtn{display:flex;gap:6px;flex-wrap:wrap}
+body.ws .ws-left .ctbtn button{font-size:12px;padding:6px 8px}
+
+.ws-mid{display:flex;flex-direction:column;overflow:hidden}
+.ws-tabs{display:flex;gap:4px;padding:10px 12px;border-bottom:1px solid #E4E9EF;flex-wrap:wrap;align-items:center}
+.ws-tabs button{border:0;background:transparent;border-radius:8px;padding:8px 14px;font:inherit;font-size:14px;color:#5B6B7C;cursor:pointer}
+.ws-tabs button.on{background:#E8F0FA;color:#0B4F9C;font-weight:600}
+.ws-status{padding:0 14px}
+.ws-status:empty{display:none}
+.ws-view{flex:1;overflow:auto;padding:14px;background:#F7F9FC}
+.ws-view > [data-v]{display:none}
+.ws-view > [data-v].on{display:block}
+body.ws .ws-view .cplan{margin:0}
+body.ws .ws-view details.geo{border:0;padding:0;background:none;margin:0}
+body.ws .ws-view details.geo > summary{display:none}
+
+.ws-right{padding:12px;display:flex;flex-direction:column;gap:12px;background:transparent;border:0}
+.ws-card{background:#fff;border:1px solid #D9E1EA;border-radius:12px;padding:14px}
+.ws-big{font-size:22px;font-weight:700;margin-top:4px;color:#1F2A36}
+.ws-sub{font-size:13px;color:#5B6B7C}
+.ws-zones{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ws-zone{border-radius:8px;padding:9px 10px}
+.ws-zone div:first-child{font-size:12px;color:#33404D}
+.ws-zone div:last-child{font-size:20px;font-weight:700;color:#1F2A36}
+.ws-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:5px 0;border-bottom:1px solid #EEF2F7}
+.ws-row:last-child{border-bottom:0}
+.ws-row b{text-align:right}
+.ws-pill{margin-top:8px;padding:8px 10px;border-radius:8px;font-size:13px;font-weight:600}
+.ws-pill.ok{background:#E9F6EC;color:#1D5E2E}
+.ws-pill.bad{background:#FDECEA;color:#9B1C1C}
+.ws-pill.mid{background:#FFF4E0;color:#7A4B00}
+.ws-empty{color:#5B6B7C;font-size:13px}
+
+body.ws section.step[data-ptab="3"]{max-width:1100px;margin:14px auto;background:#fff;border-radius:12px}
+body.ws.ws-sub3{overflow:auto}
+body.ws.ws-sub3 .ws-body{display:none}
+
+.ws-switch{position:fixed;right:16px;bottom:16px;z-index:60;height:42px;padding:0 16px;border-radius:21px;border:0;background:#0B4F9C;color:#fff;font:600 14px Inter,system-ui,sans-serif;box-shadow:0 6px 18px rgba(11,79,156,.35);cursor:pointer}
+
+@media (max-width:1100px){
+  body.ws{overflow:auto}
+  .ws-body{height:auto;grid-template-columns:1fr}
+  .ws-mid{min-height:70vh}
+  .ws-job b{max-width:180px}
+}

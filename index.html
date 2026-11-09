@@ -356,6 +356,8 @@ table.kv td.t-ok{color:var(--ok);font-weight:700} table.kv td.t-warn{color:var(-
 <script charset="utf-8" src="vendor/xlsx.full.min.js"></script>
 <script charset="utf-8" src="vendor/pdf-lib.min.js"></script>
 <link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="ws/workspace.css">
+<script src="ws/workspace.js"></script>
 <script src="vendor/leaflet.js"></script>
 <link rel="stylesheet" href="vendor/leaflet-geoman.css">
 <script src="vendor/leaflet-geoman.min.js"></script>
@@ -2220,8 +2222,9 @@ function calcRenderForm(){
   $("calcRoof").innerHTML = ROOF_F.filter(f=>SIZE_A.includes(f.a)).map(f=>fieldHTML(f, r.v[f.a]??"", "roof")).join("");
   $("calcAsmIn").innerHTML = JOB_F.filter(f=>f.a==="G14").map(f=>fieldHTML(Object.assign({}, f, {label:"Approval source"}), CALC.job[f.a]??"", "job")).join("")
     + ROOF_F.filter(f=>!SIZE_A.includes(f.a)).map(f=>fieldHTML(f, r.v[f.a]??"", "roof")).join("");
-  $("calcUI").querySelectorAll(".fq").forEach(b=>b.onclick=e=>{ e.preventDefault(); e.stopPropagation(); const h = b.closest("label").querySelector(".fhint"); if(!h) return; h.hidden = !h.hidden; b.setAttribute("aria-expanded", String(!h.hidden)); b.classList.toggle("on", !h.hidden); });
-  $("calcUI").querySelectorAll("[data-s]").forEach(el=>{
+  const calcFields = sel => ["calcJob","calcRoof","calcAsmIn"].flatMap(id=>[...$(id).querySelectorAll(sel)]);   // the input groups, wherever the page layout puts them
+  calcFields(".fq").forEach(b=>b.onclick=e=>{ e.preventDefault(); e.stopPropagation(); const h = b.closest("label").querySelector(".fhint"); if(!h) return; h.hidden = !h.hidden; b.setAttribute("aria-expanded", String(!h.hidden)); b.classList.toggle("on", !h.hidden); });
+  calcFields("[data-s]").forEach(el=>{
     const ev = el.tagName==="SELECT" ? "change" : "input";
     el.addEventListener(ev, ()=>{
       const a = el.dataset.a; let v = el.value;
