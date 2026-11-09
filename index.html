@@ -356,8 +356,8 @@ table.kv td.t-ok{color:var(--ok);font-weight:700} table.kv td.t-warn{color:var(-
 <script charset="utf-8" src="vendor/xlsx.full.min.js"></script>
 <script charset="utf-8" src="vendor/pdf-lib.min.js"></script>
 <link rel="stylesheet" href="vendor/leaflet.css">
-<link rel="stylesheet" href="ws/workspace.css?v=1794250631">
-<script src="ws/workspace.js?v=1794250631"></script>
+<link rel="stylesheet" href="ws/workspace.css?v=1794251294">
+<script src="ws/workspace.js?v=1794251294"></script>
 <script src="vendor/leaflet.js"></script>
 <link rel="stylesheet" href="vendor/leaflet-geoman.css">
 <script src="vendor/leaflet-geoman.min.js"></script>
@@ -2097,11 +2097,51 @@ function geoMap(){
   addTiles();
   GEO.layer = L.layerGroup().addTo(m);
   if(m.pm){ m.pm.setGlobalOptions({snappable:true, snapDistance:12, allowSelfIntersection:false});
-    m.on("pm:create", e=>{ const pts = e.layer.getLatLngs()[0].map(UL); m.removeLayer(e.layer); geoSetDrawn(pts); }); }
+    m.on("pm:create", e=>{ let pts = e.layer.getLatLngs()[0].map(UL); m.removeLayer(e.layer); const sq = geoSquare(pts); if(sq) pts = sq; geoSetDrawn(pts, !!sq); });
+    m.on("pm:drawstart", ()=>{ m.off("mousemove", geoSnapMove); m.on("mousemove", geoSnapMove); });   // after Geoman's own handler, so this one wins
+    m.on("pm:drawend", ()=>m.off("mousemove", geoSnapMove)); }
   GEO.map = m; return m;
 }
-function geoSetDrawn(pts){
-  const b = {h:-1, pts, drawn:true, d:0}; GEO.cands = GEO.cands.filter(c=>!c.drawn); GEO.cands.unshift(b); GEO.pick = 0; GEO.edit = true; geoRender();
+/* Square corners. While drawing, each new side locks to 90 degrees from the first side when it is within 15 degrees,
+   and lines up with earlier corners so the shape closes square. Hold Alt to draw free. Works in screen pixels
+   (the map projection keeps angles true). */
+function geoSnapMove(e){
+  const m = GEO.map, d = m && m.pm && m.pm.Draw && m.pm.Draw.Polygon; if(!d || !d._enabled || !d._layer || !d._hintMarker) return;
+  if(e.originalEvent && e.originalEvent.altKey) return;
+  const ll = d._layer.getLatLngs(); if(ll.length < 2) return;
+  const P = ll.map(x=>m.latLngToLayerPoint(x)), p = P[P.length-1], q = m.latLngToLayerPoint(e.latlng);
+  if(d._hintMarker._snapped) return;   // Geoman already snapped to a corner or an outline
+  const t = Math.atan2(P[1].y - P[0].y, P[1].x - P[0].x), c = Math.cos(t), s = Math.sin(t);
+  const rot = v => ({x: v.x*c + v.y*s, y: -v.x*s + v.y*c}), unrot = v => L.point(v.x*c - v.y*s, v.x*s + v.y*c);
+  const pr = rot(p), u = rot(q), dx = u.x - pr.x, dy = u.y - pr.y; if(Math.hypot(dx, dy) < 8) return;
+  const a = Math.atan2(dy, dx), k = Math.round(a / (Math.PI/2)); if(Math.abs(a - k*Math.PI/2) > 15 * Math.PI/180) return;
+  const alongX = k % 2 === 0; let r = alongX ? {x:u.x, y:pr.y} : {x:pr.x, y:u.y};
+  const tol = 10; let best = tol;   // line up with an earlier corner (the first one most of all) so the last side closes square
+  P.slice(0, -1).forEach((v, i)=>{ const vr = rot(v), dd = alongX ? Math.abs(vr.x - r.x) : Math.abs(vr.y - r.y); if(dd < best || (i === 0 && dd < tol)){ best = dd; r = alongX ? {x:vr.x, y:r.y} : {x:r.x, y:vr.y}; } });
+  d._hintMarker.setLatLng(m.layerPointToLatLng(unrot(r))); d._hintMarker._snapped = true;
+}
+/* Square up an outline: sides within 20 degrees of square (to the longest side) are set exactly square,
+   corners are where neighboring sides meet. Returns null when the shape is not mostly square. */
+function geoSquare(pts){
+  if(!pts || pts.length < 4) return null;
+  const lat0 = pts[0][1], lon0 = pts[0][0], kx = 364567 * Math.cos(lat0 * Math.PI/180), ky = 364567;
+  let P = pts.map(p=>[(p[0]-lon0)*kx, (p[1]-lat0)*ky]);
+  if(Math.hypot(P[0][0]-P[P.length-1][0], P[0][1]-P[P.length-1][1]) < 0.01) P = P.slice(0, -1);
+  const n = P.length; if(n < 4) return null;
+  const E = P.map((p,i)=>{ const q = P[(i+1)%n]; return {p, q, L:Math.hypot(q[0]-p[0], q[1]-p[1]), a:Math.atan2(q[1]-p[1], q[0]-p[0])}; });
+  const t0 = E.reduce((a,b)=>b.L > a.L ? b : a).a, H = Math.PI/2, lim = 20 * Math.PI/180;
+  for(const e of E){ const k = Math.round((e.a - t0) / H), off = e.a - t0 - k*H; if(Math.abs(off) > lim) return null; e.k = ((k % 4) + 4) % 4; e.d = t0 + k*H; e.m = [(e.p[0]+e.q[0])/2, (e.p[1]+e.q[1])/2]; }
+  const S = []; for(const e of E){ const last = S[S.length-1]; if(last && last.k === e.k){ last.m = [(last.m[0]*last.L + e.m[0]*e.L)/(last.L+e.L), (last.m[1]*last.L + e.m[1]*e.L)/(last.L+e.L)]; last.L += e.L; } else S.push({...e}); }
+  if(S.length > 1 && S[0].k === S[S.length-1].k){ const a = S.pop(), b = S[0]; b.m = [(a.m[0]*a.L + b.m[0]*b.L)/(a.L+b.L), (a.m[1]*a.L + b.m[1]*b.L)/(a.L+b.L)]; b.L += a.L; }
+  if(S.length < 4 || S.length % 2) return null;
+  for(let i = 0; i < S.length; i++) if(S[i].k % 2 === S[(i+1)%S.length].k % 2) return null;   // sides must alternate direction
+  const out = S.map((e,i)=>{ const f = S[(i+1)%S.length], d1 = [Math.cos(e.d), Math.sin(e.d)], d2 = [Math.cos(f.d), Math.sin(f.d)];
+    const den = d1[0]*d2[1] - d1[1]*d2[0], w = [f.m[0]-e.m[0], f.m[1]-e.m[1]], s1 = (w[0]*d2[1] - w[1]*d2[0]) / den;
+    return [e.m[0] + s1*d1[0], e.m[1] + s1*d1[1]]; });
+  const res = out.map(p=>[lon0 + p[0]/kx, lat0 + p[1]/ky]); res.push(res[0].slice()); return res;
+}
+function geoSetDrawn(pts, squared){
+  const b = {h:-1, pts, drawn:true, d:0, squared}; GEO.cands = GEO.cands.filter(c=>!c.drawn); GEO.cands.unshift(b); GEO.pick = 0; GEO.edit = true; geoRender();
 }
 function geoMapSync(slot){
   const m = geoMap(); if(!m){ slot.innerHTML = `<p class="status err">The map didn't load. Reload the page.</p>`; return; }
@@ -2122,7 +2162,7 @@ function geoMapSync(slot){
 }
 function geoInfoHtml(){
   const r = CALC.roofs[CALC.active] || {v:{}}, b = GEO.cands[GEO.pick], o = b ? geoOutline(b) : null; if(!o) return "";
-  const src = b.drawn ? "Outline drawn on the photo." : b.edited ? "Outline adjusted on the photo." : "Outline is the building footprint, so overhangs are not included and a high roof and low roof show as one shape.";
+  const src = (b.drawn ? "Outline drawn on the photo." : b.edited ? "Outline adjusted on the photo." : "") ? ((b.drawn ? "Outline drawn on the photo." : "Outline adjusted on the photo.") + (b.squared ? " Corners squared to 90 degrees." : "")) : b.edited ? "Outline adjusted on the photo." : "Outline is the building footprint, so overhangs are not included and a high roof and low roof show as one shape.";
   return `<p class="geoinfo"><b>${o.X}' x ${o.Y}'</b> overall, ${Math.round(o.area).toLocaleString()} sf, ${o.rect ? "rectangle" : o.P.length + " corners"}${b.h > 0 ? `. Height estimate ${Math.round(b.h*3.28084)} ft (estimate from imagery, rough; enter the real mean roof height).` : "."} ${src}</p>
      <p class="geobtns"><button type="button" id="geoUse" class="primary">Use this outline for ${esc(r.v.B5 || "this roof")}</button>${GEO.prop && GEO.prop.length > 1 ? `<button type="button" id="geoUseAll">Add all ${GEO.prop.length} buildings as separate roofs</button>` : ""}</p>`;
 }
@@ -2134,8 +2174,8 @@ function geoHtml(){
     const drawing = GEO.map && GEO.map.pm && GEO.map.pm.globalDrawModeEnabled();
     map = `<div id="geoMapSlot" class="geomapslot"></div>
       <div class="geotools">${drawing
-        ? `<span class="geodrawhint">Click each roof corner on the photo. Click the first corner again to finish.</span><button type="button" id="geoCancel">Cancel</button>`
-        : `<button type="button" id="geoDraw">Draw my own outline</button>${GEO.cands[GEO.pick] ? `<button type="button" id="geoEdit">${GEO.edit ? "Done adjusting" : "Adjust corners"}</button>` : ""}
+        ? `<span class="geodrawhint">Click each roof corner on the photo. Sides lock square (hold Alt to draw free). Click the first corner again to finish.</span><button type="button" id="geoCancel">Cancel</button>`
+        : `<button type="button" id="geoDraw">Draw my own outline</button>${GEO.cands[GEO.pick] ? `<button type="button" id="geoEdit">${GEO.edit ? "Done adjusting" : "Adjust corners"}</button><button type="button" id="geoSq" title="Make every corner exactly 90 degrees">Square corners</button>` : ""}
            <span class="hint">${GEO.edit ? "Drag the white corner dots to fix the outline. Drag a middle dot to add a corner; right click a corner to remove it." : "Building missing or outline wrong? Draw or adjust it on the photo; the scale is automatic."}</span>`}</div>
       <p class="hint">Scroll or pinch to zoom, drag to move. Click an outline to pick it.</p>`;
   }
@@ -2162,6 +2202,9 @@ function geoRender(){
   if($("geoDraw")) $("geoDraw").onclick = ()=>{ GEO.edit = false; GEO.map.pm.enableDraw("Polygon", {snappable:true, continueDrawing:false}); geoRender(); };
   if($("geoCancel")) $("geoCancel").onclick = ()=>{ GEO.map.pm.disableDraw(); geoRender(); };
   if($("geoEdit")) $("geoEdit").onclick = ()=>{ GEO.edit = !GEO.edit; geoRender(); };
+  if($("geoSq")) $("geoSq").onclick = ()=>{ const b = GEO.cands[GEO.pick]; if(!b) return; const sq = geoSquare(b.pts);
+    if(sq){ b.pts = sq; b.edited = true; b.squared = true; GEO.msg = "Corners squared to 90 degrees."; } else GEO.msg = "Some sides are more than 20 degrees off square, so the outline was left as is. Adjust those corners first.";
+    geoRender(); };
   if($("geoUse")) $("geoUse").onclick = geoUse;
   if($("geoUseAll")) $("geoUseAll").onclick = geoUseAll;
 }
