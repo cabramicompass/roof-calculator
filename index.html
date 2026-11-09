@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="manifest" href="pwa/manifest.json"><meta name="theme-color" content="#0b4f9c"><link rel="apple-touch-icon" href="pwa/icon-192.png">
+<link rel="manifest" href="pwa/manifest.json?v=3"><meta name="theme-color" content="#0b4f9c"><link rel="icon" type="image/png" href="pwa/compass-192.png"><link rel="apple-touch-icon" href="pwa/compass-192.png">
 <script>if("serviceWorker" in navigator && location.protocol === "https:") window.addEventListener("load", ()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 <title>Roofing Artifact</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -356,8 +356,8 @@ table.kv td.t-ok{color:var(--ok);font-weight:700} table.kv td.t-warn{color:var(-
 <script charset="utf-8" src="vendor/xlsx.full.min.js"></script>
 <script charset="utf-8" src="vendor/pdf-lib.min.js"></script>
 <link rel="stylesheet" href="vendor/leaflet.css">
-<link rel="stylesheet" href="ws/workspace.css">
-<script src="ws/workspace.js"></script>
+<link rel="stylesheet" href="ws/workspace.css?v=1794250266">
+<script src="ws/workspace.js?v=1794250266"></script>
 <script src="vendor/leaflet.js"></script>
 <link rel="stylesheet" href="vendor/leaflet-geoman.css">
 <script src="vendor/leaflet-geoman.min.js"></script>
@@ -2000,6 +2000,38 @@ async function geoCounty(lat, lon){
     const best = Object.entries(seen).sort((a,b)=>b[1]-a[1])[0]; if(best) return FL_COUNTIES[+best[0] - 1] || ""; }
   return "";
 }
+/* Exposure from the map: shorelines of open water at least 5,000 ft across (ocean, bays, big lakes), built from
+   Overture water. Within 600 ft or 20 x roof height (whichever is greater) of that shoreline: D. Otherwise C.
+   B is never picked here: only when the user chooses it. ASCE 7-22 26.7.3. */
+const WATER = {};
+async function geoWater(qk){
+  if(WATER[qk] !== undefined) return WATER[qk];
+  let l = [];
+  try{ const t = new TextDecoder().decode(await fetchBytes("data/water/" + qk + ".txt")).trim(), bin = atob(t), u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i); l = (await gunzipJson(u)).l || []; }catch(e){ l = []; }   // no file: no open water near this tile
+  return WATER[qk] = l;
+}
+async function geoExposure(b){
+  const lat0 = b.pts[0][1], lon0 = b.pts[0][0], kx = 364567 * Math.cos(lat0 * Math.PI / 180), ky = 364567;   // feet per degree
+  const P = b.pts.map(p=>[(p[0]-lon0)*kx, (p[1]-lat0)*ky]);
+  const lines = await geoWater(geoQk(lon0, lat0, 10));
+  const r = CALC.roofs[CALC.active], hRoof = parseFloat(r && r.v.B10) || (b.h > 0 ? b.h * 3.28084 : 0);
+  const lim = Math.max(600, 20 * hRoof);
+  const segD = (p, a, c) => { const dx = c[0]-a[0], dy = c[1]-a[1], L = dx*dx + dy*dy, t = L ? Math.max(0, Math.min(1, ((p[0]-a[0])*dx + (p[1]-a[1])*dy) / L)) : 0; return Math.hypot(p[0]-a[0]-t*dx, p[1]-a[1]-t*dy); };
+  let best = Infinity;
+  for(const ln of lines){
+    let x = ln[0], y = ln[1]; const W = [[(x/1e6-lon0)*kx, (y/1e6-lat0)*ky]];
+    for(let i = 2; i < ln.length; i += 2){ x += ln[i]; y += ln[i+1]; W.push([(x/1e6-lon0)*kx, (y/1e6-lat0)*ky]); }
+    for(let i = 1; i < W.length; i++){ for(const p of P) best = Math.min(best, segD(p, W[i-1], W[i])); for(let k = 0; k < P.length; k++) best = Math.min(best, segD(W[i], P[k], P[(k+1) % P.length])); }
+  }
+  const near = best <= lim, ft = n => Math.round(n).toLocaleString("en-US");
+  return {cat: near ? "D" : "C", dist: best,
+    note: near ? `Exposure D: open water about ${ft(best)} ft away (within ${ft(lim)} ft, ASCE 7-22 26.7.3)`
+               : `Exposure C: no open water within ${ft(lim)} ft` + (best < 5280 ? ` (nearest about ${ft(best)} ft)` : "") + `. Pick B yourself if the site is surrounded by buildings or trees`};
+}
+function geoPickExposure(cat){
+  const el = $("cf-B8"); if(!el) return cat;
+  const o = [...el.options].find(o=>String(o.value || o.text).trim().toUpperCase().startsWith(cat)); return o ? (o.value || o.text) : "";
+}
 function geoPickOption(id, county){
   const el = $("cf-" + id); if(!el || !county) return "";
   const n = x => String(x||"").toLowerCase().replace(/county|\(.*?\)|saint/g, m=>m === "saint" ? "st" : "").replace(/[^a-z]/g, "");
@@ -2007,23 +2039,46 @@ function geoPickOption(id, county){
   const o = [...el.options].find(o=>n(o.text) === want) || [...el.options].find(o=>n(o.text).startsWith(want) || n(o.text) === alt || n(o.text).startsWith(alt));
   return o ? (o.value || o.text) : "";
 }
-async function geoUse(){
-  const b = GEO.cands[GEO.pick]; if(!b) return; const o = geoOutline(b), r = CALC.roofs[CALC.active];
+/* put one building's outline (and what the map knows about it) on a roof */
+function geoApplyRoof(r, b, name){
+  const o = geoOutline(b);
   r.v.SHAPE = o.rect ? "Rectangle" : SHAPE_SAT; if(o.rect) delete r.v.POLY; else r.v.POLY = JSON.stringify(o.P);
   r.v.B11 = String(o.X); r.v.B12 = String(o.Y);
-  // everything else the map knows fills in too: county, project name, roof name, an estimated height
+  const filled = [];
+  if(name && (!String(r.v.B5||"").trim() || r.v.B5auto)){ r.v.B5 = name; r.v.B5auto = "1"; filled.push("roof name"); }
+  const hFt = b.h > 0 ? Math.round(b.h * 3.28084) : 0;
+  if(hFt >= 8 && (!String(r.v.B10||"").trim() || r.v.B10est)){ r.v.B10 = String(hFt); r.v.B10est = "1"; filled.push("roof height " + hFt + " ft (estimate, check it)"); }
+  r.v.GEO = JSON.stringify({lat:+GEO.lat.toFixed(6), lon:+GEO.lon.toFixed(6), q:GEO.q});
+  return {o, filled};
+}
+/* job level facts from the map: county, project name, exposure (open water nearby) */
+async function geoApplyJob(b, all){
   const xs = b.pts.map(p=>p[0]), ys = b.pts.map(p=>p[1]), clat = (Math.min(...ys)+Math.max(...ys))/2, clon = (Math.min(...xs)+Math.max(...xs))/2;
   const county = await geoCounty(clat, clon), filled = [];
   const loc = geoPickOption("B7", county); if(loc && CALC.job.B7 !== loc){ CALC.job.B7 = loc; filled.push(county + " County"); }
   const addr = String(GEO.q || "").replace(/\s*·.*$/, "").trim();
   if(addr && !/^-?\d+\.\d+\s*,/.test(addr) && !String(CALC.job.B6||"").trim()){ CALC.job.B6 = addr.split(",")[0]; filled.push("project name"); }
-  if(GEO.useLabel && !String(r.v.B5||"").trim()){ r.v.B5 = GEO.useLabel; filled.push("roof name"); }
-  const hFt = b.h > 0 ? Math.round(b.h * 3.28084) : 0;
-  if(hFt >= 8 && !String(r.v.B10||"").trim()){ r.v.B10 = String(hFt); r.v.B10est = "1"; filled.push("roof height " + hFt + " ft (estimate, check it)"); }
-  r.v.GEO = JSON.stringify({lat:+GEO.lat.toFixed(6), lon:+GEO.lon.toFixed(6), q:GEO.q, county});
-  GEO.msg = `Used: ${o.X}' x ${o.Y}'` + (o.rect ? ", rectangle" : `, ${o.P.length} corners, zones follow the outline`) + (filled.length ? ". Also filled in: " + filled.join(", ") : "") + ". Check the size against the plans.";
+  if(!CALC.job.B8user){ try{ const exs = []; for(const x of (all || [b])) exs.push(await geoExposure(x)); const ex = exs.find(e=>e.cat === "D") || exs.sort((p,q)=>p.dist - q.dist)[0], opt = geoPickExposure(ex.cat); if(opt){ CALC.job.B8 = opt; filled.push(ex.note); } }catch(e){ console.warn(e); } }
+  return filled;
+}
+async function geoUse(){
+  const b = GEO.cands[GEO.pick]; if(!b) return; const r = CALC.roofs[CALC.active];
+  const {o, filled} = geoApplyRoof(r, b, GEO.useLabel || "");
+  const jf = await geoApplyJob(b);
+  GEO.msg = `Used: ${o.X}' x ${o.Y}'` + (o.rect ? ", rectangle" : `, ${o.P.length} corners, zones follow the outline`) + (jf.concat(filled).length ? ". Also filled in: " + jf.concat(filled).join(", ") : "") + ". Check the size against the plans.";
   calcRenderForm(); calcSchedule(true);
-  document.dispatchEvent(new CustomEvent("geo:used", {detail:{county, filled}}));
+  document.dispatchEvent(new CustomEvent("geo:used", {detail:{filled}}));
+}
+/* every building on the property becomes its own roof (largest first); the current roof's assembly is copied to the others */
+async function geoUseAll(){
+  const bs = (GEO.prop || []).slice().sort((a,b)=>geoArea(b) - geoArea(a)); if(bs.length < 2) return geoUse();
+  const base = CALC.roofs[CALC.active], name = GEO.useLabel || "Building", jf = await geoApplyJob(bs[0], bs);
+  bs.forEach((b, k)=>{ let r = base;
+    if(k > 0){ r = newRoof(base); r.v.B10 = ""; delete r.v.B10est; CALC.roofs.push(r); }
+    r.v.B5 = ""; geoApplyRoof(r, b, `${name} ${k + 1}`); });
+  GEO.msg = `Added ${bs.length} roofs, one per building (largest first)` + (jf.length ? ". Also filled in: " + jf.join(", ") : "") + ". Each roof copies this roof's assembly; check sizes and heights.";
+  calcRenderForm(); calcSchedule(true);
+  document.dispatchEvent(new CustomEvent("geo:used", {detail:{all:true}}));
 }
 /* ---------- the photo map: Leaflet (pan, wheel and pinch zoom) + Geoman (draw and edit outlines with draggable corners) ---------- */
 const LL = p => [p[1], p[0]];           // [lon, lat] -> Leaflet [lat, lng]
@@ -2066,9 +2121,9 @@ function geoInfoHtml(){
   const r = CALC.roofs[CALC.active] || {v:{}}, b = GEO.cands[GEO.pick], o = b ? geoOutline(b) : null; if(!o) return "";
   const src = b.drawn ? "Outline drawn on the photo." : b.edited ? "Outline adjusted on the photo." : "Outline is the building footprint, so overhangs are not included and a high roof and low roof show as one shape.";
   return `<p class="geoinfo"><b>${o.X}' x ${o.Y}'</b> overall, ${Math.round(o.area).toLocaleString()} sf, ${o.rect ? "rectangle" : o.P.length + " corners"}${b.h > 0 ? `. Height estimate ${Math.round(b.h*3.28084)} ft (estimate from imagery, rough; enter the real mean roof height).` : "."} ${src}</p>
-     <p><button type="button" id="geoUse" class="primary">Use this outline for ${esc(r.v.B5 || "this roof")}</button></p>`;
+     <p class="geobtns"><button type="button" id="geoUse" class="primary">Use this outline for ${esc(r.v.B5 || "this roof")}</button>${GEO.prop && GEO.prop.length > 1 ? `<button type="button" id="geoUseAll">Add all ${GEO.prop.length} buildings as separate roofs</button>` : ""}</p>`;
 }
-function geoInfo(){ const el = $("geoInfo"); if(!el) return; el.innerHTML = geoInfoHtml(); if($("geoUse")) $("geoUse").onclick = geoUse; }
+function geoInfo(){ const el = $("geoInfo"); if(!el) return; el.innerHTML = geoInfoHtml(); if($("geoUse")) $("geoUse").onclick = geoUse; if($("geoUseAll")) $("geoUseAll").onclick = geoUseAll; }
 function geoHtml(){
   const r = CALC.roofs[CALC.active] || {v:{}};
   let map = "";
@@ -2105,6 +2160,7 @@ function geoRender(){
   if($("geoCancel")) $("geoCancel").onclick = ()=>{ GEO.map.pm.disableDraw(); geoRender(); };
   if($("geoEdit")) $("geoEdit").onclick = ()=>{ GEO.edit = !GEO.edit; geoRender(); };
   if($("geoUse")) $("geoUse").onclick = geoUse;
+  if($("geoUseAll")) $("geoUseAll").onclick = geoUseAll;
 }
 
 /* ---------- built-in wind uplift calculator (runs the Excel calculator's own formulas) ---------- */
@@ -2261,6 +2317,7 @@ function calcRenderForm(){
     el.addEventListener(ev, ()=>{
       const a = el.dataset.a; let v = el.value;
       if(el.dataset.s==="job") CALC.job[a] = v; else CALC.roofs[CALC.active].v[a] = v;
+      if(el.dataset.s==="job"){ if(a==="B8") CALC.job.B8user = "1"; } else { const rv0 = CALC.roofs[CALC.active].v; if(a==="B5") delete rv0.B5auto; if(a==="B10") delete rv0.B10est; }
       { const rv = CALC.roofs[CALC.active].v, FAx = /Adhered/i.test(rv.G6||""), pick = (id, re) => { const e2 = $("cf-"+id); const o = e2 && [...e2.options].find(x=>re.test(x.value||x.text)); if(o){ rv[id] = o.value || o.text; e2.value = rv[id]; } };
         if(a==="F11" && FAx){ if(/^None/i.test(v)) pick("G11", /^None/i); else if(/^None/i.test(rv.G11||"")) pick("G11", /^Adhered/i); }
         if(a==="G11" && /^None/i.test(v)) pick("F11", /^None/i);
