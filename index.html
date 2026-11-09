@@ -1602,8 +1602,8 @@ function trSnap(x, y, R){
 }
 async function trPdfjs(){
   if(window.pdfjsLib) return window.pdfjsLib;
-  await new Promise((res, rej)=>{ const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"; s.onload = res; s.onerror = ()=>rej(new Error("Couldn't load the PDF reader")); document.head.appendChild(s); });
-  window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  await new Promise((res, rej)=>{ const s = document.createElement("script"); s.src = "vendor/pdf.min.js"; s.onload = res; s.onerror = ()=>rej(new Error("Couldn't load the PDF reader")); document.head.appendChild(s); });
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = "vendor/pdf.worker.min.js";
   return window.pdfjsLib;
 }
 async function trLoad(file, page){
