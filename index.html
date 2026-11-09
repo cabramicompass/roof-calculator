@@ -356,8 +356,8 @@ table.kv td.t-ok{color:var(--ok);font-weight:700} table.kv td.t-warn{color:var(-
 <script charset="utf-8" src="vendor/xlsx.full.min.js"></script>
 <script charset="utf-8" src="vendor/pdf-lib.min.js"></script>
 <link rel="stylesheet" href="vendor/leaflet.css">
-<link rel="stylesheet" href="ws/workspace.css?v=1794253140">
-<script src="ws/workspace.js?v=1794253140"></script>
+<link rel="stylesheet" href="ws/workspace.css?v=1794253389">
+<script src="ws/workspace.js?v=1794253389"></script>
 <script src="vendor/leaflet.js"></script>
 <link rel="stylesheet" href="vendor/leaflet-geoman.css">
 <script src="vendor/leaflet-geoman.min.js"></script>
@@ -3038,7 +3038,15 @@ function sheetPlan(c, opt){
   const zoneHere = (u, v) => { if(!exact) return inside(u, v) ? zoneAt(u, v) : -1; const x = flutesAlongL ? u : v, y = flutesAlongL ? v : u; const z = exact(x, y); return z == null ? -1 : Math.max(0, Math.min(3, z)); };
   const inside = (u, v) => { if(!c.poly) return true; const x = flutesAlongL ? u : v, y = flutesAlongL ? v : u; if(typeof inPoly === "function") return inPoly(x, y, c.poly); /* exact outline, not the zone grid */ const ci = Math.min(g.nc-1, Math.max(0, Math.floor(x/L*g.nc))), ri = Math.min(g.nr-1, Math.max(0, Math.floor(y/W*g.nr))); return g.cells[ri][ci] != null; };
   // stretches along v (at a given u) that are on the roof; a rectangle is one stretch 0..V
-  const runs = (u) => { if(!c.poly) return [[0, V]]; const st = Math.max(0.25, V/400), out = []; let s0 = null; for(let v=0; v<=V+1e-9; v+=st){ const inn = v < V && inside(u, v + st/2); if(inn && s0===null) s0 = v; if(!inn && s0!==null){ out.push([s0, Math.min(v, V)]); s0 = null; } } if(s0!==null) out.push([s0, V]); return out; };   // a stretch that reaches the far edge still counts
+  const runs = (u) => { if(!c.poly) return [[0, V]]; const st = Math.max(0.25, V/400), out = []; let s0 = null;
+    // the roof edge between two samples is found to 0.01 ft, so sheet ends sit on the real outline
+    const edge = (lo, hi, inAtLo) => { for(let k=0; k<20 && hi - lo > 0.01; k++){ const m = (lo + hi)/2; if(inside(u, m) === inAtLo) lo = m; else hi = m; } return (lo + hi)/2; };
+    let prev = null;
+    for(let v=0; v<=V+1e-9; v+=st){ const vm = v + st/2, inn = v < V && inside(u, vm);
+      if(inn && s0===null) s0 = prev === null ? 0 : edge(prev, vm, false);
+      if(!inn && s0!==null){ out.push([s0, v < V ? edge(prev, Math.min(vm, V), true) : V]); s0 = null; }
+      prev = vm; }
+    if(s0!==null) out.push([s0, V]); return out.map(([a0, a1])=>[Math.max(0, +a0.toFixed(2)), Math.min(V, +a1.toFixed(2))]).filter(([a0, a1])=>a1 - a0 > 0.05); };   // a stretch that reaches the far edge still counts
   const minStrip = 3;   // a leftover under 3 ft is split with its neighbour into two equal cut sheets
   const adhW = parseFloat(opt.adhSheet) || 0;
   const fieldW = FA && adhW ? adhW : (Z[0].sheet || Z[1].sheet || 10);

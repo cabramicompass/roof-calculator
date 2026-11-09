@@ -50,6 +50,7 @@ for (const [job, inputs] of Object.entries(JOBS)) {
     try { const p = sheetPlan(c, c.planOpt || {}); if (!p) throw new Error("flute direction not entered");
       out.zoneSheets = [0,1,2,3].map(i => zoneSheet(p, i));
       out.strips = p.strips.map(s => [+s.u0.toFixed(1), +s.w.toFixed(2), s.perim ? 1 : 0, (s.segs || []).map(r => r.map(v => +v.toFixed(1)))]);
+      out.fingers = p.rows.filter(r => r.extra).map(r => [+r.u.toFixed(1), +r.v0.toFixed(1), +r.v1.toFixed(1), r.z]);
       out.emptyStrips = p.strips.filter(s => !(s.segs || [[0,1]]).length).length;
       out.legend = planLegend(p);
     } catch (e) { out.plan = "not drawn: " + (e.message || e); }
