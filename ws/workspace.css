@@ -98,3 +98,4 @@ body.ws .ws-left .xspec select{font-size:13px;padding:5px 8px}
 .ws-find{width:100%;margin:0 0 10px;height:38px;font-size:13px;border-color:#B9D0EC;background:#E8F0FA;color:#0B4F9C}
 .ws-left details.ws-sec[data-need="1"] > summary .n{background:#B45309}
 .ws-left details.ws-sec[data-need="1"] > summary .s{color:#B45309;font-weight:600}
+.geobtns{display:flex;gap:8px;flex-wrap:wrap}

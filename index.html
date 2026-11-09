@@ -356,8 +356,8 @@ table.kv td.t-ok{color:var(--ok);font-weight:700} table.kv td.t-warn{color:var(-
 <script charset="utf-8" src="vendor/xlsx.full.min.js"></script>
 <script charset="utf-8" src="vendor/pdf-lib.min.js"></script>
 <link rel="stylesheet" href="vendor/leaflet.css">
-<link rel="stylesheet" href="ws/workspace.css?v=1794250266">
-<script src="ws/workspace.js?v=1794250266"></script>
+<link rel="stylesheet" href="ws/workspace.css?v=1794250631">
+<script src="ws/workspace.js?v=1794250631"></script>
 <script src="vendor/leaflet.js"></script>
 <link rel="stylesheet" href="vendor/leaflet-geoman.css">
 <script src="vendor/leaflet-geoman.min.js"></script>
@@ -2036,6 +2036,8 @@ function geoPickOption(id, county){
   const el = $("cf-" + id); if(!el || !county) return "";
   const n = x => String(x||"").toLowerCase().replace(/county|\(.*?\)|saint/g, m=>m === "saint" ? "st" : "").replace(/[^a-z]/g, "");
   const want = n(county), alt = want === "miamidade" ? "dade" : want;
+  const REG = {brevard:/space|melbourne/i, indianriver:/treasure/i, stlucie:/treasure/i, martin:/treasure/i, monroe:/keys/i};
+  if(REG[want]){ const r = [...el.options].find(o=>REG[want].test(o.text)); if(r) return r.value || r.text; }
   const o = [...el.options].find(o=>n(o.text) === want) || [...el.options].find(o=>n(o.text).startsWith(want) || n(o.text) === alt || n(o.text).startsWith(alt));
   return o ? (o.value || o.text) : "";
 }
@@ -2056,6 +2058,7 @@ async function geoApplyJob(b, all){
   const xs = b.pts.map(p=>p[0]), ys = b.pts.map(p=>p[1]), clat = (Math.min(...ys)+Math.max(...ys))/2, clon = (Math.min(...xs)+Math.max(...xs))/2;
   const county = await geoCounty(clat, clon), filled = [];
   const loc = geoPickOption("B7", county); if(loc && CALC.job.B7 !== loc){ CALC.job.B7 = loc; filled.push(county + " County"); }
+  else if(county && !loc) filled.push(`${county} County is not in the Location list yet, so Location was left as is`);
   const addr = String(GEO.q || "").replace(/\s*·.*$/, "").trim();
   if(addr && !/^-?\d+\.\d+\s*,/.test(addr) && !String(CALC.job.B6||"").trim()){ CALC.job.B6 = addr.split(",")[0]; filled.push("project name"); }
   if(!CALC.job.B8user){ try{ const exs = []; for(const x of (all || [b])) exs.push(await geoExposure(x)); const ex = exs.find(e=>e.cat === "D") || exs.sort((p,q)=>p.dist - q.dist)[0], opt = geoPickExposure(ex.cat); if(opt){ CALC.job.B8 = opt; filled.push(ex.note); } }catch(e){ console.warn(e); } }
