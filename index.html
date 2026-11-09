@@ -1,5 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="pwa/manifest.json"><meta name="theme-color" content="#0b4f9c"><link rel="apple-touch-icon" href="pwa/icon-192.png">
+<script>if("serviceWorker" in navigator && location.protocol === "https:") window.addEventListener("load", ()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 <title>Roofing Artifact</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -246,6 +248,7 @@ table.kv td.t-ok{color:var(--ok);font-weight:700} table.kv td.t-warn{color:var(-
   <div class="eyebrow">Compass Sales Group · Carlisle SynTec</div>
   <h1>Roofing Artifact</h1>
   <p>Enter the job in the calculator. The tool finds the approval, picks the matching Carlisle product and safety data sheets, fills the assembly letter request, and builds one PDF with a cover, table of contents, letters and the roof project summary.</p>
+  <p class="hint">Something wrong or not working? <a href="https://github.com/cabramicompass/roof-calculator/issues/new?template=problem.md" target="_blank" rel="noopener">Report a problem</a> (free GitHub account needed) or tell Christian.</p>
 </header>
 <nav class="ptabs" role="tablist" aria-label="Sections">
   <button type="button" role="tab" data-go="1" class="on">1 · Roof calculator and approval</button>
