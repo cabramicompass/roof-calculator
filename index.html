@@ -1,3 +1,5 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Roofing Artifact</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -107,6 +109,8 @@ details.alr .dr-actions button{padding:6px 10px;font-size:12.5px}
 .geomap svg{position:absolute;left:0;top:0}.geomap polygon{fill:rgba(255,255,255,.08);stroke:#ffd34d;stroke-width:1.4;cursor:pointer}.geomap polygon.prop{stroke:#5fe08a;stroke-width:2}.geomap polygon.on{fill:rgba(11,79,156,.28);stroke:#4fb3ff;stroke-width:2.6}
 .geomap .pin{fill:#e0393b;stroke:#fff;stroke-width:1.5;pointer-events:none}.geoattr{position:absolute;right:0;bottom:0;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:1px 5px}
 .geoinfo{margin:6px 0}
+.geomap{touch-action:none;cursor:grab}.geomap svg{overflow:visible}.geomap polyline.drawl{fill:rgba(255,64,64,.15);stroke:#ff5a5a;stroke-width:2;pointer-events:none}.geomap circle.drawp{fill:#fff;stroke:#ff5a5a;stroke-width:2;pointer-events:none}
+.geotools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:4px 0}.geotools .hint{margin:0}.geozoom{margin-left:auto;display:flex;gap:4px}.geozoom button{width:34px;font-size:18px;line-height:1}.geodrawhint{font-weight:600;color:#c0392b}
 .geoin{position:relative;flex:1;min-width:220px}.geoin input{width:100%}
 .geosug{position:absolute;left:0;right:0;top:100%;z-index:30;background:var(--panel);border:1px solid var(--line);border-radius:0 0 6px 6px;box-shadow:0 6px 18px rgba(0,0,0,.15);max-height:260px;overflow:auto}
 .geosug button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:7px 10px;cursor:pointer;color:var(--ink);font:inherit}
@@ -1930,6 +1934,7 @@ async function geoGeocode(q){
 function geoFeet(pts, lat0, lon0){ const kx = 111320 * Math.cos(lat0 * Math.PI / 180) * 3.28084, ky = 110574 * 3.28084; return pts.map(([x,y])=>[(x - lon0) * kx, (y - lat0) * ky]); }
 function geoDist(lat, lon, b){ const P = geoFeet(b.pts, lat, lon); if(inPoly(0, 0, P)) return 0; let d = 1e9; for(let i=0;i<P.length;i++) d = Math.min(d, segDist(0, 0, P[i], P[(i+1)%P.length])); return d; }
 async function geoFind(pickLL, pickB, wide){
+  GEO.fixed = null; GEO.draw = false; GEO.dpts = [];
   const inp = $("geoQ"); const q = (inp ? inp.value : GEO.q).trim(); GEO.q = q; if(!q) return; GEO.sug = []; if(!pickB) GEO.prop = null;
   GEO.busy = true; GEO.err = false; GEO.msg = "Looking up…"; GEO.cands = []; GEO.pick = -1; geoRender();
   try{
@@ -1978,6 +1983,11 @@ function geoUse(){
   GEO.msg = `Used: ${o.X}' x ${o.Y}'` + (o.rect ? ", rectangle." : `, ${o.P.length} corners. Zones follow the outline.`) + " Check the size against the plans or Google Earth.";
   calcRenderForm(); calcSchedule(false);
 }
+function geoDrawSvg(V){
+  if(!GEO.draw || !GEO.dpts.length) return "";
+  const P = GEO.dpts.map(p=>V.px(p).map(v=>v.toFixed(1)).join(","));
+  return `<polyline class="drawl" points="${P.join(" ")}${GEO.dpts.length > 2 ? " " + P[0] : ""}"/>` + P.map((q,i)=>`<circle class="drawp" cx="${q.split(",")[0]}" cy="${q.split(",")[1]}" r="${i ? 3.5 : 5}"/>`).join("");
+}
 function geoView(){
   // zoom and center that fit the picked building (or the search point) in the box
   const W = 640, H = 400; let lat = GEO.lat, lon = GEO.lon, z = 19;
@@ -1987,9 +1997,11 @@ function geoView(){
     for(z = 19; z > 14; z--){ const n = 256 * 2**z, px = v=>(v+180)/360*n, py = v=>{ const s = Math.sin(v*Math.PI/180); return (0.5 - Math.log((1+s)/(1-s))/(4*Math.PI))*n; };
       if((px(Math.max(...xs)) - px(Math.min(...xs))) < W*0.8 && (py(Math.min(...ys)) - py(Math.max(...ys))) < H*0.8) break; } }
   else z = 18;
+  if(GEO.fixed){ lat = GEO.fixed.lat; lon = GEO.fixed.lon; z = GEO.fixed.z; } else GEO.lastView = {lat, lon, z};
   const n = 256 * 2**z, X = v=>(v+180)/360*n, Y = v=>{ const s = Math.sin(v*Math.PI/180); return (0.5 - Math.log((1+s)/(1-s))/(4*Math.PI))*n; };
   const cx = X(lon), cy = Y(lat), x0 = cx - W/2, y0 = cy - H/2;
-  return {W, H, z, x0, y0, px:p=>[X(p[0]) - x0, Y(p[1]) - y0]};
+  return {W, H, z, x0, y0, px:p=>[X(p[0]) - x0, Y(p[1]) - y0],
+    ll:(x,y)=>{ const gx = (x + x0)/n, gy = (y + y0)/n; return [gx*360 - 180, Math.atan(Math.sinh(Math.PI*(1 - 2*gy))) * 180/Math.PI]; }};   // screen point to [lon, lat]
 }
 function geoHtml(){
   const r = CALC.roofs[CALC.active] || {v:{}};
@@ -1999,8 +2011,13 @@ function geoHtml(){
     let tiles = ""; for(let tx=t0x; tx<=t1x; tx++) for(let ty=t0y; ty<=t1y; ty++) tiles += `<img class="geot" alt="" src="${GEO_IMG(V.z,tx,ty)}" style="left:${(tx*256 - V.x0).toFixed(0)}px;top:${(ty*256 - V.y0).toFixed(0)}px">`;
     const polys = GEO.cands.map((b,i)=>`<polygon data-i="${i}" class="${i===GEO.pick?"on":""}${GEO.prop && GEO.prop.some(x=>x.pts === b.pts) ? " prop" : ""}" points="${b.pts.map(p=>V.px(p).map(v=>v.toFixed(1)).join(",")).join(" ")}"/>`).join("");
     const pin = V.px([GEO.lon, GEO.lat]);
-    map = `<div class="geomap" style="width:${V.W}px;height:${V.H}px">${GEO.imgFail ? "" : tiles}<svg viewBox="0 0 ${V.W} ${V.H}" width="${V.W}" height="${V.H}">${polys}<circle cx="${pin[0].toFixed(1)}" cy="${pin[1].toFixed(1)}" r="5" class="pin"/></svg>
-      <span class="geoattr">${GEO.imgFail ? "Satellite picture blocked on this computer's connection. Outlines still work." : GEO_SRC[GEO.src].credit} · Outlines: Microsoft Building Footprints</span></div>`;
+    map = `<div class="geomap" style="width:${V.W}px;height:${V.H}px">${GEO.imgFail ? "" : tiles}<svg viewBox="0 0 ${V.W} ${V.H}" width="${V.W}" height="${V.H}">${polys}<circle cx="${pin[0].toFixed(1)}" cy="${pin[1].toFixed(1)}" r="5" class="pin"/>${geoDrawSvg(V)}</svg>
+      <span class="geoattr">${GEO.imgFail ? "Satellite picture blocked on this computer's connection. Outlines still work." : GEO_SRC[GEO.src].credit} · Outlines: Microsoft Building Footprints</span></div>
+      <div class="geotools">${GEO.draw
+        ? `<span class="geodrawhint">Click each roof corner on the photo, in order. ${GEO.dpts.length} placed.</span><button type="button" id="geoUndo" ${GEO.dpts.length ? "" : "disabled"}>Undo point</button><button type="button" id="geoDone" class="primary" ${GEO.dpts.length >= 3 ? "" : "disabled"}>Finish outline</button><button type="button" id="geoCancel">Cancel</button>`
+        : `<button type="button" id="geoDraw">Draw my own outline</button><span class="hint">Building missing or outline wrong? Draw it on the photo; the scale is automatic.</span>`}
+        <span class="geozoom"><button type="button" id="geoZin" title="Zoom in">+</button><button type="button" id="geoZout" title="Zoom out">−</button></span></div>
+      <p class="hint">Drag the photo to move around.</p>`;
   }
   const b = GEO.cands[GEO.pick], o = b ? geoOutline(b) : null;
   const info = o ? `<p class="geoinfo"><b>${o.X}' x ${o.Y}'</b> overall, ${Math.round(o.area).toLocaleString()} sf, ${o.rect ? "rectangle" : o.P.length + " corners"}${b.h > 0 ? `. Height estimate ${Math.round(b.h*3.28084)} ft (Microsoft estimate from imagery, rough; enter the real mean roof height).` : "."}
@@ -2024,7 +2041,26 @@ function geoRender(){
     else if(e.key === "ArrowUp" && L.length){ e.preventDefault(); GEO.sugI = Math.max(0, (GEO.sugI ?? 0) - 1); geoSugDraw(); }
     else if(e.key === "Escape"){ GEO.sug = []; geoSugDraw(); }
     else if(e.key === "Enter"){ e.preventDefault(); if(L.length && GEO.sugI >= 0) geoSugPick(L[GEO.sugI]); else if(L.length) geoSugPick(L[0]); else geoFind(); } };
-  box.querySelectorAll(".geomap polygon").forEach(p=>p.onclick = ()=>{ GEO.pick = +p.dataset.i; geoRender(); });
+  box.querySelectorAll(".geomap polygon").forEach(p=>p.onclick = e=>{ if(GEO.draw || GEO.dragged) return; GEO.pick = +p.dataset.i; geoRender(); });
+  const mp = box.querySelector(".geomap");
+  if(mp){ const V = geoView(), cur = ()=>GEO.fixed || Object.assign({}, GEO.lastView);
+    let st = null;
+    const mv = e=>{ if(!st) return; const dx = e.clientX - st.x, dy = e.clientY - st.y; if(Math.abs(dx) + Math.abs(dy) < 5 && !GEO.dragged) return;
+      GEO.dragged = true; mp.style.transform = `translate(${dx}px,${dy}px)`; };
+    const up = e=>{ window.removeEventListener("pointermove", mv); window.removeEventListener("pointerup", up); if(!st) return;
+      const dx = e.clientX - st.x, dy = e.clientY - st.y, s0 = st; st = null; mp.style.transform = "";
+      if(GEO.dragged){ const [lon, lat] = V.ll(V.W/2 - dx, V.H/2 - dy); GEO.fixed = {lat, lon, z:s0.v.z}; geoRender(); setTimeout(()=>{ GEO.dragged = false; }, 0); return; }
+      if(GEO.draw){ const r = mp.getBoundingClientRect(); GEO.dpts.push(V.ll(e.clientX - r.left, e.clientY - r.top)); geoRender(); } };
+    mp.onpointerdown = e=>{ if(e.target.closest && e.target.closest(".geoattr")) return; st = {x:e.clientX, y:e.clientY, v:cur()}; GEO.dragged = false;
+      window.addEventListener("pointermove", mv); window.addEventListener("pointerup", up); };
+  }
+  const zoom = d=>{ const v = GEO.fixed || Object.assign({}, GEO.lastView); GEO.fixed = {lat:v.lat, lon:v.lon, z:Math.max(15, Math.min(20, v.z + d))}; geoRender(); };
+  if($("geoZin")) $("geoZin").onclick = ()=>zoom(1);
+  if($("geoZout")) $("geoZout").onclick = ()=>zoom(-1);
+  if($("geoDraw")) $("geoDraw").onclick = ()=>{ GEO.draw = true; GEO.dpts = []; GEO.fixed = GEO.fixed || Object.assign({}, GEO.lastView); geoRender(); };
+  if($("geoUndo")) $("geoUndo").onclick = ()=>{ GEO.dpts.pop(); geoRender(); };
+  if($("geoCancel")) $("geoCancel").onclick = ()=>{ GEO.draw = false; GEO.dpts = []; geoRender(); };
+  if($("geoDone")) $("geoDone").onclick = ()=>{ const b = {h:-1, pts:GEO.dpts.slice(), drawn:true, d:0}; GEO.cands = GEO.cands.filter(c=>!c.drawn); GEO.cands.unshift(b); GEO.pick = 0; GEO.draw = false; GEO.dpts = []; geoRender(); };
   const imgs = box.querySelectorAll(".geot"); let failed = 0; imgs.forEach(im=>im.onerror = ()=>{ failed++; im.remove(); if(failed === imgs.length && !GEO.imgFail){ if(GEO.src < GEO_SRC.length - 1){ GEO.src++; geoRender(); } else { GEO.imgFail = true; geoRender(); } } });
   if($("geoUse")) $("geoUse").onclick = geoUse;
 }
@@ -3547,3 +3583,5 @@ letInit();
 calcInit();
 (async()=>{ for(const [id,f] of [["logoCar","img/carlisle.png"],["logoCsg","img/compass_h.png"]]){ try{ const b = await fetchBytes(f); $(id).src = URL.createObjectURL(new Blob([b],{type:"image/png"})); }catch(e){ $(id).hidden = true; } } })();
 </script>
+
+</html>
