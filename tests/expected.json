@@ -1,0 +1,4231 @@
+{
+ "lws": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-66.6",
+    "-40.0",
+    "-45.0",
+    "29,184",
+    "291.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-115.9",
+    "-69.6",
+    "-75.0",
+    "14,112",
+    "141.1"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-152.9",
+    "-91.7",
+    "-97.5",
+    "15,984",
+    "159.8"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-208.4",
+    "-125.0",
+    "-127.5",
+    "720",
+    "7.2"
+   ]
+  ],
+  "appr": "R-76 PEER-CRL-003.A.R39 for FL14083-R38",
+  "approval": "R-76 – FL14083 Non-HVHZ (Tbl 7F, p. 122)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "40.0",
+    "OK as tested",
+    "6' sheet",
+    "66.5",
+    "6 in. o.c.",
+    "36.1",
+    "228' × 128'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "69.6",
+    "Extrapolate",
+    "6' sheet",
+    "66.5",
+    "6 in. o.c.",
+    "36.1",
+    "18 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "91.7",
+    "Extrapolate",
+    "4' sheet",
+    "42.5",
+    "6 in. o.c.",
+    "56.5",
+    "18 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "125.0",
+    "Extrapolate",
+    "4' sheet",
+    "42.5",
+    "6 in. o.c.",
+    "56.5",
+    "6 × 18 ft"
+   ]
+  ],
+  "plan": "not drawn: flute direction not entered"
+ },
+ "usr3": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-64.2",
+    "-38.5",
+    "-45.0",
+    "14,280",
+    "142.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-111.7",
+    "-67.0",
+    "-67.5",
+    "12,360",
+    "123.6"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-147.3",
+    "-88.4",
+    "-90.0",
+    "13,660",
+    "136.6"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-200.8",
+    "-120.5",
+    "-127.5",
+    "500",
+    "5.0"
+   ]
+  ],
+  "appr": "R-76 PEER-CRL-003.A.R39 for FL14083-R38",
+  "approval": "R-76 – FL14083 Non-HVHZ (Tbl 7F, p. 122)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "38.5",
+    "OK as tested",
+    "12' sheet",
+    "138.5",
+    "6 in. o.c.",
+    "17.3",
+    "340' × 42'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "67.0",
+    "Extrapolate",
+    "6' sheet",
+    "66.5",
+    "6 in. o.c.",
+    "36.1",
+    "15 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "88.4",
+    "Extrapolate",
+    "6' sheet",
+    "66.5",
+    "6 in. o.c.",
+    "36.1",
+    "15 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "120.5",
+    "Extrapolate",
+    "4' sheet",
+    "42.5",
+    "6 in. o.c.",
+    "56.5",
+    "5 × 15 ft"
+   ]
+  ],
+  "plan": "not drawn: flute direction not entered"
+ },
+ "brw": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-70.6",
+    "-42.4",
+    "-45.0",
+    "5,616",
+    "56.2"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-122.9",
+    "-73.8",
+    "-75.0",
+    "9,888",
+    "98.9"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-162.2",
+    "-97.3",
+    "-97.5",
+    "13,216",
+    "132.2"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-221.0",
+    "-132.6",
+    "-135.0",
+    "1,280",
+    "12.8"
+   ]
+  ],
+  "appr": "C-96 PEER-CRL-003.B.R33 for FL14083-R38",
+  "approval": "C-96 – FL14083 HVHZ (Tbl 3A, p. 67)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "—",
+    "Adhesive Beads",
+    "—",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "42.4",
+    "OK as tested",
+    "Up to 12' sheet",
+    "—",
+    "12 in. o.c.",
+    "—",
+    "104' × 54'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "73.8",
+    "OK as tested",
+    "Up to 12' sheet",
+    "—",
+    "12 in. o.c.",
+    "—",
+    "24 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "97.3",
+    "OK as tested",
+    "Up to 12' sheet",
+    "—",
+    "6 in. o.c.",
+    "—",
+    "24 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "132.6",
+    "OK as tested",
+    "Up to 12' sheet",
+    "—",
+    "6 in. o.c.",
+    "—",
+    "8 × 24 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    16,
+    0
+   ],
+   [
+    16,
+    16,
+    0
+   ],
+   [
+    32,
+    16,
+    0
+   ],
+   [
+    48,
+    16,
+    0
+   ],
+   [
+    64,
+    16,
+    0
+   ],
+   [
+    80,
+    16,
+    0
+   ],
+   [
+    96,
+    16,
+    0
+   ],
+   [
+    112,
+    16,
+    0
+   ],
+   [
+    128,
+    16,
+    0
+   ],
+   [
+    144,
+    16,
+    0
+   ],
+   [
+    160,
+    16,
+    0
+   ],
+   [
+    176,
+    16,
+    0
+   ],
+   [
+    192,
+    8,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run across the width: 12 x 16' sheets, 1 x 8' sheet."
+  ]
+ },
+ "brwN": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-70.6",
+    "-42.4",
+    "-45.0",
+    "5,616",
+    "56.2"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-122.9",
+    "-73.8",
+    "-75.0",
+    "9,888",
+    "98.9"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-162.2",
+    "-97.3",
+    "-97.5",
+    "13,216",
+    "132.2"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-221.0",
+    "-132.6",
+    "-135.0",
+    "1,280",
+    "12.8"
+   ]
+  ],
+  "appr": null,
+  "approval": "—",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "—",
+    "Adhesive Beads",
+    "—",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "42.4",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "104' × 54'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "73.8",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "24 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "97.3",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "24 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "132.6",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "8 × 24 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    16,
+    0
+   ],
+   [
+    16,
+    16,
+    0
+   ],
+   [
+    32,
+    16,
+    0
+   ],
+   [
+    48,
+    16,
+    0
+   ],
+   [
+    64,
+    16,
+    0
+   ],
+   [
+    80,
+    16,
+    0
+   ],
+   [
+    96,
+    16,
+    0
+   ],
+   [
+    112,
+    16,
+    0
+   ],
+   [
+    128,
+    16,
+    0
+   ],
+   [
+    144,
+    16,
+    0
+   ],
+   [
+    160,
+    16,
+    0
+   ],
+   [
+    176,
+    16,
+    0
+   ],
+   [
+    192,
+    8,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run across the width: 12 x 16' sheets, 1 x 8' sheet."
+  ]
+ },
+ "usrUL": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-64.2",
+    "-38.5",
+    "-45.0",
+    "14,280",
+    "142.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-111.7",
+    "-67.0",
+    "-67.5",
+    "12,360",
+    "123.6"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-147.3",
+    "-88.4",
+    "-90.0",
+    "13,660",
+    "136.6"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-200.8",
+    "-120.5",
+    "-127.5",
+    "500",
+    "5.0"
+   ]
+  ],
+  "appr": "R-76 PEER-CRL-003.A.R39 for FL14083-R38",
+  "approval": "R-76 – FL14083 Non-HVHZ (Tbl 7F, p. 122)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "38.5",
+    "OK as tested",
+    "12' sheet",
+    "138.5",
+    "6 in. o.c.",
+    "17.3",
+    "340' × 42'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "67.0",
+    "Extrapolate",
+    "6' sheet",
+    "66.5",
+    "6 in. o.c.",
+    "36.1",
+    "15 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "88.4",
+    "Extrapolate",
+    "6' sheet",
+    "66.5",
+    "6 in. o.c.",
+    "36.1",
+    "15 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "120.5",
+    "Extrapolate",
+    "4' sheet",
+    "42.5",
+    "6 in. o.c.",
+    "56.5",
+    "5 × 15 ft"
+   ]
+  ],
+  "plan": "not drawn: flute direction not entered"
+ },
+ "ul14": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-66.6",
+    "-40.0",
+    "-45.0",
+    "29,184",
+    "291.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-115.9",
+    "-69.6",
+    "-75.0",
+    "14,112",
+    "141.1"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-152.9",
+    "-91.7",
+    "-97.5",
+    "15,984",
+    "159.8"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-208.4",
+    "-125.0",
+    "-127.5",
+    "720",
+    "7.2"
+   ]
+  ],
+  "appr": null,
+  "approval": "—",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "40.0",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "228' × 128'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "69.6",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "91.7",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "125.0",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "6 × 18 ft"
+   ]
+  ],
+  "plan": "not drawn: flute direction not entered"
+ },
+ "ul12": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-66.6",
+    "-40.0",
+    "-45.0",
+    "29,184",
+    "291.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-115.9",
+    "-69.6",
+    "-75.0",
+    "14,112",
+    "141.1"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-152.9",
+    "-91.7",
+    "-97.5",
+    "15,984",
+    "159.8"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-208.4",
+    "-125.0",
+    "-127.5",
+    "720",
+    "7.2"
+   ]
+  ],
+  "appr": null,
+  "approval": "—",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "40.0",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "228' × 128'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "69.6",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "91.7",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "125.0",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "6 × 18 ft"
+   ]
+  ],
+  "plan": "not drawn: flute direction not entered"
+ },
+ "usrW": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-64.2",
+    "-38.5",
+    "-45.0",
+    "14,280",
+    "142.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-111.7",
+    "-67.0",
+    "-67.5",
+    "12,360",
+    "123.6"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-147.3",
+    "-88.4",
+    "-90.0",
+    "13,660",
+    "136.6"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-200.8",
+    "-120.5",
+    "-127.5",
+    "500",
+    "5.0"
+   ]
+  ],
+  "appr": "R-76 PEER-CRL-003.A.R39 for FL14083-R38",
+  "approval": "R-76 – FL14083 Non-HVHZ (Tbl 7F, p. 122)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "38.5",
+    "OK as tested",
+    "12' sheet",
+    "138.5",
+    "6 in. o.c.",
+    "17.3",
+    "340' × 42'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "67.0",
+    "Extrapolate",
+    "6' sheet",
+    "66.5",
+    "6 in. o.c.",
+    "36.1",
+    "15 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "88.4",
+    "Extrapolate",
+    "6' sheet",
+    "66.5",
+    "6 in. o.c.",
+    "36.1",
+    "15 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "120.5",
+    "Extrapolate",
+    "6' subdivided",
+    "33.3",
+    "6 in. o.c.",
+    "72.2",
+    "5 × 15 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 12,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 6,
+    "n": 1,
+    "wide": {
+     "w": 12,
+     "n": 2
+    }
+   },
+   {
+    "w": 6,
+    "n": 1,
+    "wide": {
+     "w": 12,
+     "n": 2
+    }
+   },
+   {
+    "w": 6,
+    "n": 2,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    6,
+    1
+   ],
+   [
+    6,
+    6,
+    1
+   ],
+   [
+    12,
+    6,
+    1
+   ],
+   [
+    18,
+    6,
+    1
+   ],
+   [
+    24,
+    6,
+    1
+   ],
+   [
+    30,
+    12,
+    0
+   ],
+   [
+    42,
+    12,
+    0
+   ],
+   [
+    54,
+    10,
+    0
+   ],
+   [
+    64,
+    8,
+    0
+   ],
+   [
+    72,
+    6,
+    1
+   ],
+   [
+    78,
+    6,
+    1
+   ],
+   [
+    84,
+    6,
+    1
+   ],
+   [
+    90,
+    6,
+    1
+   ],
+   [
+    96,
+    6,
+    1
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 2 x 12' sheets, 1 x 10' sheet, 1 x 8' sheet, 10 x 6' sheets.",
+   "Along edges that run parallel to the sheets the perimeter gets narrower perimeter sheets; field sheets that cross a perimeter or corner band are subdivided by a row of seam fastening plates with cover strip through that band only."
+  ]
+ },
+ "usrB": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-64.2",
+    "-38.5",
+    "-45.0",
+    "14,280",
+    "142.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-111.7",
+    "-67.0",
+    "-67.5",
+    "12,360",
+    "123.6"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-147.3",
+    "-88.4",
+    "-90.0",
+    "13,660",
+    "136.6"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-200.8",
+    "-120.5",
+    "-127.5",
+    "500",
+    "5.0"
+   ]
+  ],
+  "appr": null,
+  "approval": "—",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "38.5",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "340' × 42'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "67.0",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "15 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "88.4",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "15 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "120.5",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "5 × 15 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    10,
+    0
+   ],
+   [
+    10,
+    10,
+    0
+   ],
+   [
+    20,
+    10,
+    0
+   ],
+   [
+    30,
+    10,
+    0
+   ],
+   [
+    40,
+    10,
+    0
+   ],
+   [
+    50,
+    10,
+    0
+   ],
+   [
+    60,
+    10,
+    0
+   ],
+   [
+    70,
+    8,
+    0
+   ],
+   [
+    78,
+    8,
+    0
+   ],
+   [
+    86,
+    8,
+    0
+   ],
+   [
+    94,
+    8,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 7 x 10' sheets, 4 x 8' sheets.",
+   "Along edges that run parallel to the sheets the perimeter gets narrower perimeter sheets; field sheets that cross a perimeter or corner band are subdivided by a row of seam fastening plates with cover strip through that band only."
+  ]
+ },
+ "flW": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-64.2",
+    "-38.5",
+    "-45.0",
+    "5,880",
+    "58.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-111.7",
+    "-67.0",
+    "-67.5",
+    "6,360",
+    "63.6"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-147.3",
+    "-88.4",
+    "-90.0",
+    "7,660",
+    "76.6"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-200.8",
+    "-120.5",
+    "-127.5",
+    "500",
+    "5.0"
+   ]
+  ],
+  "appr": null,
+  "approval": "—",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "38.5",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "140' × 42'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "67.0",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "15 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "88.4",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "15 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "120.5",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "5 × 15 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    10,
+    0
+   ],
+   [
+    10,
+    10,
+    0
+   ],
+   [
+    20,
+    10,
+    0
+   ],
+   [
+    30,
+    10,
+    0
+   ],
+   [
+    40,
+    10,
+    0
+   ],
+   [
+    50,
+    10,
+    0
+   ],
+   [
+    60,
+    10,
+    0
+   ],
+   [
+    70,
+    8,
+    0
+   ],
+   [
+    78,
+    8,
+    0
+   ],
+   [
+    86,
+    8,
+    0
+   ],
+   [
+    94,
+    8,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 7 x 10' sheets, 4 x 8' sheets.",
+   "Along edges that run parallel to the sheets the perimeter gets narrower perimeter sheets; field sheets that cross a perimeter or corner band are subdivided by a row of seam fastening plates with cover strip through that band only."
+  ]
+ },
+ "flE": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-64.2",
+    "-38.5",
+    "-45.0",
+    "5,880",
+    "58.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-111.7",
+    "-67.0",
+    "-67.5",
+    "6,360",
+    "63.6"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-147.3",
+    "-88.4",
+    "-90.0",
+    "7,660",
+    "76.6"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-200.8",
+    "-120.5",
+    "-127.5",
+    "500",
+    "5.0"
+   ]
+  ],
+  "appr": null,
+  "approval": "—",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "38.5",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "140' × 42'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "67.0",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "15 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "88.4",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "15 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "120.5",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "5 × 15 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    10,
+    0
+   ],
+   [
+    10,
+    10,
+    0
+   ],
+   [
+    20,
+    10,
+    0
+   ],
+   [
+    30,
+    10,
+    0
+   ],
+   [
+    40,
+    10,
+    0
+   ],
+   [
+    50,
+    10,
+    0
+   ],
+   [
+    60,
+    10,
+    0
+   ],
+   [
+    70,
+    8,
+    0
+   ],
+   [
+    78,
+    8,
+    0
+   ],
+   [
+    86,
+    8,
+    0
+   ],
+   [
+    94,
+    8,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 7 x 10' sheets, 4 x 8' sheets.",
+   "Along edges that run parallel to the sheets the perimeter gets narrower perimeter sheets; field sheets that cross a perimeter or corner band are subdivided by a row of seam fastening plates with cover strip through that band only."
+  ]
+ },
+ "usrH": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-64.2",
+    "-38.5",
+    "-45.0",
+    "14,280",
+    "142.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-111.7",
+    "-67.0",
+    "-67.5",
+    "12,360",
+    "123.6"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-147.3",
+    "-88.4",
+    "-90.0",
+    "13,660",
+    "136.6"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-200.8",
+    "-120.5",
+    "-127.5",
+    "500",
+    "5.0"
+   ]
+  ],
+  "appr": "R-76 PEER-CRL-003.A.R39 for FL14083-R38",
+  "approval": "R-76 – FL14083 Non-HVHZ (Tbl 7F, p. 122)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "38.5",
+    "OK as tested",
+    "12' sheet",
+    "138.5",
+    "6 in. o.c.",
+    "17.3",
+    "340' × 42'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "67.0",
+    "Extrapolate",
+    "6' sheet",
+    "66.5",
+    "6 in. o.c.",
+    "36.1",
+    "15 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "88.4",
+    "Extrapolate",
+    "6' sheet",
+    "66.5",
+    "6 in. o.c.",
+    "36.1",
+    "15 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "120.5",
+    "Extrapolate",
+    "6' subdivided",
+    "33.3",
+    "6 in. o.c.",
+    "72.2",
+    "5 × 15 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 12,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 6,
+    "n": 1,
+    "wide": {
+     "w": 12,
+     "n": 2
+    }
+   },
+   {
+    "w": 6,
+    "n": 1,
+    "wide": {
+     "w": 12,
+     "n": 2
+    }
+   },
+   {
+    "w": 6,
+    "n": 2,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    6,
+    1
+   ],
+   [
+    6,
+    6,
+    1
+   ],
+   [
+    12,
+    6,
+    1
+   ],
+   [
+    18,
+    6,
+    1
+   ],
+   [
+    24,
+    6,
+    1
+   ],
+   [
+    30,
+    12,
+    0
+   ],
+   [
+    42,
+    12,
+    0
+   ],
+   [
+    54,
+    10,
+    0
+   ],
+   [
+    64,
+    8,
+    0
+   ],
+   [
+    72,
+    6,
+    1
+   ],
+   [
+    78,
+    6,
+    1
+   ],
+   [
+    84,
+    6,
+    1
+   ],
+   [
+    90,
+    6,
+    1
+   ],
+   [
+    96,
+    6,
+    1
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 2 x 12' sheets, 1 x 10' sheet, 1 x 8' sheet, 10 x 6' sheets.",
+   "Along edges that run parallel to the sheets the perimeter gets narrower perimeter sheets; field sheets that cross a perimeter or corner band are subdivided by a row of seam fastening plates with cover strip through that band only."
+  ]
+ },
+ "usrR": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-64.2",
+    "-38.5",
+    "-45.0",
+    "14,280",
+    "142.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-111.7",
+    "-67.0",
+    "-67.5",
+    "12,360",
+    "123.6"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-147.3",
+    "-88.4",
+    "-90.0",
+    "13,660",
+    "136.6"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-200.8",
+    "-120.5",
+    "-127.5",
+    "500",
+    "5.0"
+   ]
+  ],
+  "appr": "R-76 PEER-CRL-003.A.R39 for FL14083-R38",
+  "approval": "R-76 – FL14083 Non-HVHZ (Tbl 7F, p. 122)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "38.5",
+    "OK as tested",
+    "12' sheet",
+    "138.5",
+    "6 in. o.c.",
+    "17.3",
+    "340' × 42'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "67.0",
+    "Extrapolate",
+    "12' subdivided",
+    "69.3",
+    "6 in. o.c.",
+    "34.7",
+    "15 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "88.4",
+    "Extrapolate",
+    "12' subdivided",
+    "69.3",
+    "6 in. o.c.",
+    "34.7",
+    "15 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "120.5",
+    "Extrapolate",
+    "12' subdivided ×2",
+    "46.2",
+    "6 in. o.c.",
+    "52.0",
+    "5 × 15 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 12,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 12,
+    "n": 2,
+    "wide": null
+   },
+   {
+    "w": 12,
+    "n": 2,
+    "wide": {
+     "w": 10,
+     "n": 2
+    }
+   },
+   {
+    "w": 12,
+    "n": 3,
+    "wide": {
+     "w": 10,
+     "n": 3
+    }
+   }
+  ],
+  "strips": [
+   [
+    0,
+    12,
+    0
+   ],
+   [
+    12,
+    12,
+    0
+   ],
+   [
+    24,
+    12,
+    0
+   ],
+   [
+    36,
+    12,
+    0
+   ],
+   [
+    48,
+    12,
+    0
+   ],
+   [
+    60,
+    12,
+    0
+   ],
+   [
+    72,
+    12,
+    0
+   ],
+   [
+    84,
+    10,
+    0
+   ],
+   [
+    94,
+    8,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 7 x 12' sheets, 1 x 10' sheet, 1 x 8' sheet.",
+   "Perimeter and corner bands use full field sheets subdivided by a row of seam fastening plates with cover strip down the middle, through that band only."
+  ]
+ },
+ "usr2": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-64.2",
+    "-38.5",
+    "-45.0",
+    "14,280",
+    "142.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-111.7",
+    "-67.0",
+    "-67.5",
+    "12,360",
+    "123.6"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-147.3",
+    "-88.4",
+    "-90.0",
+    "13,660",
+    "136.6"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-200.8",
+    "-120.5",
+    "-127.5",
+    "500",
+    "5.0"
+   ]
+  ],
+  "appr": "R-76 PEER-CRL-003.A.R39 for FL14083-R38",
+  "approval": "R-76 – FL14083 Non-HVHZ (Tbl 7F, p. 122)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "38.5",
+    "OK as tested",
+    "12' sheet",
+    "138.5",
+    "6 in. o.c.",
+    "17.3",
+    "340' × 42'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "67.0",
+    "Extrapolate",
+    "12' subdivided",
+    "69.3",
+    "6 in. o.c.",
+    "34.7",
+    "15 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "88.4",
+    "Extrapolate",
+    "12' subdivided",
+    "69.3",
+    "6 in. o.c.",
+    "34.7",
+    "15 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "120.5",
+    "Extrapolate",
+    "12' subdivided ×2",
+    "46.2",
+    "6 in. o.c.",
+    "52.0",
+    "5 × 15 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 12,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 12,
+    "n": 2,
+    "wide": null
+   },
+   {
+    "w": 12,
+    "n": 2,
+    "wide": {
+     "w": 10,
+     "n": 2
+    }
+   },
+   {
+    "w": 12,
+    "n": 3,
+    "wide": {
+     "w": 10,
+     "n": 3
+    }
+   }
+  ],
+  "strips": [
+   [
+    0,
+    12,
+    0
+   ],
+   [
+    12,
+    12,
+    0
+   ],
+   [
+    24,
+    12,
+    0
+   ],
+   [
+    36,
+    12,
+    0
+   ],
+   [
+    48,
+    12,
+    0
+   ],
+   [
+    60,
+    12,
+    0
+   ],
+   [
+    72,
+    12,
+    0
+   ],
+   [
+    84,
+    10,
+    0
+   ],
+   [
+    94,
+    8,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 7 x 12' sheets, 1 x 10' sheet, 1 x 8' sheet.",
+   "Perimeter and corner bands use full field sheets subdivided by a row of seam fastening plates with cover strip down the middle, through that band only."
+  ]
+ },
+ "usr": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-66.6",
+    "-40.0",
+    "-45.0",
+    "29,184",
+    "291.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-115.9",
+    "-69.6",
+    "-75.0",
+    "14,112",
+    "141.1"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-152.9",
+    "-91.7",
+    "-97.5",
+    "15,984",
+    "159.8"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-208.4",
+    "-125.0",
+    "-127.5",
+    "720",
+    "7.2"
+   ]
+  ],
+  "appr": "R-76 PEER-CRL-003.A.R39 for FL14083-R38",
+  "approval": "R-76 – FL14083 Non-HVHZ (Tbl 7F, p. 122)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "40.0",
+    "OK as tested",
+    "12' sheet",
+    "138.5",
+    "6 in. o.c.",
+    "17.3",
+    "228' × 128'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "69.6",
+    "Extrapolate",
+    "12' subdivided",
+    "69.3",
+    "6 in. o.c.",
+    "34.7",
+    "18 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "91.7",
+    "Extrapolate",
+    "12' subdivided",
+    "69.3",
+    "6 in. o.c.",
+    "34.7",
+    "18 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "125.0",
+    "Extrapolate",
+    "12' subdivided ×2",
+    "46.2",
+    "6 in. o.c.",
+    "52.0",
+    "6 × 18 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 12,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 12,
+    "n": 2,
+    "wide": null
+   },
+   {
+    "w": 12,
+    "n": 2,
+    "wide": {
+     "w": 8,
+     "n": 2
+    }
+   },
+   {
+    "w": 12,
+    "n": 3,
+    "wide": {
+     "w": 8,
+     "n": 2
+    }
+   }
+  ],
+  "strips": [
+   [
+    0,
+    12,
+    0
+   ],
+   [
+    12,
+    12,
+    0
+   ],
+   [
+    24,
+    12,
+    0
+   ],
+   [
+    36,
+    12,
+    0
+   ],
+   [
+    48,
+    12,
+    0
+   ],
+   [
+    60,
+    12,
+    0
+   ],
+   [
+    72,
+    12,
+    0
+   ],
+   [
+    84,
+    12,
+    0
+   ],
+   [
+    96,
+    12,
+    0
+   ],
+   [
+    108,
+    12,
+    0
+   ],
+   [
+    120,
+    12,
+    0
+   ],
+   [
+    132,
+    12,
+    0
+   ],
+   [
+    144,
+    12,
+    0
+   ],
+   [
+    156,
+    12,
+    0
+   ],
+   [
+    168,
+    12,
+    0
+   ],
+   [
+    180,
+    12,
+    0
+   ],
+   [
+    192,
+    8,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 16 x 12' sheets, 1 x 8' sheet.",
+   "Perimeter and corner bands use full field sheets subdivided by a row of seam fastening plates with cover strip down the middle, through that band only."
+  ]
+ },
+ "lwc": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-66.6",
+    "-40.0",
+    "-45.0",
+    "29,184",
+    "291.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-115.9",
+    "-69.6",
+    "-75.0",
+    "14,112",
+    "141.1"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-152.9",
+    "-91.7",
+    "-97.5",
+    "15,984",
+    "159.8"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-208.4",
+    "-125.0",
+    "-127.5",
+    "720",
+    "7.2"
+   ]
+  ],
+  "appr": "R-84 PEER-CRL-003.A.R39 for FL14083-R38",
+  "approval": "R-84 – FL14083 Non-HVHZ (Tbl 7F, p. 122)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "40.0",
+    "OK as tested",
+    "12' sheet",
+    "138.5",
+    "6 in. o.c.",
+    "17.3",
+    "228' × 128'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "69.6",
+    "Extrapolate",
+    "12' subdivided",
+    "69.3",
+    "6 in. o.c.",
+    "34.7",
+    "18 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "91.7",
+    "Extrapolate",
+    "12' subdivided",
+    "69.3",
+    "6 in. o.c.",
+    "34.7",
+    "18 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "125.0",
+    "Extrapolate",
+    "12' subdivided ×2",
+    "46.2",
+    "6 in. o.c.",
+    "52.0",
+    "6 × 18 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 12,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 12,
+    "n": 2,
+    "wide": null
+   },
+   {
+    "w": 12,
+    "n": 2,
+    "wide": {
+     "w": 8,
+     "n": 2
+    }
+   },
+   {
+    "w": 12,
+    "n": 3,
+    "wide": {
+     "w": 8,
+     "n": 2
+    }
+   }
+  ],
+  "strips": [
+   [
+    0,
+    12,
+    0
+   ],
+   [
+    12,
+    12,
+    0
+   ],
+   [
+    24,
+    12,
+    0
+   ],
+   [
+    36,
+    12,
+    0
+   ],
+   [
+    48,
+    12,
+    0
+   ],
+   [
+    60,
+    12,
+    0
+   ],
+   [
+    72,
+    12,
+    0
+   ],
+   [
+    84,
+    12,
+    0
+   ],
+   [
+    96,
+    12,
+    0
+   ],
+   [
+    108,
+    12,
+    0
+   ],
+   [
+    120,
+    12,
+    0
+   ],
+   [
+    132,
+    12,
+    0
+   ],
+   [
+    144,
+    12,
+    0
+   ],
+   [
+    156,
+    12,
+    0
+   ],
+   [
+    168,
+    12,
+    0
+   ],
+   [
+    180,
+    12,
+    0
+   ],
+   [
+    192,
+    8,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 16 x 12' sheets, 1 x 8' sheet.",
+   "Perimeter and corner bands use full field sheets subdivided by a row of seam fastening plates with cover strip down the middle, through that band only."
+  ]
+ },
+ "fbr": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-66.6",
+    "-40.0",
+    "-45.0",
+    "29,184",
+    "291.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-115.9",
+    "-69.6",
+    "-75.0",
+    "14,112",
+    "141.1"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-152.9",
+    "-91.7",
+    "-97.5",
+    "15,984",
+    "159.8"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-208.4",
+    "-125.0",
+    "-127.5",
+    "720",
+    "7.2"
+   ]
+  ],
+  "appr": "R-76 PEER-CRL-003.A.R39 for FL14083-R38",
+  "approval": "R-76 – FL14083 Non-HVHZ (Tbl 7F, p. 122)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "40.0",
+    "OK as tested",
+    "12' sheet",
+    "138.5",
+    "6 in. o.c.",
+    "17.3",
+    "228' × 128'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "69.6",
+    "Extrapolate",
+    "12' subdivided",
+    "69.3",
+    "6 in. o.c.",
+    "34.7",
+    "18 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "91.7",
+    "Extrapolate",
+    "12' subdivided",
+    "69.3",
+    "6 in. o.c.",
+    "34.7",
+    "18 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "125.0",
+    "Extrapolate",
+    "12' subdivided ×2",
+    "46.2",
+    "6 in. o.c.",
+    "52.0",
+    "6 × 18 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 12,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 12,
+    "n": 2,
+    "wide": null
+   },
+   {
+    "w": 12,
+    "n": 2,
+    "wide": {
+     "w": 8,
+     "n": 2
+    }
+   },
+   {
+    "w": 12,
+    "n": 3,
+    "wide": {
+     "w": 8,
+     "n": 2
+    }
+   }
+  ],
+  "strips": [
+   [
+    0,
+    12,
+    0
+   ],
+   [
+    12,
+    12,
+    0
+   ],
+   [
+    24,
+    12,
+    0
+   ],
+   [
+    36,
+    12,
+    0
+   ],
+   [
+    48,
+    12,
+    0
+   ],
+   [
+    60,
+    12,
+    0
+   ],
+   [
+    72,
+    12,
+    0
+   ],
+   [
+    84,
+    12,
+    0
+   ],
+   [
+    96,
+    12,
+    0
+   ],
+   [
+    108,
+    12,
+    0
+   ],
+   [
+    120,
+    12,
+    0
+   ],
+   [
+    132,
+    12,
+    0
+   ],
+   [
+    144,
+    12,
+    0
+   ],
+   [
+    156,
+    12,
+    0
+   ],
+   [
+    168,
+    12,
+    0
+   ],
+   [
+    180,
+    12,
+    0
+   ],
+   [
+    192,
+    8,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 16 x 12' sheets, 1 x 8' sheet.",
+   "Perimeter and corner bands use full field sheets subdivided by a row of seam fastening plates with cover strip down the middle, through that band only."
+  ]
+ },
+ "seagis": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-69.5",
+    "-41.7",
+    "-45.0",
+    "23,485",
+    "234.9"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-121.0",
+    "-72.6",
+    "-75.0",
+    "16,286",
+    "162.9"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-159.6",
+    "-95.8",
+    "-97.5",
+    "19,133",
+    "191.3"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-217.5",
+    "-130.5",
+    "-135.0",
+    "1,095",
+    "11.0"
+   ]
+  ],
+  "appr": "SC-335 PEER-CRL-003.B.R33 for FL14083-R38",
+  "approval": "SC-335 – FL14083 HVHZ (Tbl 2H, p. 54)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "41.7",
+    "OK as tested",
+    "12' sheet",
+    "137.5",
+    "6 in. o.c.",
+    "17.5",
+    "211.2' × 111.2'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "72.6",
+    "Extrapolate",
+    "12' subdivided",
+    "68.8",
+    "6 in. o.c.",
+    "34.9",
+    "22.2 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "95.8",
+    "Extrapolate",
+    "12' subdivided ×2",
+    "45.8",
+    "6 in. o.c.",
+    "52.4",
+    "22.2 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "130.5",
+    "Extrapolate",
+    "12' subdivided ×2",
+    "45.8",
+    "6 in. o.c.",
+    "52.4",
+    "7.4 × 22.2 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 12,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 12,
+    "n": 2,
+    "wide": null
+   },
+   {
+    "w": 12,
+    "n": 3,
+    "wide": {
+     "w": 8,
+     "n": 2
+    }
+   },
+   {
+    "w": 12,
+    "n": 3,
+    "wide": {
+     "w": 8,
+     "n": 2
+    }
+   }
+  ],
+  "strips": [
+   [
+    0,
+    12,
+    0
+   ],
+   [
+    12,
+    12,
+    0
+   ],
+   [
+    24,
+    12,
+    0
+   ],
+   [
+    36,
+    12,
+    0
+   ],
+   [
+    48,
+    12,
+    0
+   ],
+   [
+    60,
+    12,
+    0
+   ],
+   [
+    72,
+    12,
+    0
+   ],
+   [
+    84,
+    12,
+    0
+   ],
+   [
+    96,
+    12,
+    0
+   ],
+   [
+    108,
+    12,
+    0
+   ],
+   [
+    120,
+    12,
+    0
+   ],
+   [
+    132,
+    12,
+    0
+   ],
+   [
+    144,
+    12,
+    0
+   ],
+   [
+    156,
+    12,
+    0
+   ],
+   [
+    168,
+    12,
+    0
+   ],
+   [
+    180,
+    12,
+    0
+   ],
+   [
+    192,
+    8,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 16 x 12' sheets, 1 x 8' sheet.",
+   "Perimeter and corner bands use full field sheets subdivided by a row of seam fastening plates with cover strip down the middle, through that band only."
+  ]
+ },
+ "village": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-66.6",
+    "-40.0",
+    "-45.0",
+    "29,184",
+    "291.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-115.9",
+    "-69.6",
+    "-75.0",
+    "14,112",
+    "141.1"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-152.9",
+    "-91.7",
+    "-97.5",
+    "15,984",
+    "159.8"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-208.4",
+    "-125.0",
+    "-127.5",
+    "720",
+    "7.2"
+   ]
+  ],
+  "appr": "SC-386 PEER-CRL-003.A.R39 for FL14083-R38",
+  "approval": "SC-386 – FL14083 Non-HVHZ (Tbl 2H, p. 63)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "40.0",
+    "OK as tested",
+    "12' sheet",
+    "137.5",
+    "6 in. o.c.",
+    "17.5",
+    "228' × 128'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "69.6",
+    "Extrapolate",
+    "12' subdivided",
+    "68.8",
+    "6 in. o.c.",
+    "34.9",
+    "18 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "91.7",
+    "Extrapolate",
+    "12' subdivided",
+    "68.8",
+    "6 in. o.c.",
+    "34.9",
+    "18 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "125.0",
+    "Extrapolate",
+    "12' subdivided ×2",
+    "45.8",
+    "6 in. o.c.",
+    "52.4",
+    "6 × 18 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 12,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 12,
+    "n": 2,
+    "wide": null
+   },
+   {
+    "w": 12,
+    "n": 2,
+    "wide": {
+     "w": 8,
+     "n": 2
+    }
+   },
+   {
+    "w": 12,
+    "n": 3,
+    "wide": {
+     "w": 8,
+     "n": 2
+    }
+   }
+  ],
+  "strips": [
+   [
+    0,
+    12,
+    0
+   ],
+   [
+    12,
+    12,
+    0
+   ],
+   [
+    24,
+    12,
+    0
+   ],
+   [
+    36,
+    12,
+    0
+   ],
+   [
+    48,
+    12,
+    0
+   ],
+   [
+    60,
+    12,
+    0
+   ],
+   [
+    72,
+    12,
+    0
+   ],
+   [
+    84,
+    12,
+    0
+   ],
+   [
+    96,
+    12,
+    0
+   ],
+   [
+    108,
+    12,
+    0
+   ],
+   [
+    120,
+    12,
+    0
+   ],
+   [
+    132,
+    12,
+    0
+   ],
+   [
+    144,
+    12,
+    0
+   ],
+   [
+    156,
+    12,
+    0
+   ],
+   [
+    168,
+    12,
+    0
+   ],
+   [
+    180,
+    12,
+    0
+   ],
+   [
+    192,
+    8,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 16 x 12' sheets, 1 x 8' sheet.",
+   "Perimeter and corner bands use full field sheets subdivided by a row of seam fastening plates with cover strip down the middle, through that band only."
+  ]
+ },
+ "broward": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-70.6",
+    "-42.4",
+    "-45.0",
+    "5,616",
+    "56.2"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-122.9",
+    "-73.8",
+    "-75.0",
+    "9,888",
+    "98.9"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-162.2",
+    "-97.3",
+    "-97.5",
+    "13,216",
+    "132.2"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-221.0",
+    "-132.6",
+    "-135.0",
+    "1,280",
+    "12.8"
+   ]
+  ],
+  "appr": "LWC-59 PEER-CRL-003.B.R33 for FL14083-R38",
+  "approval": "LWC-59 – FL14083 HVHZ (Tbl 4D-2, p. 92)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "—",
+    "Adhesive Beads",
+    "—",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "42.4",
+    "OK as tested",
+    "Up to 12' sheet",
+    "—",
+    "No insulation – membrane adhered",
+    "—",
+    "104' × 54'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "73.8",
+    "OK as tested",
+    "Up to 12' sheet",
+    "—",
+    "No insulation – membrane adhered",
+    "—",
+    "24 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "97.3",
+    "OK as tested",
+    "Up to 12' sheet",
+    "—",
+    "No insulation – membrane adhered",
+    "—",
+    "24 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "132.6",
+    "OK as tested",
+    "Up to 12' sheet",
+    "—",
+    "No insulation – membrane adhered",
+    "—",
+    "8 × 24 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    16,
+    0
+   ],
+   [
+    16,
+    16,
+    0
+   ],
+   [
+    32,
+    16,
+    0
+   ],
+   [
+    48,
+    16,
+    0
+   ],
+   [
+    64,
+    16,
+    0
+   ],
+   [
+    80,
+    16,
+    0
+   ],
+   [
+    96,
+    16,
+    0
+   ],
+   [
+    112,
+    16,
+    0
+   ],
+   [
+    128,
+    16,
+    0
+   ],
+   [
+    144,
+    6,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 9 x 16' sheets, 1 x 6' sheet."
+  ]
+ },
+ "outline1": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-64.2",
+    "-38.5",
+    "-45.0",
+    "30,703",
+    "307.0"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-111.7",
+    "-67.0",
+    "-67.5",
+    "12,884",
+    "128.8"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-147.3",
+    "-88.4",
+    "-90.0",
+    "14,191",
+    "141.9"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-200.8",
+    "-120.5",
+    "-127.5",
+    "809",
+    "8.1"
+   ]
+  ],
+  "appr": null,
+  "approval": "—",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "38.5",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "interior"
+   ],
+   [
+    "Zone 1 (Field)",
+    "67.0",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "15 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "88.4",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "15 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "120.5",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "5 × 15 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    10,
+    0
+   ],
+   [
+    10,
+    10,
+    0
+   ],
+   [
+    20,
+    10,
+    0
+   ],
+   [
+    30,
+    10,
+    0
+   ],
+   [
+    40,
+    10,
+    0
+   ],
+   [
+    50,
+    10,
+    0
+   ],
+   [
+    60,
+    10,
+    0
+   ],
+   [
+    70,
+    10,
+    0
+   ],
+   [
+    80,
+    10,
+    0
+   ],
+   [
+    90,
+    10,
+    0
+   ],
+   [
+    100,
+    10,
+    0
+   ],
+   [
+    110,
+    10,
+    0
+   ],
+   [
+    120,
+    10,
+    0
+   ],
+   [
+    130,
+    10,
+    0
+   ],
+   [
+    140,
+    10,
+    0
+   ],
+   [
+    150,
+    10,
+    0
+   ],
+   [
+    160,
+    10,
+    0
+   ],
+   [
+    170,
+    10,
+    0
+   ],
+   [
+    180,
+    10,
+    0
+   ],
+   [
+    190,
+    10,
+    0
+   ],
+   [
+    200,
+    10,
+    0
+   ],
+   [
+    210,
+    10,
+    0
+   ],
+   [
+    220,
+    10,
+    0
+   ],
+   [
+    230,
+    10,
+    0
+   ],
+   [
+    240,
+    10,
+    0
+   ],
+   [
+    250,
+    5,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 25 x 10' sheets, 1 x 5' sheet.",
+   "Perimeter and corner bands use full field sheets subdivided by a row of seam fastening plates with cover strip down the middle, through that band only."
+  ]
+ },
+ "outline2": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-64.2",
+    "-38.5",
+    "-45.0",
+    "41,816",
+    "418.2"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-111.7",
+    "-67.0",
+    "-67.5",
+    "20,428",
+    "204.3"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-147.3",
+    "-88.4",
+    "-90.0",
+    "19,675",
+    "196.8"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-200.8",
+    "-120.5",
+    "-127.5",
+    "981",
+    "9.8"
+   ]
+  ],
+  "appr": null,
+  "approval": "—",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "38.5",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "interior"
+   ],
+   [
+    "Zone 1 (Field)",
+    "67.0",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "15 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "88.4",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "15 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "120.5",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "5 × 15 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    10,
+    0
+   ],
+   [
+    10,
+    10,
+    0
+   ],
+   [
+    20,
+    10,
+    0
+   ],
+   [
+    30,
+    10,
+    0
+   ],
+   [
+    40,
+    10,
+    0
+   ],
+   [
+    50,
+    10,
+    0
+   ],
+   [
+    60,
+    10,
+    0
+   ],
+   [
+    70,
+    10,
+    0
+   ],
+   [
+    80,
+    10,
+    0
+   ],
+   [
+    90,
+    10,
+    0
+   ],
+   [
+    100,
+    10,
+    0
+   ],
+   [
+    110,
+    10,
+    0
+   ],
+   [
+    120,
+    10,
+    0
+   ],
+   [
+    130,
+    10,
+    0
+   ],
+   [
+    140,
+    10,
+    0
+   ],
+   [
+    150,
+    10,
+    0
+   ],
+   [
+    160,
+    10,
+    0
+   ],
+   [
+    170,
+    10,
+    0
+   ],
+   [
+    180,
+    9,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 18 x 10' sheets, 1 cut sheet (9.0').",
+   "Perimeter and corner bands use full field sheets subdivided by a row of seam fastening plates with cover strip down the middle, through that band only."
+  ]
+ },
+ "outline3": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-64.2",
+    "-38.5",
+    "-45.0",
+    "5,886",
+    "58.9"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-111.7",
+    "-67.0",
+    "-67.5",
+    "5,388",
+    "53.9"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-147.3",
+    "-88.4",
+    "-90.0",
+    "7,922",
+    "79.2"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-200.8",
+    "-120.5",
+    "-127.5",
+    "774",
+    "7.7"
+   ]
+  ],
+  "appr": null,
+  "approval": "—",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "38.5",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "interior"
+   ],
+   [
+    "Zone 1 (Field)",
+    "67.0",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "15 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "88.4",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "15 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "120.5",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "5 × 15 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    10,
+    0
+   ],
+   [
+    10,
+    10,
+    0
+   ],
+   [
+    20,
+    10,
+    0
+   ],
+   [
+    30,
+    10,
+    0
+   ],
+   [
+    40,
+    10,
+    0
+   ],
+   [
+    50,
+    10,
+    0
+   ],
+   [
+    60,
+    10,
+    0
+   ],
+   [
+    70,
+    10,
+    0
+   ],
+   [
+    80,
+    10,
+    0
+   ],
+   [
+    90,
+    10,
+    0
+   ],
+   [
+    100,
+    10,
+    0
+   ],
+   [
+    110,
+    10,
+    0
+   ],
+   [
+    120,
+    10,
+    0
+   ],
+   [
+    130,
+    10,
+    0
+   ],
+   [
+    140,
+    10,
+    0
+   ]
+  ],
+  "legend": [
+   "Sheets run along the length: 15 x 10' sheets.",
+   "Perimeter and corner bands use full field sheets subdivided by a row of seam fastening plates with cover strip down the middle, through that band only."
+  ]
+ }
+}

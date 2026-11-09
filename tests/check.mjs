@@ -26,26 +26,28 @@ await ctx.route("**/*", r => { const u = r.request().url(); return u.startsWith(
 
 const results = {}, problems = [];
 for (const [job, inputs] of Object.entries(JOBS)) {
+  if (process.env.CHECK_VERBOSE) console.log("job", job);
   const pg = await ctx.newPage(); const errs = []; pg.on("pageerror", e => errs.push(String(e)));
-  await pg.goto(`http://127.0.0.1:${port}/index.html`); await pg.waitForSelector("#calcUI:not([hidden])", {timeout: 60000});
+  await pg.goto(`http://127.0.0.1:${port}/index.html`); await pg.waitForFunction(() => typeof CALC !== "undefined" && CALC.book && document.getElementById("cf-B7"), null, {timeout: 90000});
   for (const [a, v] of inputs) {
     if (a === "POLY") { await pg.evaluate(P => { const r = CALC.roofs[CALC.active]; r.v.SHAPE = "From satellite outline"; r.v.POLY = JSON.stringify(P);
         const xs = P.map(p=>p[0]), ys = P.map(p=>p[1]); r.v.B11 = String(Math.max(...xs) - Math.min(...xs)); r.v.B12 = String(Math.max(...ys) - Math.min(...ys)); calcRenderForm(); calcSchedule(false); }, v);
       await pg.waitForTimeout(400); continue; }
-    const el = pg.locator("#cf-" + a);
-    if (await el.evaluate(e => e.tagName) === "SELECT") {
-      const opts = await el.evaluate(e => [...e.options].map(o => o.text)); const m = opts.find(o => o.startsWith(v));
-      if (!m) { problems.push(`${job}: option "${v}" not found for ${a}`); continue; }
-      await el.selectOption({label: m});
-    } else await el.fill(String(v));
+    const r = await pg.evaluate(([a, v]) => {
+      const el = document.getElementById("cf-" + a); if (!el) return "missing field";
+      if (el.tagName === "SELECT") { const o = [...el.options].find(o => o.text.startsWith(v)); if (!o) return "option not found"; el.value = o.value; }
+      else el.value = String(v);
+      el.dispatchEvent(new Event("input", {bubbles: true})); el.dispatchEvent(new Event("change", {bubbles: true})); return "";
+    }, [a, v]);
+    if (r) problems.push(`${job}: ${a} = "${v}": ${r}`);
     await pg.waitForTimeout(200);
   }
-  await pg.waitForTimeout(2000);
+  await pg.waitForTimeout(6000);
   results[job] = await pg.evaluate(() => {
     const c = CALC.roofs[0].calc; if (!c) return {error: "no result"};
     const r1 = v => typeof v === "number" ? +v.toFixed(2) : v;
-    const out = {press: (c.press||[]).map(row => row.map(r1)), appr: c.appr ? c.appr.sys + " " + c.appr.doc : null, attach: JSON.parse(JSON.stringify(c.attach || null), (k, v) => r1(v))};
-    try { const p = sheetPlan(c, c.planOpt || {});
+    const out = {press: (c.press||[]).map(row => row.map(r1)), appr: c.appr ? c.appr.sys + " " + c.appr.doc : null, approval: ((c.info||[]).find(p => p[0] === "Approval") || [])[1] || null, attach: JSON.parse(JSON.stringify(c.attach || null), (k, v) => r1(v))};
+    try { const p = sheetPlan(c, c.planOpt || {}); if (!p) throw new Error("flute direction not entered");
       out.zoneSheets = [0,1,2,3].map(i => zoneSheet(p, i));
       out.strips = p.strips.map(s => [+s.u0.toFixed(1), +s.w.toFixed(2), s.perim ? 1 : 0]);
       out.legend = planLegend(p);
