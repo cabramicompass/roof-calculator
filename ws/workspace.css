@@ -5,7 +5,7 @@ body.ws .wrap{max-width:none;margin:0;padding:0}
 body.ws .wrap > header, body.ws .ptabs{display:none}
 .ws-top{height:60px;box-sizing:border-box;background:#fff;border-bottom:1px solid #D9E1EA;display:flex;align-items:center;gap:14px;padding:0 18px;font-family:Inter,system-ui,sans-serif}
 .ws-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;color:#1F2A36;white-space:nowrap}
-.ws-mark{width:32px;height:32px;border-radius:8px;background:#0B4F9C;display:flex;align-items:center;justify-content:center}
+.ws-logo{height:34px;width:auto;display:block}
 .ws-sep{width:1px;height:28px;background:#D9E1EA}
 .ws-job{display:flex;flex-direction:column;line-height:1.2;min-width:0}
 .ws-job b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px}
