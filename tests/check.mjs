@@ -49,12 +49,14 @@ for (const [job, inputs] of Object.entries(JOBS)) {
     const out = {press: (c.press||[]).map(row => row.map(r1)), appr: c.appr ? c.appr.sys + " " + c.appr.doc : null, approval: ((c.info||[]).find(p => p[0] === "Approval") || [])[1] || null, attach: JSON.parse(JSON.stringify(c.attach || null), (k, v) => r1(v))};
     try { const p = sheetPlan(c, c.planOpt || {}); if (!p) throw new Error("flute direction not entered");
       out.zoneSheets = [0,1,2,3].map(i => zoneSheet(p, i));
-      out.strips = p.strips.map(s => [+s.u0.toFixed(1), +s.w.toFixed(2), s.perim ? 1 : 0]);
+      out.strips = p.strips.map(s => [+s.u0.toFixed(1), +s.w.toFixed(2), s.perim ? 1 : 0, (s.segs || []).map(r => r.map(v => +v.toFixed(1)))]);
+      out.emptyStrips = p.strips.filter(s => !(s.segs || [[0,1]]).length).length;
       out.legend = planLegend(p);
     } catch (e) { out.plan = "not drawn: " + (e.message || e); }
     return out;
   });
   if (errs.length) problems.push(`${job}: page error ${errs[0]}`);
+  if (results[job].emptyStrips) problems.push(`${job}: ${results[job].emptyStrips} sheet(s) in the layout have no length on the roof`);
   await pg.close();
 }
 await browser.close(); server.close();
