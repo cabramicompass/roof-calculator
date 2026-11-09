@@ -356,8 +356,8 @@ table.kv td.t-ok{color:var(--ok);font-weight:700} table.kv td.t-warn{color:var(-
 <script charset="utf-8" src="vendor/xlsx.full.min.js"></script>
 <script charset="utf-8" src="vendor/pdf-lib.min.js"></script>
 <link rel="stylesheet" href="vendor/leaflet.css">
-<link rel="stylesheet" href="ws/workspace.css?v=1794251294">
-<script src="ws/workspace.js?v=1794251294"></script>
+<link rel="stylesheet" href="ws/workspace.css?v=1794251317">
+<script src="ws/workspace.js?v=1794251317"></script>
 <script src="vendor/leaflet.js"></script>
 <link rel="stylesheet" href="vendor/leaflet-geoman.css">
 <script src="vendor/leaflet-geoman.min.js"></script>
@@ -2141,7 +2141,7 @@ function geoSquare(pts){
   const res = out.map(p=>[lon0 + p[0]/kx, lat0 + p[1]/ky]); res.push(res[0].slice()); return res;
 }
 function geoSetDrawn(pts, squared){
-  const b = {h:-1, pts, drawn:true, d:0, squared}; GEO.cands = GEO.cands.filter(c=>!c.drawn); GEO.cands.unshift(b); GEO.pick = 0; GEO.edit = true; geoRender();
+  const b = {h:-1, pts, drawn:true, d:0, squared}; GEO.cands = GEO.cands.filter(c=>!c.drawn); GEO.cands.unshift(b); GEO.pick = 0; GEO.edit = true; setTimeout(geoRender, 0);   // after Geoman leaves draw mode
 }
 function geoMapSync(slot){
   const m = geoMap(); if(!m){ slot.innerHTML = `<p class="status err">The map didn't load. Reload the page.</p>`; return; }
