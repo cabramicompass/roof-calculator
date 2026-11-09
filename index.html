@@ -2893,7 +2893,7 @@ function sheetPlan(c, opt){
   const zoneAt = (u, v) => { const x = flutesAlongL ? u : v, y = flutesAlongL ? v : u; const ci = Math.min(g.nc-1, Math.max(0, Math.floor(x/L*g.nc))), ri = Math.min(g.nr-1, Math.max(0, Math.floor(y/W*g.nr))); const z = g.cells[ri][ci]; return (z==null||isNaN(z)) ? 0 : Math.max(0, Math.min(3, z)); };
   const inside = (u, v) => { if(!c.poly) return true; const x = flutesAlongL ? u : v, y = flutesAlongL ? v : u; const ci = Math.min(g.nc-1, Math.max(0, Math.floor(x/L*g.nc))), ri = Math.min(g.nr-1, Math.max(0, Math.floor(y/W*g.nr))); return g.cells[ri][ci] != null; };
   // stretches along v (at a given u) that are on the roof; a rectangle is one stretch 0..V
-  const runs = (u) => { if(!c.poly) return [[0, V]]; const st = Math.max(0.25, V/400), out = []; let s0 = null; for(let v=0; v<=V+1e-9; v+=st){ const inn = v < V && inside(u, v + st/2); if(inn && s0===null) s0 = v; if(!inn && s0!==null){ out.push([s0, Math.min(v, V)]); s0 = null; } } return out; };
+  const runs = (u) => { if(!c.poly) return [[0, V]]; const st = Math.max(0.25, V/400), out = []; let s0 = null; for(let v=0; v<=V+1e-9; v+=st){ const inn = v < V && inside(u, v + st/2); if(inn && s0===null) s0 = v; if(!inn && s0!==null){ out.push([s0, Math.min(v, V)]); s0 = null; } } if(s0!==null) out.push([s0, V]); return out; };   // a stretch that reaches the far edge still counts
   const minStrip = 3;   // a leftover under 3 ft is split with its neighbour into two equal cut sheets
   const adhW = parseFloat(opt.adhSheet) || 0;
   const fieldW = FA && adhW ? adhW : (Z[0].sheet || Z[1].sheet || 10);
