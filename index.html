@@ -356,8 +356,8 @@ table.kv td.t-ok{color:var(--ok);font-weight:700} table.kv td.t-warn{color:var(-
 <script charset="utf-8" src="vendor/xlsx.full.min.js"></script>
 <script charset="utf-8" src="vendor/pdf-lib.min.js"></script>
 <link rel="stylesheet" href="vendor/leaflet.css">
-<link rel="stylesheet" href="ws/workspace.css?v=1794251317">
-<script src="ws/workspace.js?v=1794251317"></script>
+<link rel="stylesheet" href="ws/workspace.css?v=1794252390">
+<script src="ws/workspace.js?v=1794252390"></script>
 <script src="vendor/leaflet.js"></script>
 <link rel="stylesheet" href="vendor/leaflet-geoman.css">
 <script src="vendor/leaflet-geoman.min.js"></script>
@@ -1530,14 +1530,14 @@ function shapeGrid(P, h, parapet){
     let nx = -uy, ny = ux; const mx = (a[0]+b[0])/2 + nx*0.01, my = (a[1]+b[1])/2 + ny*0.01; if(!inPoly(mx, my, P)){ nx = -nx; ny = -ny; }
     return {a, L, ux, uy, nx, ny, ext0: convex.has(a) ? 0 : w1, ext1: convex.has(b) ? 0 : w1}; });
   const inCorner = (x, y) => corners.some(({v, legs})=>legs.some(e=>{ const dx = e[0]-v[0], dy = e[1]-v[1], L = Math.hypot(dx,dy); if(!L) return false; const ux = dx/L, uy = dy/L, t = (x-v[0])*ux + (y-v[1])*uy, n = Math.abs((x-v[0])*uy - (y-v[1])*ux); return t >= 0 && t <= Math.min(clen, L) && n <= cwid; }));
+  // exact zone at any point (null = off the roof); the grid below samples it at cell centers
+  const zoneXY = (x, y) => { if(!inPoly(x, y, P)) return null;
+    let d = Infinity; for(const e of E){ const rx = x - e.a[0], ry = y - e.a[1], t = rx*e.ux + ry*e.uy, n = rx*e.nx + ry*e.ny; if(n >= -1e-9 && t >= -e.ext0 && t <= e.L + e.ext1) d = Math.min(d, Math.max(n, -t, t - e.L)); }
+    let z = d < w2 ? 2 : d < w1 ? 1 : 0; if(!parapet && inCorner(x, y)) z = 3; return z; };
   const cells = [], cnt = [0,0,0,0];
-  for(let r=0;r<nr;r++){ const row = []; for(let c=0;c<nc;c++){ const x = (c+0.5)*cw, y = (r+0.5)*ch;
-      if(!inPoly(x, y, P)){ row.push(null); continue; }
-      let d = Infinity; for(const e of E){ const rx = x - e.a[0], ry = y - e.a[1], t = rx*e.ux + ry*e.uy, n = rx*e.nx + ry*e.ny; if(n >= -1e-9 && t >= -e.ext0 && t <= e.L + e.ext1) d = Math.min(d, Math.max(n, -t, t - e.L)); }
-      let z = d < w2 ? 2 : d < w1 ? 1 : 0; if(!parapet && inCorner(x, y)) z = 3;
-      cnt[z]++; row.push(z); }
+  for(let r=0;r<nr;r++){ const row = []; for(let c=0;c<nc;c++){ const z = zoneXY((c+0.5)*cw, (r+0.5)*ch); row.push(z); if(z != null) cnt[z]++; }
     cells.push(row); }
-  return {nc, nr, cells, area: cnt.map(n=>n*cw*ch)};
+  return {nc, nr, cells, area: cnt.map(n=>n*cw*ch), zoneXY};
 }
 /* apply the outline to a calculator snapshot: zone grid, zone areas, roof area */
 function shapeApply(c, v){
@@ -1545,7 +1545,7 @@ function shapeApply(c, v){
   const h = parseFloat(v.B10)||0; if(!(h>0)) return;
   const parapet = v.G5 === "Yes" || parseFloat(v.G5) >= 3;
   const g = shapeGrid(s.pts, h, parapet);
-  c.poly = s.pts; c.shape = v.SHAPE; c.grid = {nc:g.nc, nr:g.nr, cells:g.cells};
+  c.poly = s.pts; c.shape = v.SHAPE; c.grid = {nc:g.nc, nr:g.nr, cells:g.cells}; Object.defineProperty(c, "zoneXY", {value:g.zoneXY, enumerable:false, configurable:true, writable:true});
   const tot = Math.abs(polyArea(s.pts)); c.polyArea = tot; c.zoneArea = g.area;
   const fx = n => Math.round(n).toLocaleString("en-US");
   (c.press||[]).slice(1, 5).forEach((row, i)=>{ row[5] = fx(g.area[i]); row[6] = (g.area[i]/100).toFixed(1); });
@@ -3031,6 +3031,11 @@ function sheetPlan(c, opt){
   // u = axis the sheets are stacked along (= flute direction), v = axis each sheet runs along
   const U = flutesAlongL ? L : W, V = flutesAlongL ? W : L;
   const zoneAt = (u, v) => { const x = flutesAlongL ? u : v, y = flutesAlongL ? v : u; const ci = Math.min(g.nc-1, Math.max(0, Math.floor(x/L*g.nc))), ri = Math.min(g.nr-1, Math.max(0, Math.floor(y/W*g.nr))); const z = g.cells[ri][ci]; return (z==null||isNaN(z)) ? 0 : Math.max(0, Math.min(3, z)); };
+  // exact zone at a point, for deciding which sheets need extra fastener rows; the grid is only a few feet fine
+  // on big roofs, so a zone edge that lands on a seam could otherwise read as reaching into the next sheet
+  const zf2 = c.zoneFt, exact = c.poly ? (c.zoneXY || null) : (zf2 && zf2.every(x=>isFinite(x)) ? (x, y) => { if(x < 0 || y < 0 || x > L || y > W) return null; const dx = Math.min(x, L-x), dy = Math.min(y, W-y);
+    return ((dx < zf2[0] && dy < zf2[1]) || (dy < zf2[0] && dx < zf2[1])) ? (c.zonePar ? 2 : 3) : Math.min(dx, dy) < zf2[2] ? 2 : Math.min(dx, dy) < zf2[3] ? 1 : 0; } : null);
+  const zoneHere = (u, v) => { if(!exact) return inside(u, v) ? zoneAt(u, v) : -1; const x = flutesAlongL ? u : v, y = flutesAlongL ? v : u; const z = exact(x, y); return z == null ? -1 : Math.max(0, Math.min(3, z)); };
   const inside = (u, v) => { if(!c.poly) return true; const x = flutesAlongL ? u : v, y = flutesAlongL ? v : u; const ci = Math.min(g.nc-1, Math.max(0, Math.floor(x/L*g.nc))), ri = Math.min(g.nr-1, Math.max(0, Math.floor(y/W*g.nr))); return g.cells[ri][ci] != null; };
   // stretches along v (at a given u) that are on the roof; a rectangle is one stretch 0..V
   const runs = (u) => { if(!c.poly) return [[0, V]]; const st = Math.max(0.25, V/400), out = []; let s0 = null; for(let v=0; v<=V+1e-9; v+=st){ const inn = v < V && inside(u, v + st/2); if(inn && s0===null) s0 = v; if(!inn && s0!==null){ out.push([s0, Math.min(v, V)]); s0 = null; } } if(s0!==null) out.push([s0, V]); return out; };   // a stretch that reaches the far edge still counts
@@ -3083,7 +3088,7 @@ function sheetPlan(c, opt){
     const step = Math.max(0.5, V/200); let v = 0;
     while(v < V - 1e-6){
       const us = [s.u0 + 0.25, um, s.u1 - 0.25];   // a sheet that reaches into a stronger zone is fastened for that zone
-      const key = vv => { let z = -1; us.forEach(uu=>{ if(inside(uu, vv)) z = Math.max(z, zoneAt(uu, vv)); }); return z; };
+      const key = vv => { let z = -1; us.forEach(uu=>{ z = Math.max(z, zoneHere(uu, vv)); }); return z; };
       const z = key(v + step/2); let v1 = v + step; while(v1 < V - 1e-6 && key(v1 + step/2) === z) v1 += step; v1 = Math.min(V, v1);
       if(z < 0){ v = v1; continue; }
       const need = Z[z].sheet ? (Z[z].extra ? Z[z].sheet/2 : Z[z].sheet) : s.w;
