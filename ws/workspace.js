@@ -31,7 +31,7 @@
     /* ---- top bar ---- */
     const top = el("div", "ws-top");
     top.innerHTML = `
-      <div class="ws-brand"><img class="ws-logo" src="img/compass_h.png" alt="Compass Sales Group"><span class="ws-sep"></span>Roof Calculator</div>
+      <div class="ws-brand"><img class="ws-logo" src="img/compass_h.png" alt="Compass Sales Group"><span class="ws-sep"></span>Roofing Artifact</div>
       <span class="ws-sep"></span>
       <div class="ws-job"><b id="wsJob">New job</b><span id="wsJobSub"></span></div>
       <div class="ws-seg" role="tablist" aria-label="Sections"><button type="button" class="on" data-ws-go="1">Calculator</button><button type="button" data-ws-go="3">Submittal</button></div>

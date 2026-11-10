@@ -1,6 +1,6 @@
 {
-  "name": "Roof Calculator (Compass Sales Group)",
-  "short_name": "Roof Calc",
+  "name": "Roofing Artifact (Compass Sales Group)",
+  "short_name": "Roofing Artifact",
   "start_url": "../index.html",
   "scope": "../",
   "display": "standalone",
