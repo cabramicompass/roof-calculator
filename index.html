@@ -356,8 +356,8 @@ table.kv td.t-ok{color:var(--ok);font-weight:700} table.kv td.t-warn{color:var(-
 <script charset="utf-8" src="vendor/xlsx.full.min.js"></script>
 <script charset="utf-8" src="vendor/pdf-lib.min.js"></script>
 <link rel="stylesheet" href="vendor/leaflet.css">
-<link rel="stylesheet" href="ws/workspace.css?v=1794322091">
-<script src="ws/workspace.js?v=1794322091"></script>
+<link rel="stylesheet" href="ws/workspace.css?v=1794407055">
+<script src="ws/workspace.js?v=1794407055"></script>
 <script src="vendor/leaflet.js"></script>
 <link rel="stylesheet" href="vendor/leaflet-geoman.css">
 <script src="vendor/leaflet-geoman.min.js"></script>
@@ -2120,25 +2120,95 @@ function geoSnapMove(e){
   P.slice(0, -1).forEach((v, i)=>{ const vr = rot(v), dd = alongX ? Math.abs(vr.x - r.x) : Math.abs(vr.y - r.y); if(dd < best || (i === 0 && dd < tol)){ best = dd; r = alongX ? {x:vr.x, y:r.y} : {x:r.x, y:vr.y}; } });
   d._hintMarker.setLatLng(m.layerPointToLatLng(unrot(r))); d._hintMarker._snapped = true;
 }
-/* Square up an outline: sides within 20 degrees of square (to the longest side) are set exactly square,
-   corners are where neighboring sides meet. Returns null when the shape is not mostly square. */
-function geoSquare(pts){
+/* Clean up and square an outline (machine made footprints are wobbly):
+   1. spikes (a corner sharper than 40 degrees, like a stray triangle) are cut off
+   2. the building's main direction is found from all sides, weighted by length
+   3. sides within 20 degrees of square to it are set exactly square; other sides keep their angle (angled wings stay)
+   4. short jogs under MIN ft are removed and the sides on either side are merged
+   5. corners are where neighboring sides meet
+   Returns null when the result would not be a sound outline. */
+function geoSquare(pts, MIN){
+  MIN = MIN || 10;
   if(!pts || pts.length < 4) return null;
   const lat0 = pts[0][1], lon0 = pts[0][0], kx = 364567 * Math.cos(lat0 * Math.PI/180), ky = 364567;
   let P = pts.map(p=>[(p[0]-lon0)*kx, (p[1]-lat0)*ky]);
   if(Math.hypot(P[0][0]-P[P.length-1][0], P[0][1]-P[P.length-1][1]) < 0.01) P = P.slice(0, -1);
-  const n = P.length; if(n < 4) return null;
-  const E = P.map((p,i)=>{ const q = P[(i+1)%n]; return {p, q, L:Math.hypot(q[0]-p[0], q[1]-p[1]), a:Math.atan2(q[1]-p[1], q[0]-p[0])}; });
-  const t0 = E.reduce((a,b)=>b.L > a.L ? b : a).a, H = Math.PI/2, lim = 20 * Math.PI/180;
-  for(const e of E){ const k = Math.round((e.a - t0) / H), off = e.a - t0 - k*H; if(Math.abs(off) > lim) return null; e.k = ((k % 4) + 4) % 4; e.d = t0 + k*H; e.m = [(e.p[0]+e.q[0])/2, (e.p[1]+e.q[1])/2]; }
-  const S = []; for(const e of E){ const last = S[S.length-1]; if(last && last.k === e.k){ last.m = [(last.m[0]*last.L + e.m[0]*e.L)/(last.L+e.L), (last.m[1]*last.L + e.m[1]*e.L)/(last.L+e.L)]; last.L += e.L; } else S.push({...e}); }
-  if(S.length > 1 && S[0].k === S[S.length-1].k){ const a = S.pop(), b = S[0]; b.m = [(a.m[0]*a.L + b.m[0]*b.L)/(a.L+b.L), (a.m[1]*a.L + b.m[1]*b.L)/(a.L+b.L)]; b.L += a.L; }
-  if(S.length < 4 || S.length % 2) return null;
-  for(let i = 0; i < S.length; i++) if(S[i].k % 2 === S[(i+1)%S.length].k % 2) return null;   // sides must alternate direction
-  const out = S.map((e,i)=>{ const f = S[(i+1)%S.length], d1 = [Math.cos(e.d), Math.sin(e.d)], d2 = [Math.cos(f.d), Math.sin(f.d)];
-    const den = d1[0]*d2[1] - d1[1]*d2[0], w = [f.m[0]-e.m[0], f.m[1]-e.m[1]], s1 = (w[0]*d2[1] - w[1]*d2[0]) / den;
-    return [e.m[0] + s1*d1[0], e.m[1] + s1*d1[1]]; });
+  const area = Q => { let a = 0; Q.forEach((p,i)=>{ const q = Q[(i+1)%Q.length]; a += p[0]*q[1] - q[0]*p[1]; }); return a/2; };
+  const A0 = Math.abs(area(P));
+  // 1. spikes and repeated points
+  for(let changed = true, guard = 0; changed && P.length > 3 && guard < 500; guard++){ changed = false;
+    for(let i = 0; i < P.length && P.length > 3; i++){ const a = P[(i-1+P.length)%P.length], p = P[i], c = P[(i+1)%P.length];
+      const v1 = [a[0]-p[0], a[1]-p[1]], v2 = [c[0]-p[0], c[1]-p[1]], l1 = Math.hypot(...v1), l2 = Math.hypot(...v2);
+      if(l1 < 0.3 || l2 < 0.3){ P.splice(i, 1); changed = true; break; }
+      const ang = Math.acos(Math.max(-1, Math.min(1, (v1[0]*v2[0] + v1[1]*v2[1]) / l1 / l2)));
+      if(ang < 40 * Math.PI/180 || Math.abs(Math.PI - ang) < 4 * Math.PI/180){ P.splice(i, 1); changed = true; break; } } }   // spike, or a corner on a straight side
+  if(P.length < 3) return null;
+  let E = P.map((p,i)=>{ const q = P[(i+1)%P.length]; return {L:Math.hypot(q[0]-p[0], q[1]-p[1]), a:Math.atan2(q[1]-p[1], q[0]-p[0]), m:[(p[0]+q[0])/2, (p[1]+q[1])/2]}; });
+  // 2. main direction: length weighted histogram of side angles folded to 0..90
+  const H = new Array(90).fill(0); E.forEach(e=>{ const d = ((e.a * 180/Math.PI) % 90 + 90) % 90; for(let k = -3; k <= 3; k++) H[(Math.round(d) + k + 90) % 90] += e.L * (4 - Math.abs(k)); });
+  let best = 0; H.forEach((h,i)=>{ if(h > H[best]) best = i; });
+  let sw = 0, sx = 0; E.forEach(e=>{ const d = ((e.a * 180/Math.PI) % 90 + 90) % 90; let off = d - best; if(off > 45) off -= 90; if(off < -45) off += 90; if(Math.abs(off) <= 5){ sw += e.L; sx += e.L * off; } });
+  const t0 = (best + (sw ? sx/sw : 0)) * Math.PI/180, Hh = Math.PI/2, lim = 20 * Math.PI/180;
+  // 3. directions
+  E.forEach(e=>{ const k = Math.round((e.a - t0) / Hh), off = e.a - t0 - k*Hh; if(Math.abs(off) <= lim){ e.d = t0 + k*Hh; e.cls = ((k % 2) + 2) % 2; } else { e.d = e.a; e.cls = "f" + e.a.toFixed(3); } });
+  const par = (a, b) => a.cls === b.cls || (typeof a.cls === "string" && typeof b.cls === "string" && Math.abs(Math.sin(a.d - b.d)) < 0.05);
+  const merge = (a, b) => { const w = a.L + b.L; return {...a, L:w, m:[(a.m[0]*a.L + b.m[0]*b.L)/w, (a.m[1]*a.L + b.m[1]*b.L)/w]}; };
+  // 4. drop short jogs, merge parallel neighbors
+  for(let changed = true, guard = 0; changed && E.length > 3 && guard < 500; guard++){ changed = false;
+    for(let i = 0; i < E.length && E.length > 3; i++){ const n = E.length, a = E[i], b = E[(i+1)%n];
+      if(par(a, b)){ E.splice(i, 1, merge(a, b)); E.splice((i+1)%n > i ? i+1 : 0, 1); changed = true; break; } }
+    if(changed) continue;
+    let si = -1; E.forEach((e,i)=>{ if(e.L < MIN && (si < 0 || e.L < E[si].L)) si = i; });
+    if(si >= 0 && E.length > 4){ E.splice(si, 1); changed = true; } }
+  if(E.length < 3) return null;
+  // 5. corners
+  const out = []; for(let i = 0; i < E.length; i++){ const e = E[i], f = E[(i+1)%E.length], d1 = [Math.cos(e.d), Math.sin(e.d)], d2 = [Math.cos(f.d), Math.sin(f.d)];
+    const den = d1[0]*d2[1] - d1[1]*d2[0]; if(Math.abs(den) < 0.05) return null;
+    const w = [f.m[0]-e.m[0], f.m[1]-e.m[1]], s1 = (w[0]*d2[1] - w[1]*d2[0]) / den; out.push([e.m[0] + s1*d1[0], e.m[1] + s1*d1[1]]); }
+  // sound result: no crossing sides, area close to the original
+  const X = (p1, p2, p3, p4) => { const o = (a, b, c) => Math.sign((b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0])); return o(p1,p2,p3) * o(p1,p2,p4) < 0 && o(p3,p4,p1) * o(p3,p4,p2) < 0; };
+  for(let i = 0; i < out.length; i++) for(let j = i+2; j < out.length; j++){ if(i === 0 && j === out.length-1) continue; if(X(out[i], out[(i+1)%out.length], out[j], out[(j+1)%out.length])) return null; }
+  const A1 = Math.abs(area(out)); if(!(A1 > A0 * 0.85 && A1 < A0 * 1.15)) return null;
   const res = out.map(p=>[lon0 + p[0]/kx, lat0 + p[1]/ky]); res.push(res[0].slice()); return res;
+}
+/* Fit sides to the roof edges in the satellite photo (Esri tiles allow reading pixels). Each side may shift up to
+   about 4 m and turn up to 3 degrees to sit on the strongest edge in the picture; corners are recomputed where the
+   fitted sides meet. only = list of side indexes to fit (default all). */
+const GEO_TILE = {};
+function geoTileImg(z, x, y){ const k = z+"/"+x+"/"+y; if(GEO_TILE[k]) return GEO_TILE[k];
+  return GEO_TILE[k] = new Promise((ok, no)=>{ const im = new Image(); im.crossOrigin = "anonymous"; im.onload = ()=>ok(im); im.onerror = ()=>{ delete GEO_TILE[k]; no(new Error("tile")); }; im.src = GEO_SRC[0].url(z, x, y); }); }
+async function geoFit(pts, only){
+  const Z = 19, S = 256 * Math.pow(2, Z);
+  const toPx = p => { const s = Math.sin(p[1] * Math.PI/180); return [(p[0] + 180) / 360 * S, (0.5 - Math.log((1+s)/(1-s)) / (4*Math.PI)) * S]; };
+  const toLL = q => [q[0] / S * 360 - 180, Math.atan(Math.sinh(Math.PI * (1 - 2*q[1]/S))) * 180/Math.PI];
+  let closed = false, P0 = pts.slice(); if(P0.length > 2 && Math.hypot(P0[0][0]-P0[P0.length-1][0], P0[0][1]-P0[P0.length-1][1]) < 1e-9){ P0 = P0.slice(0, -1); closed = true; }
+  const P = P0.map(toPx), pad = 40, xs = P.map(p=>p[0]), ys = P.map(p=>p[1]);
+  const x0 = Math.floor((Math.min(...xs) - pad) / 256), x1 = Math.floor((Math.max(...xs) + pad) / 256), y0 = Math.floor((Math.min(...ys) - pad) / 256), y1 = Math.floor((Math.max(...ys) + pad) / 256);
+  if((x1-x0+1) * (y1-y0+1) > 64) throw new Error("too big");
+  const W = (x1-x0+1) * 256, Hh = (y1-y0+1) * 256, cv = document.createElement("canvas"); cv.width = W; cv.height = Hh; const cx = cv.getContext("2d", {willReadFrequently:true});
+  const jobs = []; for(let tx = x0; tx <= x1; tx++) for(let ty = y0; ty <= y1; ty++) jobs.push(geoTileImg(Z, tx, ty).then(im=>cx.drawImage(im, (tx-x0)*256, (ty-y0)*256)));
+  await Promise.all(jobs);
+  const D = cx.getImageData(0, 0, W, Hh).data, G = new Float32Array(W*Hh); for(let i = 0; i < W*Hh; i++) G[i] = 0.299*D[i*4] + 0.587*D[i*4+1] + 0.114*D[i*4+2];
+  const ox = x0*256, oy = y0*256, g = (x, y) => G[Math.max(0, Math.min(Hh-1, y)) * W + Math.max(0, Math.min(W-1, x))];
+  const grad = (x, y) => { const i = Math.floor(x - ox), j = Math.floor(y - oy);
+    return [(g(i+1,j-1) + 2*g(i+1,j) + g(i+1,j+1) - g(i-1,j-1) - 2*g(i-1,j) - g(i-1,j+1)) / 8, (g(i-1,j+1) + 2*g(i,j+1) + g(i+1,j+1) - g(i-1,j-1) - 2*g(i,j-1) - g(i+1,j-1)) / 8]; };
+  const n = P.length, lines = P.map((p,i)=>{ const q = P[(i+1)%n]; return {m:[(p[0]+q[0])/2, (p[1]+q[1])/2], a:Math.atan2(q[1]-p[1], q[0]-p[0]), L:Math.hypot(q[0]-p[0], q[1]-p[1]), fit:false}; });
+  const R = 15, idx = only || lines.map((_, i)=>i);
+  for(const i of idx){ const e = lines[i]; if(e.L < 12) continue;
+    const score = (da, off) => { const a = e.a + da, u = [Math.cos(a), Math.sin(a)], nn = [-u[1], u[0]]; let s = 0, k = 0;
+      for(let t = -0.38*e.L; t <= 0.38*e.L; t += 1){ const x = e.m[0] + u[0]*t + nn[0]*off, y = e.m[1] + u[1]*t + nn[1]*off, gr = grad(x, y); s += Math.abs(gr[0]*nn[0] + gr[1]*nn[1]); k++; }
+      return k ? s/k : 0; };
+    const base = score(0, 0); let bs = base, bda = 0, bo = 0;
+    for(let da = -3; da <= 3; da += 0.5) for(let off = -R; off <= R; off += 1){ const sc = score(da * Math.PI/180, off) - 0.15 * Math.abs(off); if(sc > bs){ bs = sc; bda = da; bo = off; } }
+    for(let off = bo - 0.75; off <= bo + 0.75; off += 0.25){ const sc = score(bda * Math.PI/180, off) - 0.15 * Math.abs(off); if(sc > bs){ bs = sc; bo = off; } }
+    if(bs > base * 1.15 && bs > 6){ const a = e.a + bda * Math.PI/180; e.m = [e.m[0] - Math.sin(a) * bo, e.m[1] + Math.cos(a) * bo]; e.a = a; e.fit = true; } }
+  const Q = P.map((p, i)=>{ const e = lines[(i-1+n)%n], f = lines[i]; if(!e.fit && !f.fit) return p;
+    const d1 = [Math.cos(e.a), Math.sin(e.a)], d2 = [Math.cos(f.a), Math.sin(f.a)], den = d1[0]*d2[1] - d1[1]*d2[0];
+    if(Math.abs(den) < 0.1){ const ln = f.fit ? f : e, u = [Math.cos(ln.a), Math.sin(ln.a)], t = (p[0]-ln.m[0])*u[0] + (p[1]-ln.m[1])*u[1]; return [ln.m[0] + u[0]*t, ln.m[1] + u[1]*t]; }
+    const w = [f.m[0]-e.m[0], f.m[1]-e.m[1]], s1 = (w[0]*d2[1] - w[1]*d2[0]) / den; return [e.m[0] + s1*d1[0], e.m[1] + s1*d1[1]]; });
+  if(Q.some((q, i)=>Math.hypot(q[0]-P[i][0], q[1]-P[i][1]) > 40)) return {pts, moved:0};   // a corner flew off: keep the old outline
+  const out = Q.map(toLL); if(closed) out.push(out[0].slice());
+  return {pts:out, moved:lines.filter(l=>l.fit).length};
 }
 function geoSetDrawn(pts, squared){
   const b = {h:-1, pts, drawn:true, d:0, squared}; GEO.cands = GEO.cands.filter(c=>!c.drawn); GEO.cands.unshift(b); GEO.pick = 0; GEO.edit = true; setTimeout(geoRender, 0);   // after Geoman leaves draw mode
@@ -2153,7 +2223,11 @@ function geoMapSync(slot){
     const pg = L.polygon(b.pts.map(LL), {color:on ? "#4fb3ff" : prop ? "#5fe08a" : "#ffd34d", weight:on ? 3 : 2, fillColor:on ? "#0b4f9c" : "#ffffff", fillOpacity:on ? 0.28 : 0.08, interactive:!(m.pm && m.pm.globalDrawModeEnabled())});
     pg.on("click", ()=>{ if(m.pm && m.pm.globalDrawModeEnabled()) return; if(GEO.pick !== i){ GEO.pick = i; GEO.edit = false; geoRender(); } });
     pg.addTo(GEO.layer);
-    if(on && GEO.edit && pg.pm){ pg.pm.enable({allowSelfIntersection:false, draggable:false}); pg.on("pm:edit pm:markerdragend pm:vertexadded pm:vertexremoved", ()=>{ b.pts = pg.getLatLngs()[0].map(UL); b.edited = true; geoInfo(); }); }
+    if(on && GEO.edit && pg.pm){ pg.pm.enable({allowSelfIntersection:false, draggable:false}); pg.on("pm:edit pm:vertexadded pm:vertexremoved", ()=>{ b.pts = pg.getLatLngs()[0].map(UL); b.edited = true; geoInfo(); });
+      pg.on("pm:markerdragend", async e=>{ b.pts = pg.getLatLngs()[0].map(UL); b.edited = true; geoInfo();
+        const oe = e.markerEvent && e.markerEvent.originalEvent; if(oe && oe.altKey) return;
+        const i = Array.isArray(e.indexPath) ? e.indexPath[e.indexPath.length-1] : -1, n = b.pts.length; if(i < 0 || n < 3) return;
+        try{ const r = await geoFit(b.pts, [(i-1+n)%n, i]); if(r.moved && GEO.cands[GEO.pick] === b){ b.pts = r.pts; geoInfo(); geoRender(); } }catch(err){ /* photo not readable: keep the hand placed corner */ } }); }
   });
   if(GEO.lat !== null) L.circleMarker([GEO.lat, GEO.lon], {radius:5, color:"#fff", weight:1.5, fillColor:"#e0393b", fillOpacity:1, interactive:false}).addTo(GEO.layer);
   if(GEO.fit && !GEO.busy){ GEO.fit = false; const b = GEO.cands[GEO.pick];
@@ -2175,8 +2249,8 @@ function geoHtml(){
     map = `<div id="geoMapSlot" class="geomapslot"></div>
       <div class="geotools">${drawing
         ? `<span class="geodrawhint">Click each roof corner on the photo. Sides lock square (hold Alt to draw free). Click the first corner again to finish.</span><button type="button" id="geoCancel">Cancel</button>`
-        : `<button type="button" id="geoDraw">Draw my own outline</button>${GEO.cands[GEO.pick] ? `<button type="button" id="geoEdit">${GEO.edit ? "Done adjusting" : "Adjust corners"}</button><button type="button" id="geoSq" title="Make every corner exactly 90 degrees">Square corners</button>` : ""}
-           <span class="hint">${GEO.edit ? "Drag the white corner dots to fix the outline. Drag a middle dot to add a corner; right click a corner to remove it." : "Building missing or outline wrong? Draw or adjust it on the photo; the scale is automatic."}</span>`}</div>
+        : `<button type="button" id="geoDraw">Draw my own outline</button>${GEO.cands[GEO.pick] ? `<button type="button" id="geoEdit">${GEO.edit ? "Done adjusting" : "Adjust corners"}</button><button type="button" id="geoFitB" title="Move each side onto the roof edge in the photo">Fit to photo</button><button type="button" id="geoSq" title="Clean up jogs and spikes, make corners 90 degrees">Clean up and square</button>` : ""}
+           <span class="hint">${GEO.edit ? "Drag the white corner dots to fix the outline; a moved corner snaps its sides to the roof edge in the photo (hold Alt to skip). Drag a middle dot to add a corner; right click a corner to remove it." : "Building missing or outline wrong? Draw or adjust it on the photo; the scale is automatic."}</span>`}</div>
       <p class="hint">Scroll or pinch to zoom, drag to move. Click an outline to pick it.</p>`;
   }
   const info = `<div id="geoInfo">${geoInfoHtml()}</div>`;
@@ -2202,9 +2276,15 @@ function geoRender(){
   if($("geoDraw")) $("geoDraw").onclick = ()=>{ GEO.edit = false; GEO.map.pm.enableDraw("Polygon", {snappable:true, continueDrawing:false}); geoRender(); };
   if($("geoCancel")) $("geoCancel").onclick = ()=>{ GEO.map.pm.disableDraw(); geoRender(); };
   if($("geoEdit")) $("geoEdit").onclick = ()=>{ GEO.edit = !GEO.edit; geoRender(); };
-  if($("geoSq")) $("geoSq").onclick = ()=>{ const b = GEO.cands[GEO.pick]; if(!b) return; const sq = geoSquare(b.pts);
-    if(sq){ b.pts = sq; b.edited = true; b.squared = true; GEO.msg = "Corners squared to 90 degrees."; } else GEO.msg = "Some sides are more than 20 degrees off square, so the outline was left as is. Adjust those corners first.";
-    geoRender(); };
+  if($("geoSq")) $("geoSq").onclick = ()=>{ const b = GEO.cands[GEO.pick]; if(!b) return; const before = b.pts.length, sq = geoSquare(b.pts);
+    if(sq){ b.pts = sq; b.edited = true; b.squared = true; GEO.msg = `Cleaned up: ${Math.max(0, before - sq.length)} small jogs or spikes removed, square corners set to exactly 90 degrees. Check it against the photo.`; }
+    else GEO.msg = "Couldn't clean this one up without changing its size too much. Adjust the odd corners first, then try again.";
+    geoInfo(); geoRender(); };
+  if($("geoFitB")) $("geoFitB").onclick = async ()=>{ const b = GEO.cands[GEO.pick]; if(!b) return; const btn = $("geoFitB"); btn.disabled = true; btn.textContent = "Fitting...";
+    try{ const r = await geoFit(b.pts); b.pts = r.pts; if(r.moved){ b.edited = true; const sq = geoSquare(b.pts, 6); if(sq){ b.pts = sq; b.squared = true; } }
+      GEO.msg = r.moved ? `Fitted ${r.moved} side${r.moved > 1 ? "s" : ""} to the roof edges in the photo${b.squared ? " and squared the corners" : ""}. Check it; shadows can fool it.` : "No clear roof edges found near the outline, so it was left as is."; }
+    catch(e){ GEO.msg = "Couldn't read the photo here" + (GEO.src ? " (only works with the Esri photo)" : "") + ". Adjust corners by hand."; }
+    geoInfo(); geoRender(); };
   if($("geoUse")) $("geoUse").onclick = geoUse;
   if($("geoUseAll")) $("geoUseAll").onclick = geoUseAll;
 }
