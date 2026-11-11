@@ -356,8 +356,8 @@ table.kv td.t-ok{color:var(--ok);font-weight:700} table.kv td.t-warn{color:var(-
 <script charset="utf-8" src="vendor/xlsx.full.min.js"></script>
 <script charset="utf-8" src="vendor/pdf-lib.min.js"></script>
 <link rel="stylesheet" href="vendor/leaflet.css">
-<link rel="stylesheet" href="ws/workspace.css?v=1794407055">
-<script src="ws/workspace.js?v=1794407055"></script>
+<link rel="stylesheet" href="ws/workspace.css?v=1794408396">
+<script src="ws/workspace.js?v=1794408396"></script>
 <script src="vendor/leaflet.js"></script>
 <link rel="stylesheet" href="vendor/leaflet-geoman.css">
 <script src="vendor/leaflet-geoman.min.js"></script>
@@ -2097,7 +2097,7 @@ function geoMap(){
   addTiles();
   GEO.layer = L.layerGroup().addTo(m);
   if(m.pm){ m.pm.setGlobalOptions({snappable:true, snapDistance:12, allowSelfIntersection:false});
-    m.on("pm:create", e=>{ let pts = e.layer.getLatLngs()[0].map(UL); m.removeLayer(e.layer); const sq = geoSquare(pts); if(sq) pts = sq; geoSetDrawn(pts, !!sq); });
+    m.on("pm:create", e=>{ let pts = e.layer.getLatLngs()[0].map(UL); m.removeLayer(e.layer); const sq = geoSquare(pts, 0, 4); if(sq) pts = sq; geoSetDrawn(pts, !!sq); });
     m.on("pm:drawstart", ()=>{ m.off("mousemove", geoSnapMove); m.on("mousemove", geoSnapMove); });   // after Geoman's own handler, so this one wins
     m.on("pm:drawend", ()=>m.off("mousemove", geoSnapMove)); }
   GEO.map = m; return m;
@@ -2114,9 +2114,9 @@ function geoSnapMove(e){
   const t = Math.atan2(P[1].y - P[0].y, P[1].x - P[0].x), c = Math.cos(t), s = Math.sin(t);
   const rot = v => ({x: v.x*c + v.y*s, y: -v.x*s + v.y*c}), unrot = v => L.point(v.x*c - v.y*s, v.x*s + v.y*c);
   const pr = rot(p), u = rot(q), dx = u.x - pr.x, dy = u.y - pr.y; if(Math.hypot(dx, dy) < 8) return;
-  const a = Math.atan2(dy, dx), k = Math.round(a / (Math.PI/2)); if(Math.abs(a - k*Math.PI/2) > 15 * Math.PI/180) return;
+  const a = Math.atan2(dy, dx), k = Math.round(a / (Math.PI/2)); if(Math.abs(a - k*Math.PI/2) > 4 * Math.PI/180) return;   // only when you are already close to square
   const alongX = k % 2 === 0; let r = alongX ? {x:u.x, y:pr.y} : {x:pr.x, y:u.y};
-  const tol = 10; let best = tol;   // line up with an earlier corner (the first one most of all) so the last side closes square
+  const tol = 5; let best = tol;   // line up with an earlier corner (the first one most of all) so the last side closes square
   P.slice(0, -1).forEach((v, i)=>{ const vr = rot(v), dd = alongX ? Math.abs(vr.x - r.x) : Math.abs(vr.y - r.y); if(dd < best || (i === 0 && dd < tol)){ best = dd; r = alongX ? {x:vr.x, y:r.y} : {x:r.x, y:vr.y}; } });
   d._hintMarker.setLatLng(m.layerPointToLatLng(unrot(r))); d._hintMarker._snapped = true;
 }
@@ -2127,8 +2127,8 @@ function geoSnapMove(e){
    4. short jogs under MIN ft are removed and the sides on either side are merged
    5. corners are where neighboring sides meet
    Returns null when the result would not be a sound outline. */
-function geoSquare(pts, MIN){
-  MIN = MIN || 10;
+function geoSquare(pts, MIN, LIMDEG){
+  MIN = MIN == null ? 10 : MIN; LIMDEG = LIMDEG || 20;
   if(!pts || pts.length < 4) return null;
   const lat0 = pts[0][1], lon0 = pts[0][0], kx = 364567 * Math.cos(lat0 * Math.PI/180), ky = 364567;
   let P = pts.map(p=>[(p[0]-lon0)*kx, (p[1]-lat0)*ky]);
@@ -2148,7 +2148,7 @@ function geoSquare(pts, MIN){
   const H = new Array(90).fill(0); E.forEach(e=>{ const d = ((e.a * 180/Math.PI) % 90 + 90) % 90; for(let k = -3; k <= 3; k++) H[(Math.round(d) + k + 90) % 90] += e.L * (4 - Math.abs(k)); });
   let best = 0; H.forEach((h,i)=>{ if(h > H[best]) best = i; });
   let sw = 0, sx = 0; E.forEach(e=>{ const d = ((e.a * 180/Math.PI) % 90 + 90) % 90; let off = d - best; if(off > 45) off -= 90; if(off < -45) off += 90; if(Math.abs(off) <= 5){ sw += e.L; sx += e.L * off; } });
-  const t0 = (best + (sw ? sx/sw : 0)) * Math.PI/180, Hh = Math.PI/2, lim = 20 * Math.PI/180;
+  const t0 = (best + (sw ? sx/sw : 0)) * Math.PI/180, Hh = Math.PI/2, lim = LIMDEG * Math.PI/180;
   // 3. directions
   E.forEach(e=>{ const k = Math.round((e.a - t0) / Hh), off = e.a - t0 - k*Hh; if(Math.abs(off) <= lim){ e.d = t0 + k*Hh; e.cls = ((k % 2) + 2) % 2; } else { e.d = e.a; e.cls = "f" + e.a.toFixed(3); } });
   const par = (a, b) => a.cls === b.cls || (typeof a.cls === "string" && typeof b.cls === "string" && Math.abs(Math.sin(a.d - b.d)) < 0.05);
@@ -2220,7 +2220,7 @@ function geoMapSync(slot){
   GEO.layer.clearLayers();
   GEO.cands.forEach((b,i)=>{
     const prop = GEO.prop && GEO.prop.some(x=>x.pts === b.pts), on = i === GEO.pick;
-    const pg = L.polygon(b.pts.map(LL), {color:on ? "#4fb3ff" : prop ? "#5fe08a" : "#ffd34d", weight:on ? 3 : 2, fillColor:on ? "#0b4f9c" : "#ffffff", fillOpacity:on ? 0.28 : 0.08, interactive:!(m.pm && m.pm.globalDrawModeEnabled())});
+    const pg = L.polygon(b.pts.map(LL), {color:on ? "#4fb3ff" : prop ? "#5fe08a" : "#ffd34d", weight:on ? 3 : 2, fillColor:on ? "#0b4f9c" : "#ffffff", fillOpacity:on ? 0.28 : 0.08, interactive:!(m.pm && m.pm.globalDrawModeEnabled()), snapIgnore:true});   // drawing never snaps to these outlines
     pg.on("click", ()=>{ if(m.pm && m.pm.globalDrawModeEnabled()) return; if(GEO.pick !== i){ GEO.pick = i; GEO.edit = false; geoRender(); } });
     pg.addTo(GEO.layer);
     if(on && GEO.edit && pg.pm){ pg.pm.enable({allowSelfIntersection:false, draggable:false}); pg.on("pm:edit pm:vertexadded pm:vertexremoved", ()=>{ b.pts = pg.getLatLngs()[0].map(UL); b.edited = true; geoInfo(); });
@@ -2248,7 +2248,7 @@ function geoHtml(){
     const drawing = GEO.map && GEO.map.pm && GEO.map.pm.globalDrawModeEnabled();
     map = `<div id="geoMapSlot" class="geomapslot"></div>
       <div class="geotools">${drawing
-        ? `<span class="geodrawhint">Click each roof corner on the photo. Sides lock square (hold Alt to draw free). Click the first corner again to finish.</span><button type="button" id="geoCancel">Cancel</button>`
+        ? `<span class="geodrawhint">Click each roof corner on the photo. Sides lock square when you're within a few degrees (hold Alt to draw free). Click the first corner again to finish.</span><button type="button" id="geoCancel">Cancel</button>`
         : `<button type="button" id="geoDraw">Draw my own outline</button>${GEO.cands[GEO.pick] ? `<button type="button" id="geoEdit">${GEO.edit ? "Done adjusting" : "Adjust corners"}</button><button type="button" id="geoFitB" title="Move each side onto the roof edge in the photo">Fit to photo</button><button type="button" id="geoSq" title="Clean up jogs and spikes, make corners 90 degrees">Clean up and square</button>` : ""}
            <span class="hint">${GEO.edit ? "Drag the white corner dots to fix the outline; a moved corner snaps its sides to the roof edge in the photo (hold Alt to skip). Drag a middle dot to add a corner; right click a corner to remove it." : "Building missing or outline wrong? Draw or adjust it on the photo; the scale is automatic."}</span>`}</div>
       <p class="hint">Scroll or pinch to zoom, drag to move. Click an outline to pick it.</p>`;
@@ -2273,7 +2273,7 @@ function geoRender(){
     else if(e.key === "Escape"){ GEO.sug = []; geoSugDraw(); }
     else if(e.key === "Enter"){ e.preventDefault(); if(L.length && GEO.sugI >= 0) geoSugPick(L[GEO.sugI]); else if(L.length) geoSugPick(L[0]); else geoFind(); } };
   const slot = $("geoMapSlot"); if(slot) geoMapSync(slot);
-  if($("geoDraw")) $("geoDraw").onclick = ()=>{ GEO.edit = false; GEO.map.pm.enableDraw("Polygon", {snappable:true, continueDrawing:false}); geoRender(); };
+  if($("geoDraw")) $("geoDraw").onclick = ()=>{ GEO.edit = false; GEO.map.pm.enableDraw("Polygon", {snappable:true, snapDistance:12, continueDrawing:false}); geoRender(); };
   if($("geoCancel")) $("geoCancel").onclick = ()=>{ GEO.map.pm.disableDraw(); geoRender(); };
   if($("geoEdit")) $("geoEdit").onclick = ()=>{ GEO.edit = !GEO.edit; geoRender(); };
   if($("geoSq")) $("geoSq").onclick = ()=>{ const b = GEO.cands[GEO.pick]; if(!b) return; const before = b.pts.length, sq = geoSquare(b.pts);
