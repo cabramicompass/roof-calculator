@@ -2666,7 +2666,7 @@ async function calcSummaryDownload(){
       }catch(e){ console.error(e); sa.className="status err"; sa.textContent = "Approval page not added: " + (e.message||String(e)); }
     }
     const bytes = await doc.save();
-    const name = clean((r.calc.project||"Project") + (r.v.B5 ? " " + r.v.B5 : "") + " Roof Project Summary.pdf");
+    const name = clean((r.calc.project||"Project") + " Roof Project Summary.pdf");
     const res = await saveFile(bytes, name, st); if(res==="saved"){ st.className="status ok"; st.textContent="Saved " + name + "." + note; } else if(res==="declined"){ st.className="status err"; st.textContent="Download cancelled."; }
   }catch(e){ console.error(e); st.className="status err"; st.textContent = e.message||String(e); }
 }
