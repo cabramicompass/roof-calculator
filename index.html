@@ -123,6 +123,7 @@ label.f.cf.ro input{background:var(--panel);color:var(--muted)}
 .let-act{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
 .let-txt{width:100%;min-height:560px;font:12px/1.5 var(--mono);tab-size:18;-moz-tab-size:18;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:12px 14px;resize:vertical;white-space:pre-wrap}
 .shpw .shp{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px}.shpw{grid-column:1/-1}
+.edgp{margin-top:8px;display:flex;flex-direction:column;gap:4px}.edgp .edgh{display:flex;flex-direction:column;gap:2px}.edgp .edg{cursor:pointer;outline:none}.edgp .edg:hover line+line,.edgp .edg:focus-visible line+line{stroke:#1a73e8;stroke-width:5}
 .alr-out{white-space:pre-wrap;font:12.5px/1.45 var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:10px;max-height:320px;overflow:auto}
 #calcUI:not([hidden]){display:grid;gap:14px}
 .ctools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
@@ -146,7 +147,7 @@ label.f.cf{display:grid;grid-template-rows:auto auto;align-content:start;gap:4px
 /* assembly box: square 4 column grid in a fixed order */
 .cin .cset.asm .cfields label.f{grid-column:span 1}
 .cin .cset.asm .cfields label.f[data-a="G14"]{order:1;grid-column:span 2}.cin .cset.asm .cfields label.f[data-a="G6"]{order:2;grid-column:span 2}
-.cin .cset.asm .cfields label.f[data-a="G7"]{order:3;grid-column:span 2}.cin .cset.asm .cfields label.f[data-a="G8"]{order:4;grid-column:span 2}
+.cin .cset.asm .cfields label.f[data-a="G7"]{order:3;grid-column:span 2}.cin .cset.asm .cfields label.f[data-a="G8"]{order:4;grid-column:span 2}.cin .cset.asm .cfields label.f[data-a="EXINS"],.cin .cset.asm .cfields label.f[data-a="EXINT"]{order:4}
 .cin .cset.asm .cfields label.f[data-a="FLUTE"]{order:5}.cin .cset.asm .cfields label.f[data-a="F9"]{order:6}.cin .cset.asm .cfields label.f[data-a="G9"]{order:7}.cin .cset.asm .cfields label.f[data-a="G10"]{order:8}
 .cin .cset.asm .cfields label.f[data-a="F11"]{order:9}.cin .cset.asm .cfields label.f[data-a="F12"]{order:10}.cin .cset.asm .cfields label.f[data-a="G11"]{order:11}.cin .cset.asm .cfields label.f[data-a="G12"]{order:12}
 .cin .cset.asm .cfields label.f[data-a="MEMB"]{order:15;grid-column:span 2}.cin .cset.asm .cfields label.f[data-a="PERIM"]{order:16;grid-column:span 2}.cin .cset.asm .cfields label.f[data-a="B14"]{order:13}.cin .cset.asm .cfields label.f[data-a="C14"]{order:14}
@@ -1498,8 +1499,16 @@ alrFill();
 const SHAPE_TRACE = "Traced from a drawing";
 const SHAPES = ["Rectangle","L shape","U shape","T shape",SHAPE_TRACE,"From satellite outline"];
 /* outline in feet, x along the length (A), y along the width (B), origin at the top left */
+/* edges that run into an adjoining roof at the same level (not a roof edge): stored with the outline they were picked on,
+   so a changed outline drops them instead of moving them to the wrong side */
+function edgeKey(P){ return P.map(p=>p.map(n=>(+n).toFixed(1)).join(",")).join(";"); }
+function basePoly(v){ const sh = v.SHAPE || "Rectangle", A = parseFloat(v.B11)||0, B = parseFloat(v.B12)||0;
+  if(sh === "Rectangle") return A>0 && B>0 ? [[0,0],[A,0],[A,B],[0,B]] : null;
+  const s = shapePoly(v); return s && s.pts ? s.pts : null; }
+function adjEdges(v, P){ if(!P) return []; try{ const o = JSON.parse(v.ADJ||"null"); if(o && o.k === edgeKey(P) && Array.isArray(o.e)) return o.e.filter(i=>i>=0 && i<P.length); }catch(e){} return []; }
 function shapePoly(v){
   const sh = v.SHAPE || "Rectangle", A = parseFloat(v.B11)||0, B = parseFloat(v.B12)||0;
+  if(sh === "Rectangle" && A>0 && B>0){ const R = [[0,0],[A,0],[A,B],[0,B]]; if(adjEdges(v, R).length) return {pts:R}; }
   const C = parseFloat(v.SC)||0, D = parseFloat(v.SD)||0, E0 = parseFloat(v.SE);
   if(sh === SHAPE_TRACE || sh === "From satellite outline"){ let P = null; try{ P = JSON.parse(v.POLY||"null"); }catch(e){} return P && P.length >= 3 ? {pts:P} : {err: sh === SHAPE_TRACE ? "Trace the roof outline on the drawing below (set the scale first)." : "Find the roof by address below and use its outline."}; }
   if(!(A>0 && B>0) || sh === "Rectangle") return null;
@@ -1515,24 +1524,27 @@ function polyArea(P){ let s = 0; for(let i=0;i<P.length;i++){ const [x1,y1] = P[
 function inPoly(x, y, P){ let c = false; for(let i=0, j=P.length-1; i<P.length; j=i++){ const [xi,yi] = P[i], [xj,yj] = P[j]; if(((yi>y)!==(yj>y)) && (x < (xj-xi)*(y-yi)/(yj-yi)+xi)) c = !c; } return c; }
 function segDist(x, y, a, b){ const dx = b[0]-a[0], dy = b[1]-a[1], L2 = dx*dx+dy*dy; let t = L2 ? ((x-a[0])*dx + (y-a[1])*dy)/L2 : 0; t = Math.max(0, Math.min(1, t)); const px = a[0]+t*dx - x, py = a[1]+t*dy - y; return Math.sqrt(px*px+py*py); }
 /* zones (same rules as the workbook): Zone 2 = first 0.6h in from any roof edge, Zone 1 = next 0.6h, Zone 1' beyond 1.2h,
-   Zone 3 = 0.2h x 0.6h legs at each outside corner (none with a continuous 3 ft parapet). Inside (re-entrant) corners get no Zone 3. */
-function shapeGrid(P, h, parapet){
+   Zone 3 = 0.2h x 0.6h legs at each outside corner (none with a continuous 3 ft parapet). Inside (re-entrant) corners get no Zone 3.
+   Edges listed in adj run into an adjoining roof at the same level: not a roof edge, so no Zone 2 band along them and no Zone 3
+   at either end (the building carries on past them). */
+function shapeGrid(P, h, parapet, adj){
+  const AJ = new Set(adj||[]), nP = P.length;
   let X = 0, Y = 0; P.forEach(([x,y])=>{ X = Math.max(X,x); Y = Math.max(Y,y); });
   const cs = Math.max(0.5, Math.max(X, Y)/400), nc = Math.max(1, Math.round(X/cs)), nr = Math.max(1, Math.round(Y/cs)), cw = X/nc, ch = Y/nr;
   const w2 = 0.6*h, w1 = 1.2*h, cwid = 0.2*h, clen = 0.6*h;
   const ccw = polyArea(P) > 0;   // y points down, so positive = clockwise on screen; the convex test uses the same sign
   const corners = [];
   for(let i=0;i<P.length;i++){ const a = P[(i-1+P.length)%P.length], v = P[i], b = P[(i+1)%P.length];
-    const cr = (v[0]-a[0])*(b[1]-v[1]) - (v[1]-a[1])*(b[0]-v[0]); if((cr > 0) === ccw) corners.push({v, legs:[a, b]}); }
+    const cr = (v[0]-a[0])*(b[1]-v[1]) - (v[1]-a[1])*(b[0]-v[0]); if((cr > 0) === ccw && !AJ.has(i) && !AJ.has((i-1+nP)%nP)) corners.push({v, legs:[a, b]}); }
   // bands follow the edges square: each edge's band runs past an inside (re-entrant) corner, so the band turns a right angle instead of rounding
   const convex = new Set(corners.map(k=>k.v));
   const E = P.map((a, i)=>{ const b = P[(i+1)%P.length], dx = b[0]-a[0], dy = b[1]-a[1], L = Math.hypot(dx,dy), ux = dx/L, uy = dy/L;
     let nx = -uy, ny = ux; const mx = (a[0]+b[0])/2 + nx*0.01, my = (a[1]+b[1])/2 + ny*0.01; if(!inPoly(mx, my, P)){ nx = -nx; ny = -ny; }
-    return {a, L, ux, uy, nx, ny, ext0: convex.has(a) ? 0 : w1, ext1: convex.has(b) ? 0 : w1}; });
+    return {a, L, ux, uy, nx, ny, ext0: convex.has(a) ? 0 : w1, ext1: convex.has(b) ? 0 : w1, adj: AJ.has(i)}; });
   const inCorner = (x, y) => corners.some(({v, legs})=>legs.some(e=>{ const dx = e[0]-v[0], dy = e[1]-v[1], L = Math.hypot(dx,dy); if(!L) return false; const ux = dx/L, uy = dy/L, t = (x-v[0])*ux + (y-v[1])*uy, n = Math.abs((x-v[0])*uy - (y-v[1])*ux); return t >= 0 && t <= Math.min(clen, L) && n <= cwid; }));
   // exact zone at any point (null = off the roof); the grid below samples it at cell centers
   const zoneXY = (x, y) => { if(!inPoly(x, y, P)) return null;
-    let d = Infinity; for(const e of E){ const rx = x - e.a[0], ry = y - e.a[1], t = rx*e.ux + ry*e.uy, n = rx*e.nx + ry*e.ny; if(n >= -1e-9 && t >= -e.ext0 && t <= e.L + e.ext1) d = Math.min(d, Math.max(n, -t, t - e.L)); }
+    let d = Infinity; for(const e of E){ if(e.adj) continue; const rx = x - e.a[0], ry = y - e.a[1], t = rx*e.ux + ry*e.uy, n = rx*e.nx + ry*e.ny; if(n >= -1e-9 && t >= -e.ext0 && t <= e.L + e.ext1) d = Math.min(d, Math.max(n, -t, t - e.L)); }
     let z = d < w2 ? 2 : d < w1 ? 1 : 0; if(!parapet && inCorner(x, y)) z = 3; return z; };
   const cells = [], cnt = [0,0,0,0];
   for(let r=0;r<nr;r++){ const row = []; for(let c=0;c<nc;c++){ const z = zoneXY((c+0.5)*cw, (r+0.5)*ch); row.push(z); if(z != null) cnt[z]++; }
@@ -1544,8 +1556,9 @@ function shapeApply(c, v){
   const s = shapePoly(v); if(!s || s.err){ if(s && s.err) c.shapeErr = s.err; return; }
   const h = parseFloat(v.B10)||0; if(!(h>0)) return;
   const parapet = v.G5 === "Yes" || parseFloat(v.G5) >= 3;
-  const g = shapeGrid(s.pts, h, parapet);
-  c.poly = s.pts; c.shape = v.SHAPE; c.grid = {nc:g.nc, nr:g.nr, cells:g.cells}; Object.defineProperty(c, "zoneXY", {value:g.zoneXY, enumerable:false, configurable:true, writable:true});
+  const adj = adjEdges(v, s.pts);
+  const g = shapeGrid(s.pts, h, parapet, adj);
+  c.poly = s.pts; c.adj = adj; c.shape = v.SHAPE; c.grid = {nc:g.nc, nr:g.nr, cells:g.cells}; Object.defineProperty(c, "zoneXY", {value:g.zoneXY, enumerable:false, configurable:true, writable:true});
   const tot = Math.abs(polyArea(s.pts)); c.polyArea = tot; c.zoneArea = g.area;
   const fx = n => Math.round(n).toLocaleString("en-US");
   (c.press||[]).slice(1, 5).forEach((row, i)=>{ row[5] = fx(g.area[i]); row[6] = (g.area[i]/100).toFixed(1); });
@@ -1561,6 +1574,34 @@ function shapeDiagram(v){
   const A = 160, B = 96, P = sh === "L shape" ? [[0,0],[96,0],[96,40],[160,40],[160,96],[0,96]] : sh === "U shape" ? [[0,0],[52,0],[52,50],[108,50],[108,0],[160,0],[160,96],[0,96]] : [[0,0],[160,0],[160,36],[108,36],[108,96],[52,96],[52,36],[0,36]];
   const lab = sh === "L shape" ? [["A",80,110],["B",-12,52],["C",48,-6],["D",172,72]] : sh === "U shape" ? [["A",80,110],["B",-12,52],["C",80,44],["D",116,28],["E",26,-6]] : [["A",80,-6],["B",-12,52],["C",80,110],["D",172,20],["E",26,48]];
   return `<div class="shp"><svg viewBox="-22 -18 210 136" width="190" height="122" role="img" aria-label="${esc(sh)} with sides labelled"><path d="M${P.map(p=>p.join(" ")).join(" L")} Z" fill="#dbe7f5" stroke="#0b4f9c" stroke-width="2"/>${lab.map(([t,x,y])=>`<text x="${x}" y="${y}" text-anchor="middle" font-size="13" font-weight="700" fill="#c0392b">${t}</text>`).join("")}</svg>${sh === "L shape" ? "" : `<span class="hint">Side E blank = ${sh === "U shape" ? "opening" : "stem"} centered.</span>`}</div>`;
+}
+
+/* existing insulation that stays under a recover (not new insulation, not used to pick the approval) */
+function exInsText(v){
+  if(!/^Recover/i.test(v.G8||"") || /metal retrofit/i.test(v.G8||"")) return "";
+  const t = v.EXINS || "None"; if(t === "None") return "";
+  const ty = (v.EXINT && v.EXINT !== "Not known") ? v.EXINT.toLowerCase() : "insulation";
+  return t === "Not known" ? "Existing insulation, thickness not known" : `${t} existing ${ty}`;
+}
+/* pick the edges that run into an adjoining roof: tap an edge to switch it between roof edge and adjoining roof */
+function edgePicker(v){
+  const P = basePoly(v); if(!P || P.length < 3) return "";
+  const aj = adjEdges(v, P); let X0 = Infinity, Y0 = Infinity, X1 = -Infinity, Y1 = -Infinity;
+  P.forEach(([x,y])=>{ X0 = Math.min(X0,x); Y0 = Math.min(Y0,y); X1 = Math.max(X1,x); Y1 = Math.max(Y1,y); });
+  const Wd = 300, Hd = 170, k = Math.min(Wd/((X1-X0)||1), Hd/((Y1-Y0)||1)), pad = 14, T = ([x,y]) => [pad + (x-X0)*k, pad + (y-Y0)*k];
+  const path = P.map(T).map((q,i)=>(i?"L":"M")+q[0].toFixed(1)+" "+q[1].toFixed(1)).join(" ") + " Z";
+  const segs = P.map((a,i)=>{ const b = P[(i+1)%P.length], A = T(a), B = T(b), on = aj.includes(i);
+    return `<g class="edg${on?" on":""}" data-e="${i}" role="button" tabindex="0" aria-pressed="${on}" aria-label="Edge ${i+1}: ${on?"runs into adjoining roof":"roof edge"}"><line x1="${A[0].toFixed(1)}" y1="${A[1].toFixed(1)}" x2="${B[0].toFixed(1)}" y2="${B[1].toFixed(1)}" stroke="transparent" stroke-width="16"/><line x1="${A[0].toFixed(1)}" y1="${A[1].toFixed(1)}" x2="${B[0].toFixed(1)}" y2="${B[1].toFixed(1)}" stroke="${on?"#1a73e8":"#0b4f9c"}" stroke-width="${on?4:3}"${on?' stroke-dasharray="9 5"':""} stroke-linecap="round"/></g>`; }).join("");
+  const n = aj.length;
+  return `<div class="edgp"><div class="edgh"><b>Edges that run into another roof</b><span class="hint">Tap an edge where this roof continues into an adjoining roof at the same height (not a roof edge). It gets no perimeter or corner zones. A wall up to a higher roof stays a roof edge.</span></div>
+    <svg viewBox="0 0 ${Wd+pad*2} ${(Y1-Y0)*k+pad*2}" width="100%" style="max-width:${Wd+pad*2}px" role="group" aria-label="Roof outline, tap an edge"><path d="${path}" fill="#dbe7f5"/>${segs}</svg>
+    <span class="hint">${n ? `${n} edge${n>1?"s":""} marked <span style="color:#1a73e8;font-weight:700">- - -</span> adjoining roof.` : "All edges are roof edges."}</span></div>`;
+}
+function edgeToggle(i){
+  const r = CALC.roofs[CALC.active], P = basePoly(r.v); if(!P) return;
+  const e = adjEdges(r.v, P), j = e.indexOf(i); if(j >= 0) e.splice(j, 1); else e.push(i);
+  if(e.length) r.v.ADJ = JSON.stringify({k: edgeKey(P), e: e.sort((a,b)=>a-b)}); else delete r.v.ADJ;
+  calcSchedule(false);
 }
 
 /* ---------- trace a roof outline on a shop drawing or roof plan (PDF or image): set the scale from one known dimension, click the corners ---------- */
@@ -2317,6 +2358,8 @@ const ROOF_F = [
   {a:"G7", label:"Deck type", type:"select"},
   {a:"FLUTE", label:"Flutes run along", type:"select", noCell:true, opts:["Length","Width"], help:"Mechanically attached sheets run perpendicular to the flutes. Used for the sheet layout. Not used for RhinoBond (attachment is through the insulation)."},
   {a:"G8", label:"Application", type:"select"},
+  {a:"EXINS", label:"Existing insul. (stays)", type:"select", noCell:true, half:true, opts:["None","Not known","1\"","1.5\"","2\"","2.5\"","3\"","3.5\"","4\"+"], help:"Recover only. Insulation already under the existing roof that stays in place. It is part of the existing roof, not new insulation, and is not used to pick the approval. Enter only the insulation you are adding over the existing roof in New insulation below."},
+  {a:"EXINT", label:"Existing insul. type", type:"select", noCell:true, half:true, opts:["Polyiso","Perlite","Fiberboard","EPS","Not known"]},
   {a:"PERIM", label:"Perimeter sheets", type:"select", noCell:true, opts:["Half sheets","Full sheet, row down the middle"], help:"Mechanically attached only. Half sheets: narrower perimeter sheets along the edges. Full sheet, row down the middle: full field sheets subdivided by a row of seam fastening plates with cover strip (Sure-Weld spec 3.05 D.4). Used for the sheet layout and the report."},
   {a:"MEMB", label:"Membrane", type:"select", noCell:true, opts:["Any","BareBack","FleeceBACK"], help:"FleeceBACK shows only approvals that list a FleeceBACK membrane. BareBack screens out FleeceBACK only listings. Any lets the finder pick."},
   {a:"F9", label:"Steel gauge", type:"select", half:true},
@@ -2381,7 +2424,10 @@ function calcSnapshot(i){
   let c = null, err = "";
   try{ c = readCalc(wb); } catch(e){ err = String(calcVal(IN_S,"A23")||e.message||e); }
   const r = CALC.roofs[i];
-  if(c){ try{ shapeApply(c, r.v); }catch(e){ console.warn(e); } c.openNote = openNote(c, r.v); c.memb = r.v.MEMB || "Any"; c.levelName = r.v.B5 || ("Roof " + (i+1)); c.roofNo = i + 1; c.zoneFt = ["B7","B8","B9","B10"].map(a=>parseFloat(calcVal("Layout Engine", a))); c.zonePar = !!calcVal("Wind Calc","B29"); c.planOpt = {perim: r.v.PERIM || "Half sheets", flutes: r.v.FLUTE || "", adhSheet: r.v.ADHSHEET || "16"}; c.vbOpt = String(calcVal(AF_S,"AB68")||""); try{ fingerAttach(c); }catch(e){ console.warn(e); } try{ specApply(c, specFor(i)); }catch(e){ console.warn(e); }
+  if(c){ try{ shapeApply(c, r.v); }catch(e){ console.warn(e); }
+    if(Array.isArray(c.info)) c.info = c.info.filter(p=>!/^(Existing insulation \(stays\)|Adjoining roof edges)$/.test(p[0]));
+    c.exIns = exInsText(r.v); if(c.exIns && Array.isArray(c.info)) c.info.push(["Existing insulation (stays)", c.exIns]);
+    if(c.adj && c.adj.length && Array.isArray(c.info)) c.info.push(["Adjoining roof edges", c.adj.length + " edge" + (c.adj.length>1?"s":"") + " run into an adjoining roof at the same level: no perimeter or corner zones along them"]); c.openNote = openNote(c, r.v); c.memb = r.v.MEMB || "Any"; c.levelName = r.v.B5 || ("Roof " + (i+1)); c.roofNo = i + 1; c.zoneFt = ["B7","B8","B9","B10"].map(a=>parseFloat(calcVal("Layout Engine", a))); c.zonePar = !!calcVal("Wind Calc","B29"); c.planOpt = {perim: r.v.PERIM || "Half sheets", flutes: r.v.FLUTE || "", adhSheet: r.v.ADHSHEET || "16"}; c.vbOpt = String(calcVal(AF_S,"AB68")||""); try{ fingerAttach(c); }catch(e){ console.warn(e); } try{ specApply(c, specFor(i)); }catch(e){ console.warn(e); }
     try{ const ix = selIdx(); c.appr = ix ? {idx:ix, sys:dbVal(ix,"System No."), table:dbVal(ix,"Table"), page:dbVal(ix,"Approval Page"), doc:dbVal(ix,"Document"), zone:dbVal(ix,"Code Zone")} : null; }catch(e){ c.appr = null; } }
   const need = calcMissing(r); if(need.length){ c = null; err = "Fill in " + need.map(x=>x[1]).join(", ") + " to see approvals."; }
   r.calc = c; r.err = err; r.need = need;
@@ -2492,12 +2538,15 @@ function calcGray(){
     ["B11","B12"].forEach(a=>{ const el = $("cf-"+a); if(el){ el.readOnly = tr; el.closest("label").classList.toggle("ro", tr); } });
     try{ trRender(); }catch(e){ console.warn(e); }
     try{ geoRender(); }catch(e){ console.warn(e); }
+    { const rec = /^Recover/i.test(r.G8||"") && !ret; [["EXINS", rec], ["EXINT", rec && !/^(None|Not known)$/.test(r.EXINS||"None")]].forEach(([a, on])=>{ const el = $("cf-"+a); if(el) el.closest("label").hidden = !on; });
+      [["F11", rec ? "New insulation" : "Insulation"], ["F12", rec ? "New insulation type" : "Insulation type"]].forEach(([a, t])=>{ const el = $("cf-"+a); const x = el && el.closest("label").querySelector(".ltx"); if(x){ x.textContent = t; x.title = t; } }); }
     [["B11", irr ? "Side A (ft)" : "Length (ft)"], ["B12", irr ? "Side B (ft)" : "Width (ft)"]].forEach(([a, t])=>{ const el = $("cf-"+a); const x = el && el.closest("label").querySelector(".ltx"); if(x){ x.textContent = t; x.title = t; } }); [["SC", irr && !tr], ["SD", irr && !tr], ["SE", sh==="U shape" || sh==="T shape"], ...["OWALL","OPENW"].map(k=>[k, /^Yes/i.test(r.OPEN||"")])].forEach(([a, on])=>{ const el = $("cf-"+a); if(el) el.closest("label").hidden = !on; });
     { let od = document.querySelector("#calcRoof .opnw"); const lab = $("cf-OPENW") && $("cf-OPENW").closest("label");
       if(!od && lab){ od = document.createElement("p"); od.className = "opnw hint"; od.style.cssText = "grid-column:1/-1;margin:0"; lab.after(od); }
       if(od){ const o = openCalc(r); od.hidden = !o; od.innerHTML = !o ? "" : !o.done ? "Enter the widest door to size the perimeter area." : `4 perimeter sheets centered over each opening; perimeter area at least <b>${+(2.5*o.w).toFixed(1)} ft</b> deep (2.5 × ${+o.w.toFixed(1)} ft).`; } }
     let d = document.querySelector("#calcRoof .shpw"); if(!d && $("calcRoof")){ d = document.createElement("div"); d.className = "shpw"; $("calcRoof").appendChild(d); }
-    if(d){ const sp = typeof shapePoly === "function" ? shapePoly(r) : null; d.innerHTML = shapeDiagram(r) + (sp && sp.err ? `<p class="missing" style="margin:4px 0 0">${esc(sp.err)}</p>` : ""); } }
+    if(d){ const sp = typeof shapePoly === "function" ? shapePoly(r) : null; d.innerHTML = shapeDiagram(r) + (sp && sp.err ? `<p class="missing" style="margin:4px 0 0">${esc(sp.err)}</p>` : "") + edgePicker(r);
+      d.querySelectorAll(".edg").forEach(g=>{ const go = ()=>edgeToggle(+g.dataset.e); g.onclick = go; g.onkeydown = e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(); } }; }); } }
   const L = parseFloat(r.B11), W = parseFloat(r.B12), bad = L>0 && W>0 && L<W;
   ["B11","B12"].forEach(a=>{ const el=$("cf-"+a); if(el) el.closest("label").classList.toggle("bad", bad); });
 }
@@ -2680,6 +2729,7 @@ function asmLayers(c){
   if(/flute/i.test(top) && steel && !lwc) L[L.length-1].fill = true;
   if(/^Recover/i.test(app) && !/metal retrofit/i.test(app)){
     const ex = /TPO/i.test(app) ? "exTpo" : /PVC/i.test(app) ? "exPvc" : /EPDM/i.test(app) ? "exEpdm" : /gravel/i.test(app) ? "exGravel" : "exMod";
+    if(c.exIns) L.push({k:"iso", t:"Existing insulation (stays): " + c.exIns.replace(/ existing /, " "), h:24});
     L.push({k:ex, t:"Existing roof: " + app.replace(/^Recover\s*[–-]\s*/i,""), h:9});
   }
   if(raw.B14 && raw.B14 !== "None") L.push({k:"vr", t:"Vapor barrier", h:3});
@@ -3185,7 +3235,7 @@ function sheetPlan(c, opt){
       v = v1;
     }
   });
-  return {opens: (opt.opens||[]).filter(o=>o && o.d > 0), L, W, U, V, flutesAlongL, strips, rows, Z, MA, RB, FA, perimRow, minStrip, zoneAt, inside, g, poly: c.poly || null};
+  return {opens: (opt.opens||[]).filter(o=>o && o.d > 0), L, W, U, V, flutesAlongL, strips, rows, Z, MA, RB, FA, perimRow, minStrip, zoneAt, inside, g, poly: c.poly || null, adj: c.adj || []};
 }
 /* primitives shared by the SVG and the PDF renderer; coordinates in feet (x along L, y along W) */
 function planShapes(p){
@@ -3201,7 +3251,7 @@ function planShapes(p){
   (p.opens||[]).forEach(o=>{ const d = Math.min(o.d, o.side==="N"||o.side==="S" ? p.W/2 : p.L/2), C = "#7b2cbf";
     const seg = o.side==="S" ? [[0,p.W],[p.L,p.W],[0,p.W-d],[p.L,p.W-d]] : o.side==="N" ? [[0,0],[p.L,0],[0,d],[p.L,d]] : o.side==="W" ? [[0,0],[0,p.W],[d,0],[d,p.W]] : [[p.L,0],[p.L,p.W],[p.L-d,0],[p.L-d,p.W]];
     S.push({t:"line", x0:seg[2][0], y0:seg[2][1], x1:seg[3][0], y1:seg[3][1], stroke:C, sw:1.6, dash:[6,3]}); o._wall = seg; });
-  if(p.poly) p.poly.forEach((a, i)=>{ const b = p.poly[(i+1)%p.poly.length]; S.push({t:"line", x0:a[0], y0:a[1], x1:b[0], y1:b[1], stroke:"#1f2a36", sw:1.8, dash:null}); });
+  if(p.poly) p.poly.forEach((a, i)=>{ const b = p.poly[(i+1)%p.poly.length], aj = (p.adj||[]).includes(i); S.push({t:"line", x0:a[0], y0:a[1], x1:b[0], y1:b[1], stroke: aj ? "#1a73e8" : "#1f2a36", sw: aj ? 2.6 : 1.8, dash: aj ? [8,4] : null}); });
   else S.push({t:"rect", x:0, y:0, w:p.L, h:p.W, fill:"none", stroke:"#1f2a36", sw:1.6});
   (p.opens||[]).forEach(o=>{ if(o._wall) S.push({t:"line", x0:o._wall[0][0], y0:o._wall[0][1], x1:o._wall[1][0], y1:o._wall[1][1], stroke:"#7b2cbf", sw:4, dash:null}); });
   return S;
@@ -3232,7 +3282,7 @@ function planSvg(c, opt){
   const dims = `<text x="${(pad+Wpx/2).toFixed(1)}" y="18" text-anchor="middle" font-size="12" fill="#1f2a36">L = ${p.L}'</text><text x="12" y="${(pad+Hpx/2).toFixed(1)}" text-anchor="middle" font-size="12" fill="#1f2a36" transform="rotate(-90 12 ${(pad+Hpx/2).toFixed(1)})">W = ${p.W}'</text>`;
   const arrow = p.flutesAlongL ? `<text x="${(pad+Wpx).toFixed(1)}" y="${(pad+Hpx+18).toFixed(1)}" text-anchor="end" font-size="11" fill="#5b6878">Deck flutes ↔ along L · sheets run ↕</text>` : `<text x="${(pad+Wpx).toFixed(1)}" y="${(pad+Hpx+18).toFixed(1)}" text-anchor="end" font-size="11" fill="#5b6878">Deck flutes ↕ along W · sheets run ↔</text>`;
   const key = planKey(p, c), zl = (opt && opt.zoneLegend) || "";
-  const side = `<div class="pkey">${zl}<b>Key</b>${key.map(k=>`<div class="pk"><i style="background:${k.fill}"></i><span><b>${esc(k.name)}</b><br>${esc(k.txt)}</span></div>`).join("")}${p.MA ? '<div class="pk"><i style="border-top:2px dotted #1f2a36;height:0;margin-top:8px"></i><span>Fasteners in sheet laps</span></div><div class="pk"><i style="border-top:2px dashed #c0392b;height:0;margin-top:8px"></i><span>Seam fastening plate row with cover strip (subdivided sheet)</span></div>' : ""}</div>`;
+  const side = `<div class="pkey">${zl}<b>Key</b>${key.map(k=>`<div class="pk"><i style="background:${k.fill}"></i><span><b>${esc(k.name)}</b><br>${esc(k.txt)}</span></div>`).join("")}${p.MA ? '<div class="pk"><i style="border-top:2px dotted #1f2a36;height:0;margin-top:8px"></i><span>Fasteners in sheet laps</span></div><div class="pk"><i style="border-top:2px dashed #c0392b;height:0;margin-top:8px"></i><span>Seam fastening plate row with cover strip (subdivided sheet)</span></div>' : ""}${(p.adj||[]).length ? '<div class="pk"><i style="border-top:3px dashed #1a73e8;height:0;margin-top:8px"></i><span>Runs into an adjoining roof (no perimeter or corner zones)</span></div>' : ""}</div>`;
   const svg = `<div class="pwrap">${side}<svg viewBox="0 0 ${(Wpx+pad*2).toFixed(0)} ${(Hpx+pad*2).toFixed(0)}" class="psvg" role="img" aria-label="Sheet layout and fastening plan">${S}${dims}${arrow}</svg></div>`;
   return svg + `<ul class="plg">${planLegend(p).map(t=>`<li>${esc(t)}</li>`).join("")}</ul>` + planBoardsSvg(p, c);
 }
@@ -3603,7 +3653,8 @@ function letExisting(c, cs){
   const t = letApp(c); if(t !== LET_TYPES[4]) return LET.opt.exist ? LET.opt.exist : "";
   const app = String(c.application||(c.raw||{}).G8||"").toLowerCase();
   const what = LET.opt.exist || (/gravel/.test(app) ? "Existing gravel surface BUR" : /smooth/.test(app) ? "Existing smooth surface BUR / modified bitumen" : (app.match(/existing (tpo|pvc|epdm)/) ? "Existing " + app.match(/existing (tpo|pvc|epdm)/)[1].toUpperCase() + " membrane and insulation" : "Existing roof system"));
-  return what.replace(/\.?$/, ".");
+  const xi = c.exIns ? (/not known/.test(c.exIns) ? " over existing insulation" : " over " + c.exIns.replace(/ existing /, " ") + " insulation").replace(/insulation insulation/, "insulation") : "";
+  return (xi && !/insulation/i.test(what) ? what + xi : what).replace(/\.?$/, ".");
 }
 function letAssembly(c, style, cs){
   const r = c.raw||{}, sys = c.system||r.G6||"", MA = /Mechanically/i.test(sys), RB = /RhinoBond/i.test(sys);
