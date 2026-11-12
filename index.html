@@ -1505,7 +1505,10 @@ function edgeKey(P){ return P.map(p=>p.map(n=>(+n).toFixed(1)).join(",")).join("
 function basePoly(v){ const sh = v.SHAPE || "Rectangle", A = parseFloat(v.B11)||0, B = parseFloat(v.B12)||0;
   if(sh === "Rectangle") return A>0 && B>0 ? [[0,0],[A,0],[A,B],[0,B]] : null;
   const s = shapePoly(v); return s && s.pts ? s.pts : null; }
-function adjEdges(v, P){ if(!P) return []; try{ const o = JSON.parse(v.ADJ||"null"); if(o && o.k === edgeKey(P) && Array.isArray(o.e)) return o.e.filter(i=>i>=0 && i<P.length); }catch(e){} return []; }
+/* adjoining stretches as [edge, from ft, to ft] measured from the edge's first corner; an old whole-edge entry (a number) is the full edge */
+function edgeLen(P, i){ const a = P[i], b = P[(i+1)%P.length]; return Math.hypot(b[0]-a[0], b[1]-a[1]); }
+function adjEdges(v, P){ if(!P) return []; try{ const o = JSON.parse(v.ADJ||"null"); if(o && o.k === edgeKey(P) && Array.isArray(o.e))
+  return o.e.map(x=>typeof x === "number" ? [x, 0, edgeLen(P, x)] : x).filter(x=>Array.isArray(x) && x[0]>=0 && x[0]<P.length && x[2] > x[1]).map(([i,a,b])=>{ const L = edgeLen(P, i); return [i, Math.max(0, a), Math.min(L, b)]; }); }catch(e){} return []; }
 function shapePoly(v){
   const sh = v.SHAPE || "Rectangle", A = parseFloat(v.B11)||0, B = parseFloat(v.B12)||0;
   if(sh === "Rectangle" && A>0 && B>0){ const R = [[0,0],[A,0],[A,B],[0,B]]; if(adjEdges(v, R).length) return {pts:R}; }
@@ -1528,23 +1531,29 @@ function segDist(x, y, a, b){ const dx = b[0]-a[0], dy = b[1]-a[1], L2 = dx*dx+d
    Edges listed in adj run into an adjoining roof at the same level: not a roof edge, so no Zone 2 band along them and no Zone 3
    at either end (the building carries on past them). */
 function shapeGrid(P, h, parapet, adj){
-  const AJ = new Set(adj||[]), nP = P.length;
+  const nP = P.length, SP = P.map(()=>[]); (adj||[]).forEach(([i,a,b])=>{ if(SP[i]) SP[i].push([a,b]); }); SP.forEach(x=>x.sort((p,q)=>p[0]-q[0]));
+  const eL = i => edgeLen(P, i), tol = 0.05;
+  const vtxCovered = i => SP[i].some(([a])=>a <= tol) || SP[(i-1+nP)%nP].some(([,b])=>b >= eL((i-1+nP)%nP) - tol);
+  // corner leg limits: a Zone 3 leg stops where an adjoining stretch starts
+  const legOut = i => { const f = SP[i][0]; return f ? f[0] : Infinity; }, legIn = i => { const k = (i-1+nP)%nP, l = SP[k][SP[k].length-1]; return l ? eL(k) - l[1] : Infinity; };
   let X = 0, Y = 0; P.forEach(([x,y])=>{ X = Math.max(X,x); Y = Math.max(Y,y); });
   const cs = Math.max(0.5, Math.max(X, Y)/400), nc = Math.max(1, Math.round(X/cs)), nr = Math.max(1, Math.round(Y/cs)), cw = X/nc, ch = Y/nr;
   const w2 = 0.6*h, w1 = 1.2*h, cwid = 0.2*h, clen = 0.6*h;
   const ccw = polyArea(P) > 0;   // y points down, so positive = clockwise on screen; the convex test uses the same sign
   const corners = [];
   for(let i=0;i<P.length;i++){ const a = P[(i-1+P.length)%P.length], v = P[i], b = P[(i+1)%P.length];
-    const cr = (v[0]-a[0])*(b[1]-v[1]) - (v[1]-a[1])*(b[0]-v[0]); if((cr > 0) === ccw && !AJ.has(i) && !AJ.has((i-1+nP)%nP)) corners.push({v, legs:[a, b]}); }
+    const cr = (v[0]-a[0])*(b[1]-v[1]) - (v[1]-a[1])*(b[0]-v[0]); if((cr > 0) === ccw && !vtxCovered(i)) corners.push({v, legs:[a, b], lim:[legIn(i), legOut(i)]}); }
   // bands follow the edges square: each edge's band runs past an inside (re-entrant) corner, so the band turns a right angle instead of rounding
   const convex = new Set(corners.map(k=>k.v));
-  const E = P.map((a, i)=>{ const b = P[(i+1)%P.length], dx = b[0]-a[0], dy = b[1]-a[1], L = Math.hypot(dx,dy), ux = dx/L, uy = dy/L;
+  // each edge is split into its roof-edge pieces; adjoining stretches carry no band and a band stops square where one starts
+  const E = []; P.forEach((a, i)=>{ const b = P[(i+1)%P.length], dx = b[0]-a[0], dy = b[1]-a[1], L = Math.hypot(dx,dy), ux = dx/L, uy = dy/L;
     let nx = -uy, ny = ux; const mx = (a[0]+b[0])/2 + nx*0.01, my = (a[1]+b[1])/2 + ny*0.01; if(!inPoly(mx, my, P)){ nx = -nx; ny = -ny; }
-    return {a, L, ux, uy, nx, ny, ext0: convex.has(a) ? 0 : w1, ext1: convex.has(b) ? 0 : w1, adj: AJ.has(i)}; });
-  const inCorner = (x, y) => corners.some(({v, legs})=>legs.some(e=>{ const dx = e[0]-v[0], dy = e[1]-v[1], L = Math.hypot(dx,dy); if(!L) return false; const ux = dx/L, uy = dy/L, t = (x-v[0])*ux + (y-v[1])*uy, n = Math.abs((x-v[0])*uy - (y-v[1])*ux); return t >= 0 && t <= Math.min(clen, L) && n <= cwid; }));
+    let p0 = 0; const pieces = []; SP[i].forEach(([s0,s1])=>{ if(s0 - p0 > tol) pieces.push([p0, s0]); p0 = Math.max(p0, s1); }); if(L - p0 > tol) pieces.push([p0, L]);
+    pieces.forEach(([q0,q1])=>E.push({a:[a[0]+ux*q0, a[1]+uy*q0], L:q1-q0, ux, uy, nx, ny, ext0: q0 > tol ? 0 : (convex.has(a) ? 0 : w1), ext1: q1 < L - tol ? 0 : (convex.has(b) ? 0 : w1)})); });
+  const inCorner = (x, y) => corners.some(({v, legs, lim})=>legs.some((e, li)=>{ const dx = e[0]-v[0], dy = e[1]-v[1], L = Math.hypot(dx,dy); if(!L) return false; const ux = dx/L, uy = dy/L, t = (x-v[0])*ux + (y-v[1])*uy, n = Math.abs((x-v[0])*uy - (y-v[1])*ux); return t >= 0 && t <= Math.min(clen, L, lim ? lim[li] : Infinity) && n <= cwid; }));
   // exact zone at any point (null = off the roof); the grid below samples it at cell centers
   const zoneXY = (x, y) => { if(!inPoly(x, y, P)) return null;
-    let d = Infinity; for(const e of E){ if(e.adj) continue; const rx = x - e.a[0], ry = y - e.a[1], t = rx*e.ux + ry*e.uy, n = rx*e.nx + ry*e.ny; if(n >= -1e-9 && t >= -e.ext0 && t <= e.L + e.ext1) d = Math.min(d, Math.max(n, -t, t - e.L)); }
+    let d = Infinity; for(const e of E){ const rx = x - e.a[0], ry = y - e.a[1], t = rx*e.ux + ry*e.uy, n = rx*e.nx + ry*e.ny; if(n >= -1e-9 && t >= -e.ext0 && t <= e.L + e.ext1) d = Math.min(d, Math.max(n, -t, t - e.L)); }
     let z = d < w2 ? 2 : d < w1 ? 1 : 0; if(!parapet && inCorner(x, y)) z = 3; return z; };
   const cells = [], cnt = [0,0,0,0];
   for(let r=0;r<nr;r++){ const row = []; for(let c=0;c<nc;c++){ const z = zoneXY((c+0.5)*cw, (r+0.5)*ch); row.push(z); if(z != null) cnt[z]++; }
@@ -1583,26 +1592,59 @@ function exInsText(v){
   const ty = (v.EXINT && v.EXINT !== "Not known") ? v.EXINT.toLowerCase() : "insulation";
   return t === "Not known" ? "Existing insulation, thickness not known" : `${t} existing ${ty}`;
 }
-/* pick the edges that run into an adjoining roof: tap an edge to switch it between roof edge and adjoining roof */
+/* mark where this roof runs into an adjoining roof: drag along an edge to mark part of it, tap an edge to mark all of it (tap again to clear) */
 function edgePicker(v){
   const P = basePoly(v); if(!P || P.length < 3) return "";
   const aj = adjEdges(v, P); let X0 = Infinity, Y0 = Infinity, X1 = -Infinity, Y1 = -Infinity;
   P.forEach(([x,y])=>{ X0 = Math.min(X0,x); Y0 = Math.min(Y0,y); X1 = Math.max(X1,x); Y1 = Math.max(Y1,y); });
-  const Wd = 300, Hd = 170, k = Math.min(Wd/((X1-X0)||1), Hd/((Y1-Y0)||1)), pad = 14, T = ([x,y]) => [pad + (x-X0)*k, pad + (y-Y0)*k];
-  const path = P.map(T).map((q,i)=>(i?"L":"M")+q[0].toFixed(1)+" "+q[1].toFixed(1)).join(" ") + " Z";
-  const segs = P.map((a,i)=>{ const b = P[(i+1)%P.length], A = T(a), B = T(b), on = aj.includes(i);
-    return `<g class="edg${on?" on":""}" data-e="${i}" role="button" tabindex="0" aria-pressed="${on}" aria-label="Edge ${i+1}: ${on?"runs into adjoining roof":"roof edge"}"><line x1="${A[0].toFixed(1)}" y1="${A[1].toFixed(1)}" x2="${B[0].toFixed(1)}" y2="${B[1].toFixed(1)}" stroke="transparent" stroke-width="16"/><line x1="${A[0].toFixed(1)}" y1="${A[1].toFixed(1)}" x2="${B[0].toFixed(1)}" y2="${B[1].toFixed(1)}" stroke="${on?"#1a73e8":"#0b4f9c"}" stroke-width="${on?4:3}"${on?' stroke-dasharray="9 5"':""} stroke-linecap="round"/></g>`; }).join("");
-  const n = aj.length;
-  return `<div class="edgp"><div class="edgh"><b>Edges that run into another roof</b><span class="hint">Tap an edge where this roof continues into an adjoining roof at the same height (not a roof edge). It gets no perimeter or corner zones. A wall up to a higher roof stays a roof edge.</span></div>
-    <svg viewBox="0 0 ${Wd+pad*2} ${(Y1-Y0)*k+pad*2}" width="100%" style="max-width:${Wd+pad*2}px" role="group" aria-label="Roof outline, tap an edge"><path d="${path}" fill="#dbe7f5"/>${segs}</svg>
-    <span class="hint">${n ? `${n} edge${n>1?"s":""} marked <span style="color:#1a73e8;font-weight:700">- - -</span> adjoining roof.` : "All edges are roof edges."}</span></div>`;
+  const Wd = 300, Hd = 170, k = Math.min(Wd/((X1-X0)||1), Hd/((Y1-Y0)||1)), pad = 16, T = ([x,y]) => [pad + (x-X0)*k, pad + (y-Y0)*k];
+  EP.P = P; EP.k = k; EP.pad = pad; EP.X0 = X0; EP.Y0 = Y0;
+  const f = n => n.toFixed(1), path = P.map(T).map((q,i)=>(i?"L":"M")+f(q[0])+" "+f(q[1])).join(" ") + " Z";
+  const at = (i, s) => { const a = P[i], b = P[(i+1)%P.length], L = edgeLen(P, i) || 1; return T([a[0] + (b[0]-a[0])*s/L, a[1] + (b[1]-a[1])*s/L]); };
+  const segs = P.map((a,i)=>{ const A = T(a), B = T(P[(i+1)%P.length]);
+    return `<g class="edg" data-e="${i}" role="button" tabindex="0" aria-label="Edge ${i+1}, ${Math.round(edgeLen(P,i))} ft"><line x1="${f(A[0])}" y1="${f(A[1])}" x2="${f(B[0])}" y2="${f(B[1])}" stroke="transparent" stroke-width="18"/><line x1="${f(A[0])}" y1="${f(A[1])}" x2="${f(B[0])}" y2="${f(B[1])}" stroke="#0b4f9c" stroke-width="3" stroke-linecap="round"/></g>`; }).join("");
+  const marks = aj.map(([i,s0,s1])=>{ const A = at(i,s0), B = at(i,s1); return `<line x1="${f(A[0])}" y1="${f(A[1])}" x2="${f(B[0])}" y2="${f(B[1])}" stroke="#1a73e8" stroke-width="5" stroke-dasharray="9 5" pointer-events="none"/>`; }).join("");
+  const list = aj.map(([i,s0,s1])=>{ const L = edgeLen(P,i); return `Edge ${i+1}: ${s0 <= 0.05 && s1 >= L-0.05 ? `all ${Math.round(L)} ft` : `${Math.round(s0)} to ${Math.round(s1)} ft of ${Math.round(L)} ft`}`; });
+  return `<div class="edgp"><div class="edgh"><b>Where this roof runs into another roof</b><span class="hint">Drag along an edge to mark the part that continues into an adjoining roof at the same height. Tap an edge to mark all of it; tap it again to clear. Marked stretches get no perimeter or corner zones. A wall up to a higher roof stays a roof edge.</span></div>
+    <svg class="edgsvg" viewBox="0 0 ${f(Wd+pad*2)} ${f((Y1-Y0)*k+pad*2)}" width="100%" style="max-width:${Wd+pad*2}px;touch-action:none" role="group" aria-label="Roof outline, drag along an edge"><path d="${path}" fill="#dbe7f5"/>${segs}${marks}<line class="edgprev" stroke="#1a73e8" stroke-width="5" stroke-dasharray="9 5" pointer-events="none" visibility="hidden"/><text class="edgtip" font-size="12" font-weight="700" fill="#1a73e8" pointer-events="none" visibility="hidden"></text></svg>
+    <span class="hint">${list.length ? list.join(" · ") : "No adjoining roof marked: every edge is a roof edge."}</span></div>`;
 }
-function edgeToggle(i){
-  const r = CALC.roofs[CALC.active], P = basePoly(r.v); if(!P) return;
-  const e = adjEdges(r.v, P), j = e.indexOf(i); if(j >= 0) e.splice(j, 1); else e.push(i);
-  if(e.length) r.v.ADJ = JSON.stringify({k: edgeKey(P), e: e.sort((a,b)=>a-b)}); else delete r.v.ADJ;
-  calcSchedule(false);
+const EP = {P:null, k:1, pad:0, X0:0, Y0:0, drag:null};
+function edgeProj(i, x, y){ const P = EP.P, a = P[i], b = P[(i+1)%P.length], L = edgeLen(P, i) || 1;
+  const fx = EP.X0 + (x - EP.pad)/EP.k, fy = EP.Y0 + (y - EP.pad)/EP.k; const s = ((fx-a[0])*(b[0]-a[0]) + (fy-a[1])*(b[1]-a[1]))/L; return Math.max(0, Math.min(L, s)); }
+function edgeWire(box){
+  const svg = box.querySelector(".edgsvg"); if(!svg) return;
+  const pt = e => { const m = svg.getScreenCTM(); if(!m) return [0,0]; const q = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse()); return [q.x, q.y]; };
+  const prev = svg.querySelector(".edgprev"), tip = svg.querySelector(".edgtip");
+  const show = () => { const d = EP.drag; if(!d) return; const P = EP.P, i = d.i, a = P[i], b = P[(i+1)%P.length], L = edgeLen(P,i)||1, lo = Math.min(d.s0,d.s1), hi = Math.max(d.s0,d.s1);
+    const T = s => [EP.pad + (a[0] + (b[0]-a[0])*s/L - EP.X0)*EP.k, EP.pad + (a[1] + (b[1]-a[1])*s/L - EP.Y0)*EP.k], A = T(lo), B = T(hi);
+    prev.setAttribute("x1", A[0]); prev.setAttribute("y1", A[1]); prev.setAttribute("x2", B[0]); prev.setAttribute("y2", B[1]); prev.setAttribute("visibility", "visible");
+    tip.textContent = `${Math.round(hi - lo)} ft`; tip.setAttribute("x", (A[0]+B[0])/2 + 6); tip.setAttribute("y", (A[1]+B[1])/2 - 6); tip.setAttribute("visibility", "visible"); };
+  svg.querySelectorAll(".edg").forEach(g=>{
+    // near a corner two edges are under the finger: the drag direction decides which one
+    g.onpointerdown = e => { e.preventDefault(); const [x,y] = pt(e), P = EP.P, sc = ([px,py]) => [EP.pad + (px-EP.X0)*EP.k, EP.pad + (py-EP.Y0)*EP.k];
+      const near = P.map((a,i)=>[i, segDist(x, y, sc(a), sc(P[(i+1)%P.length]))]).filter(q=>q[1] <= 12).sort((p,q)=>p[1]-q[1]).map(q=>q[0]);
+      const i = near.length ? near[0] : +g.dataset.e, s = edgeProj(i, x, y);
+      EP.drag = {i, s0:s, s1:s, moved:false, x, y, near: near.length ? near : [i], locked: near.length < 2}; try{ svg.setPointerCapture(e.pointerId); }catch(_){} };
+    g.onkeydown = e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); edgeTap(+g.dataset.e); } };
+  });
+  svg.onpointermove = e => { const d = EP.drag; if(!d) return; const [x,y] = pt(e);
+    if(!d.locked && Math.hypot(x - d.x, y - d.y) > 6){ const P = EP.P, mx = x - d.x, my = y - d.y, mL = Math.hypot(mx, my);
+      let best = d.i, bc = -1; d.near.forEach(i=>{ const a = P[i], b = P[(i+1)%P.length], L = edgeLen(P, i) || 1, c = Math.abs(((b[0]-a[0])*mx + (b[1]-a[1])*my)/(L*mL)); if(c > bc){ bc = c; best = i; } });
+      d.i = best; d.s0 = edgeProj(best, d.x, d.y); d.locked = true; }
+    d.s1 = edgeProj(d.i, x, y); if(Math.abs(d.s1 - d.s0) * EP.k > 6) d.moved = true; if(d.moved) show(); };
+  svg.onpointerup = svg.onpointercancel = e => { const d = EP.drag; EP.drag = null; if(!d) return; prev.setAttribute("visibility","hidden"); tip.setAttribute("visibility","hidden");
+    if(!d.moved) edgeTap(d.i); else edgeAddSpan(d.i, Math.min(d.s0,d.s1), Math.max(d.s0,d.s1)); };
 }
+function edgeSave(r, P, list){ if(list.length) r.v.ADJ = JSON.stringify({k: edgeKey(P), e: list.sort((a,b)=>a[0]-b[0] || a[1]-b[1]).map(([i,a,b])=>[i, +a.toFixed(1), +b.toFixed(1)])}); else delete r.v.ADJ; calcSchedule(false); }
+function edgeTap(i){ const r = CALC.roofs[CALC.active], P = basePoly(r.v); if(!P) return; const e = adjEdges(r.v, P);
+  edgeSave(r, P, e.some(x=>x[0]===i) ? e.filter(x=>x[0]!==i) : e.concat([[i, 0, edgeLen(P, i)]])); }
+function edgeAddSpan(i, a, b){ const r = CALC.roofs[CALC.active], P = basePoly(r.v); if(!P) return; const L = edgeLen(P, i);
+  a = Math.round(a); b = Math.round(b); if(a <= 2) a = 0; if(b >= L - 2) b = L; b = Math.min(L, b); if(b - a < 1) return;
+  // merge with stretches already marked on this edge
+  let lo = a, hi = b; const keep = []; adjEdges(r.v, P).forEach(x=>{ if(x[0]===i && x[1] <= hi && x[2] >= lo){ lo = Math.min(lo, x[1]); hi = Math.max(hi, x[2]); } else keep.push(x); });
+  edgeSave(r, P, keep.concat([[i, lo, hi]])); }
+function edgeToggle(i){ edgeTap(i); }
 
 /* ---------- trace a roof outline on a shop drawing or roof plan (PDF or image): set the scale from one known dimension, click the corners ---------- */
 const TR = {rects:[], drag:null, img:null, file:null, page:1, pages:1, mode:"", scalePts:[], ftPerPx:0, pts:[], closed:false, roof:-1, w:0, h:0, ptPerPx:0, scales:[], scaleTxt:"", dark:null, snap:true, sheet:"", auto:null, autoMask:null, autoPick:0};
@@ -2427,7 +2469,7 @@ function calcSnapshot(i){
   if(c){ try{ shapeApply(c, r.v); }catch(e){ console.warn(e); }
     if(Array.isArray(c.info)) c.info = c.info.filter(p=>!/^(Existing insulation \(stays\)|Adjoining roof edges)$/.test(p[0]));
     c.exIns = exInsText(r.v); if(c.exIns && Array.isArray(c.info)) c.info.push(["Existing insulation (stays)", c.exIns]);
-    if(c.adj && c.adj.length && Array.isArray(c.info)) c.info.push(["Adjoining roof edges", c.adj.length + " edge" + (c.adj.length>1?"s":"") + " run into an adjoining roof at the same level: no perimeter or corner zones along them"]); c.openNote = openNote(c, r.v); c.memb = r.v.MEMB || "Any"; c.levelName = r.v.B5 || ("Roof " + (i+1)); c.roofNo = i + 1; c.zoneFt = ["B7","B8","B9","B10"].map(a=>parseFloat(calcVal("Layout Engine", a))); c.zonePar = !!calcVal("Wind Calc","B29"); c.planOpt = {perim: r.v.PERIM || "Half sheets", flutes: r.v.FLUTE || "", adhSheet: r.v.ADHSHEET || "16"}; c.vbOpt = String(calcVal(AF_S,"AB68")||""); try{ fingerAttach(c); }catch(e){ console.warn(e); } try{ specApply(c, specFor(i)); }catch(e){ console.warn(e); }
+    if(c.adj && c.adj.length && Array.isArray(c.info)){ const ft = c.adj.reduce((t,[,a,b])=>t + b - a, 0); c.info.push(["Adjoining roof edges", Math.round(ft) + " ft of edge runs into an adjoining roof at the same level: no perimeter or corner zones along it"]); } c.openNote = openNote(c, r.v); c.memb = r.v.MEMB || "Any"; c.levelName = r.v.B5 || ("Roof " + (i+1)); c.roofNo = i + 1; c.zoneFt = ["B7","B8","B9","B10"].map(a=>parseFloat(calcVal("Layout Engine", a))); c.zonePar = !!calcVal("Wind Calc","B29"); c.planOpt = {perim: r.v.PERIM || "Half sheets", flutes: r.v.FLUTE || "", adhSheet: r.v.ADHSHEET || "16"}; c.vbOpt = String(calcVal(AF_S,"AB68")||""); try{ fingerAttach(c); }catch(e){ console.warn(e); } try{ specApply(c, specFor(i)); }catch(e){ console.warn(e); }
     try{ const ix = selIdx(); c.appr = ix ? {idx:ix, sys:dbVal(ix,"System No."), table:dbVal(ix,"Table"), page:dbVal(ix,"Approval Page"), doc:dbVal(ix,"Document"), zone:dbVal(ix,"Code Zone")} : null; }catch(e){ c.appr = null; } }
   const need = calcMissing(r); if(need.length){ c = null; err = "Fill in " + need.map(x=>x[1]).join(", ") + " to see approvals."; }
   r.calc = c; r.err = err; r.need = need;
@@ -2546,7 +2588,7 @@ function calcGray(){
       if(od){ const o = openCalc(r); od.hidden = !o; od.innerHTML = !o ? "" : !o.done ? "Enter the widest door to size the perimeter area." : `4 perimeter sheets centered over each opening; perimeter area at least <b>${+(2.5*o.w).toFixed(1)} ft</b> deep (2.5 × ${+o.w.toFixed(1)} ft).`; } }
     let d = document.querySelector("#calcRoof .shpw"); if(!d && $("calcRoof")){ d = document.createElement("div"); d.className = "shpw"; $("calcRoof").appendChild(d); }
     if(d){ const sp = typeof shapePoly === "function" ? shapePoly(r) : null; d.innerHTML = shapeDiagram(r) + (sp && sp.err ? `<p class="missing" style="margin:4px 0 0">${esc(sp.err)}</p>` : "") + edgePicker(r);
-      d.querySelectorAll(".edg").forEach(g=>{ const go = ()=>edgeToggle(+g.dataset.e); g.onclick = go; g.onkeydown = e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(); } }; }); } }
+      edgeWire(d); } }
   const L = parseFloat(r.B11), W = parseFloat(r.B12), bad = L>0 && W>0 && L<W;
   ["B11","B12"].forEach(a=>{ const el=$("cf-"+a); if(el) el.closest("label").classList.toggle("bad", bad); });
 }
@@ -3251,7 +3293,9 @@ function planShapes(p){
   (p.opens||[]).forEach(o=>{ const d = Math.min(o.d, o.side==="N"||o.side==="S" ? p.W/2 : p.L/2), C = "#7b2cbf";
     const seg = o.side==="S" ? [[0,p.W],[p.L,p.W],[0,p.W-d],[p.L,p.W-d]] : o.side==="N" ? [[0,0],[p.L,0],[0,d],[p.L,d]] : o.side==="W" ? [[0,0],[0,p.W],[d,0],[d,p.W]] : [[p.L,0],[p.L,p.W],[p.L-d,0],[p.L-d,p.W]];
     S.push({t:"line", x0:seg[2][0], y0:seg[2][1], x1:seg[3][0], y1:seg[3][1], stroke:C, sw:1.6, dash:[6,3]}); o._wall = seg; });
-  if(p.poly) p.poly.forEach((a, i)=>{ const b = p.poly[(i+1)%p.poly.length], aj = (p.adj||[]).includes(i); S.push({t:"line", x0:a[0], y0:a[1], x1:b[0], y1:b[1], stroke: aj ? "#1a73e8" : "#1f2a36", sw: aj ? 2.6 : 1.8, dash: aj ? [8,4] : null}); });
+  if(p.poly) p.poly.forEach((a, i)=>{ const b = p.poly[(i+1)%p.poly.length]; S.push({t:"line", x0:a[0], y0:a[1], x1:b[0], y1:b[1], stroke:"#1f2a36", sw:1.8, dash:null});
+    const L = Math.hypot(b[0]-a[0], b[1]-a[1]) || 1, ux = (b[0]-a[0])/L, uy = (b[1]-a[1])/L;
+    (p.adj||[]).filter(x=>x[0]===i).forEach(([,s0,s1])=>S.push({t:"line", x0:a[0]+ux*s0, y0:a[1]+uy*s0, x1:a[0]+ux*s1, y1:a[1]+uy*s1, stroke:"#1a73e8", sw:2.8, dash:[8,4]})); });
   else S.push({t:"rect", x:0, y:0, w:p.L, h:p.W, fill:"none", stroke:"#1f2a36", sw:1.6});
   (p.opens||[]).forEach(o=>{ if(o._wall) S.push({t:"line", x0:o._wall[0][0], y0:o._wall[0][1], x1:o._wall[1][0], y1:o._wall[1][1], stroke:"#7b2cbf", sw:4, dash:null}); });
   return S;
