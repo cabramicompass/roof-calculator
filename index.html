@@ -2838,8 +2838,8 @@ function asmLayers(c){
       if(isFinite(tt) && tt > 0){
         const per = tt >= 1.5 ? 5 : 8;
         tb.plates = "maIns"; tb.maPer = per;
-        tb.maNote = `${per} fasteners and 3 in. plates per 4x8 board, all zones (Carlisle spec 3.04 C.2: ${tt >= 1.5 ? "insulation 1-1/2 in. and thicker" : "insulation under 1-1/2 in."}${tb.k === "hd" || tb.k === "gyp" ? "; cover board fastened through with the insulation" : ""})`;
-      } else { tb.plates = "maIns"; tb.maPer = 5; tb.maNote = "fastened to the deck with fasteners and 3 in. plates; 5 per 4x8 board for 1-1/2 in. and thicker insulation, 8 under 1-1/2 in. (Carlisle spec 3.04 C.2)"; }
+        tb.maNote = `mechanically fastened, ${per} per 4x8 board`;   // Carlisle spec 3.04 C.2
+      } else { tb.plates = "maIns"; tb.maPer = 5; tb.maNote = "mechanically fastened"; }
     }
   }
   L.push({k:"mem", t:mem, h:fb ? 4 : 3, fb});
