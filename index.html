@@ -2149,7 +2149,7 @@ async function geoApplyJob(b, all){
 }
 async function geoUse(){
   const b = GEO.cands[GEO.pick]; if(!b) return; const r = CALC.roofs[CALC.active];
-  const {o, filled} = geoApplyRoof(r, b, GEO.useLabel || "");
+  const {o, filled} = geoApplyRoof(r, b, "");   // no automatic roof name from the property use
   const jf = await geoApplyJob(b);
   GEO.msg = `Used: ${o.X}' x ${o.Y}'` + (o.rect ? ", rectangle" : `, ${o.P.length} corners, zones follow the outline`) + (jf.concat(filled).length ? ". Also filled in: " + jf.concat(filled).join(", ") : "") + ". Check the size against the plans.";
   calcRenderForm(); calcSchedule(true);
@@ -2158,7 +2158,7 @@ async function geoUse(){
 /* every building on the property becomes its own roof (largest first); the current roof's assembly is copied to the others */
 async function geoUseAll(){
   const bs = (GEO.prop || []).slice().sort((a,b)=>geoArea(b) - geoArea(a)); if(bs.length < 2) return geoUse();
-  const base = CALC.roofs[CALC.active], name = GEO.useLabel || "Building", jf = await geoApplyJob(bs[0], bs);
+  const base = CALC.roofs[CALC.active], name = "Building", jf = await geoApplyJob(bs[0], bs);
   bs.forEach((b, k)=>{ let r = base;
     if(k > 0){ r = newRoof(base); r.v.B10 = ""; delete r.v.B10est; CALC.roofs.push(r); }
     r.v.B5 = ""; geoApplyRoof(r, b, `${name} ${k + 1}`); });
@@ -2825,7 +2825,23 @@ function asmLayers(c){
   }
   L.forEach(x=>{ if(x.k==="iso" && /Insulfoam|\bEPS\b|ChannelDry|Flute-filled/i.test(epsName(x.src||"")) && !/HD Composite|Composite EPS/i.test(x.src||"")) x.k = "eps"; });
   const lastBoard = [...L].reverse().find(x=>/iso|eps|hd|gyp|conc|lwc|steel|wood|^ex/.test(x.k));
-  // mechanically attached: plates are drawn in the membrane lap (see asmModel), not on the board
+  // mechanically attached: membrane plates are drawn in the lap (see asmModel); the insulation (and any cover board)
+  // is fastened through the top board. Carlisle Sure-Weld / Sure-Flex spec 07/2026, 3.04 C.2: 5 fasteners and plates
+  // per 4x8 board for insulation 1-1/2 in. and thicker, 8 per 4x8 for insulation under 1-1/2 in. Same in every zone.
+  if(MA && !RB){   // the insulation attachment field only applies to adhered systems
+    const tb = [...L].reverse().find(x=>/^(iso|eps|hd|gyp)$/.test(x.k));
+    if(tb){
+      const parseT = v => { const m = String(v||"").match(/(\d+(?:\.\d+)?)(?:\s*-\s*(\d+)\/(\d+))?\s*(?:"|”|in\b|-inch)/i) || String(v||"").match(/(\d+)\/(\d+)\s*(?:"|”|in\b)/); if(!m) return NaN;
+        if(m.length === 3) return +m[1] / +m[2]; return +m[1] + (m[2] ? +m[2] / +m[3] : 0); };
+      const insL = L.filter(x=>/^(iso|eps)$/.test(x.k)), tIns = insL.length ? insL.reduce((sum, x)=>{ const v = parseT(x.t); return sum + (isFinite(v) ? v : 0); }, 0) : NaN;
+      const tRaw = parseT(thk), tt = isFinite(tRaw) && tRaw > 0 ? tRaw : tIns;
+      if(isFinite(tt) && tt > 0){
+        const per = tt >= 1.5 ? 5 : 8;
+        tb.plates = "maIns"; tb.maPer = per;
+        tb.maNote = `${per} fasteners and 3 in. plates per 4x8 board, all zones (Carlisle spec 3.04 C.2: ${tt >= 1.5 ? "insulation 1-1/2 in. and thicker" : "insulation under 1-1/2 in."}${tb.k === "hd" || tb.k === "gyp" ? "; cover board fastened through with the insulation" : ""})`;
+      } else { tb.plates = "maIns"; tb.maPer = 5; tb.maNote = "fastened to the deck with fasteners and 3 in. plates; 5 per 4x8 board for 1-1/2 in. and thicker insulation, 8 under 1-1/2 in. (Carlisle spec 3.04 C.2)"; }
+    }
+  }
   L.push({k:"mem", t:mem, h:fb ? 4 : 3, fb});
   return L;
 }
@@ -2854,6 +2870,7 @@ function asmModel(c){
     if((l.k === "beads") && FLD.rib) l.t = l.t.replace(/\)$/, `, ribbons ${FLD.rib} in. o.c. field)`);
     if(l.plates === "insul" && FLD.per) l.t += ", " + FLD.per + " fasteners per 4x8 board (field)";
     if(l.plates === "rb" && FLD.per) l.t += ", RhinoBond plates " + FLD.per + " per 4x8 board (field)";
+    if(l.plates === "maIns" && l.maNote) l.t += ", " + l.maNote;
   });
   const DX = 92, DY = -62, X0 = 4, XR = 330, STEP = Math.min(62, (XR - X0 - 110) / Math.max(1, n - 1));
   const shapes = [], marks = [];
@@ -2910,11 +2927,16 @@ function asmModel(c){
       let pts;
       if(l.plates === "seam"){ const np = FLD.spacing ? Math.max(2, Math.min(7, Math.round(3*12/FLD.spacing))) : 3; pts = Array.from({length:np}, (_,k)=>[0.45, 0.1 + 0.8*(k+0.5)/np]);
         const a = onTop(0.45,0), b = onTop(0.45,1); add(`M${f1(a[0])} ${f1(a[1])} L${f1(b[0])} ${f1(b[1])}`, "none", "#9aa3ac", 0.5); }
-      else { const nb = l.plates === "insul" && FLD.per ? FLD.per : l.plates === "rb" && FLD.per ? FLD.per : 4;
-        const cols = nb >= 12 && top ? 4 : nb >= 9 && top ? 3 : 2, rows = Math.ceil(nb/cols);
-        // one 4x8 board outline on the visible strip, fasteners laid out on it
-        const b0 = onTop(0.08,0.06), b1 = onTop(0.92,0.06), b2 = onTop(0.92,0.94), b3 = onTop(0.08,0.94); add(P([b0,b1,b2,b3]), "none", "#9c8a5a", 0.5);
-        pts = []; for(let r2=0;r2<rows;r2++) for(let k2=0;k2<cols && pts.length<nb;k2++) pts.push([0.08 + 0.84*(k2+0.5)/cols, 0.06 + 0.88*(r2+0.5)/rows]); }
+      else { const nb = l.plates === "maIns" ? (l.maPer || 5) : l.plates === "insul" && FLD.per ? FLD.per : l.plates === "rb" && FLD.per ? FLD.per : 4;
+        // one 4x8 board outline on the visible strip (8 ft runs along u), fasteners laid out on it
+        const B = (u, v) => onTop(0.08 + 0.84*u, 0.06 + 0.88*v);
+        add(P([B(0,0), B(1,0), B(1,1), B(0,1)]), "none", "#9c8a5a", 0.5);
+        // Carlisle style patterns (u along the 8 ft side, v across 4 ft): 1 ft in from the edges
+        const PAT = {4:[[1/8,1/4],[7/8,1/4],[1/8,3/4],[7/8,3/4]].map(([u,v])=>[u,v]), 5:[[1/8,1/4],[7/8,1/4],[1/2,1/2],[1/8,3/4],[7/8,3/4]],
+          6:[[1/8,1/4],[1/2,1/4],[7/8,1/4],[1/8,3/4],[1/2,3/4],[7/8,3/4]], 8:[[1/8,1/4],[3/8,1/4],[5/8,1/4],[7/8,1/4],[1/8,3/4],[3/8,3/4],[5/8,3/4],[7/8,3/4]]};
+        if(PAT[nb]) pts = PAT[nb].map(([u,v])=>[0.08 + 0.84*u, 0.06 + 0.88*v]);
+        else { const cols = nb >= 12 && top ? 4 : nb >= 9 && top ? 3 : 2, rows = Math.ceil(nb/cols);
+          pts = []; for(let r2=0;r2<rows;r2++) for(let k2=0;k2<cols && pts.length<nb;k2++) pts.push([0.08 + 0.84*(k2+0.5)/cols, 0.06 + 0.88*(r2+0.5)/rows]); } }
       const r0 = l.plates === "rb" ? 7.5 : l.plates === "seam" ? 6 : Math.max(3.2, 6 - (pts.length > 9 ? 2 : 0));
       for(const [u,v] of pts){ const [px,py] = onTop(u,v); ell(px, py, r0, "#cfd5da", "#6f7a86"); ell(px, py, 1.6, "#6f7a86", "#6f7a86"); }
     }
