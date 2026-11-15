@@ -1394,5 +1394,67 @@
 ]
 ]
 ]
+],
+"riskIII": [
+[
+"B6",
+"L"
+],
+[
+"B7",
+"Palm Beach"
+],
+[
+"RC",
+"III"
+],
+[
+"VUSER",
+"185"
+],
+[
+"G14",
+"FBC TPO"
+],
+[
+"B10",
+"30"
+],
+[
+"B11",
+"300"
+],
+[
+"B12",
+"200"
+],
+[
+"SHAPE",
+"Rectangle"
+],
+[
+"G6",
+"Mechanically"
+],
+[
+"G7",
+"LWC over Steel"
+],
+[
+"G8",
+"Recover – smooth"
+],
+[
+"F9",
+"22"
+],
+[
+"MEMB",
+"FleeceBACK"
+],
+[
+"SLOPE",
+"1/2:12"
+]
 ]
 }
