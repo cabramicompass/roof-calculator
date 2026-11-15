@@ -154,7 +154,7 @@ label.f.cf{display:grid;grid-template-rows:auto auto;align-content:start;gap:4px
 /* job and roof boxes: 2 columns, paired fields */
 #calcJob label.f[data-a="B6"],#calcJob label.f[data-a="B7"]{grid-column:span 2}#calcJob label.f[data-a="B8"],#calcJob label.f[data-a="B9"],#calcJob label.f[data-a="B13"],#calcJob label.f[data-a="G13"]{grid-column:span 1}
 #calcRoof label.f[data-a="B5"]{grid-column:span 2}#calcRoof label.f[data-a="B10"],#calcRoof label.f[data-a="G5"],#calcRoof label.f[data-a="B11"],#calcRoof label.f[data-a="B12"]{grid-column:span 1}
-#calcRoof label.f[data-a="B10"]{order:2}#calcRoof label.f[data-a="G5"]{order:3}#calcRoof label.f[data-a="B11"]{order:4}#calcRoof label.f[data-a="B12"]{order:5}#calcRoof label.f[data-a="B5"]{order:0}#calcRoof label.f[data-a="SHAPE"]{order:1;grid-column:span 2}#calcRoof label.f[data-a="SC"]{order:6}#calcRoof label.f[data-a="SD"]{order:7}#calcRoof label.f[data-a="OPEN"]{order:20;grid-column:span 2}#calcRoof label.f[data-a="OWL"]{order:21}#calcRoof label.f[data-a="OWH"]{order:22}#calcRoof label.f[data-a="ON"]{order:23}#calcRoof label.f[data-a="OWALL"]{order:21}#calcRoof label.f[data-a="OPENW"]{order:24}#calcRoof label.f[data-a="ODH"]{order:25}#calcRoof .opnw{order:26}#calcRoof label.f[data-a="SE"]{order:8}#calcRoof .shpw{order:9}
+#calcRoof label.f[data-a="B10"]{order:2}#calcRoof label.f[data-a="G5"]{order:3}#calcRoof label.f[data-a="B11"]{order:4}#calcRoof label.f[data-a="B12"]{order:5}#calcRoof label.f[data-a="B5"]{order:0}#calcRoof label.f[data-a="SHAPE"]{order:1;grid-column:span 2}#calcRoof label.f[data-a="SC"]{order:6}#calcRoof label.f[data-a="SD"]{order:7}#calcRoof label.f[data-a="OPEN"]{order:20;grid-column:span 2}#calcRoof label.f[data-a="OWL"]{order:21}#calcRoof label.f[data-a="OWH"]{order:22}#calcRoof label.f[data-a="ON"]{order:23}#calcRoof label.f[data-a="OWALL"]{order:21}#calcRoof label.f[data-a="OPENW"]{order:24}#calcRoof label.f[data-a="ODH"]{order:25}#calcRoof .opnw{order:26}#calcRoof label.f[data-a="SE"]{order:8}#calcRoof label.f[data-a="SLOPE"]{order:19;grid-column:span 1}#calcRoof label.f[data-a="G5"]{order:19;grid-column:span 1}#calcJob label.f[data-a="RC"],#calcJob label.f[data-a="VUSER"]{grid-column:span 1}#calcRoof .shpw{order:9}
 @media (max-width:700px){.cin .cset.asm [data-a]{grid-column:span 2}}
 details.fh[open]{position:static;grid-column:1 / -1}details.fh[open]>summary{position:absolute;top:0;right:0}details.fh .hint{display:block;margin-top:4px}
 @media (max-width:1100px){.cin{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cin .cset.asm{grid-column:1 / -1}}
@@ -935,7 +935,7 @@ function alrFromCalc(c){
   v.status = /new/.test(app) ? "" : /tear/.test(app) ? "Tear-Off" : /metal retrofit/.test(app) ? "Standing Seam Metal Roof to Remain" : /recover/.test(app) ? "Re-roof / No Tear-Off" : "New Construction";
   if(/existing (tpo|pvc|epdm)/.test(app)) v.existing = "Existing " + app.match(/existing (\w+)/)[1].toUpperCase() + " membrane over ...";
   else if(/smooth/.test(app)) v.existing = "Existing smooth BUR / mod bit over ..."; else if(/gravel/.test(app)) v.existing = "Existing gravel BUR (loose gravel removed) over ...";
-  v.dims = (info["Length x width"]||"").replace(/×/g,"x"); v.height = (r.B10? r.B10+"'" : ""); v.slope = "1/4\" per ft";
+  v.dims = (info["Length x width"]||"").replace(/×/g,"x"); v.height = (r.B10? r.B10+"'" : ""); v.slope = String(r.SLOPE || "1/4:12").replace(/:12$/, "\" per ft");
   const deck = r.G7||c.deck||""; const ga = parseInt(r.F9,10);
   v.deck = /^Steel/.test(deck) ? (ga && ga>22 ? "Steel Less that 22-Gauge" : "Steel 22-Gauge or Heavier") : /^Structural/.test(deck) ? "Structural Concrete" : /^Wood/.test(deck) ? "Plywood" : /^LWC/.test(deck) ? "Cellular Lightweight Concrete" : "";
   v.deckThk = /^Steel|over Steel/.test(deck) ? ((r.F9? r.F9+" ga" : "") + (r.G9? ", Grade "+r.G9 : "")) : "";
@@ -963,7 +963,7 @@ function alrFromCalc(c){
   v.noa = /NOA/i.test(r.G14||""); v.fbc = !/NOA/i.test(r.G14||"");
   v.asce = "7-22"; v.vlocal = ((info["Wind speed"]||"").match(/\d+/)||[""])[0];
   v.rough = {B:OPT.rough[1],C:OPT.rough[2],D:OPT.rough[3]}[String(r.B8||"").trim()[0]]||"";
-  v.risk = OPT.risk[2];
+  v.risk = OPT.risk[({"I":1,"II":2,"III":3,"IV":4})[String(r.RC || "II").split(" ")[0]] || 2];
   const z = (c.press||[]).slice(1).filter(p=>/\d/.test(p[3]||"")).map(p=>p[0].replace(/ \(.*\)/,"")+" "+p[3]+" psf");
   v.comments = "Assembly per " + (c.approval||"") + (z.length ? ". Design uplift (ASD, ASCE 7-22, FBC 8th Ed.): " + z.join(", ") : "") + (v.vlocal ? ". Vult " + v.vlocal + " mph, Exposure " + String(r.B8||"").trim() + ", " + (r.B9||"Enclosed") : "") + ((r.G5==="Yes" || parseFloat(r.G5)>=3) ? ". Continuous parapet, min. 3 ft, all sides: no Zone 3, corners use Zone 2 (ASCE 7-22 Fig. 30.3-2A)." : ".");
   return v;
@@ -1538,7 +1538,9 @@ function shapeGrid(P, h, parapet, adj){
   const legOut = i => { const f = SP[i][0]; return f ? f[0] : Infinity; }, legIn = i => { const k = (i-1+nP)%nP, l = SP[k][SP[k].length-1]; return l ? eL(k) - l[1] : Infinity; };
   let X = 0, Y = 0; P.forEach(([x,y])=>{ X = Math.max(X,x); Y = Math.max(Y,y); });
   const cs = Math.max(0.5, Math.max(X, Y)/400), nc = Math.max(1, Math.round(X/cs)), nr = Math.max(1, Math.round(Y/cs)), cw = X/nc, ch = Y/nr;
-  const w2 = 0.6*h, w1 = 1.2*h, cwid = 0.2*h, clen = 0.6*h;
+  // h over 60 ft: same rule as the workbook (Wind Calc E17:E20): a = 10% of the least dimension, min. 3 ft; Zone 2 is a wide, Zone 3 is a wide by 2a long, the rest is Zone 1 (no Zone 1')
+  const tall = h > 60, aT = Math.max(3, 0.1*Math.min(X, Y));
+  const w2 = tall ? aT : 0.6*h, w1 = tall ? Infinity : 1.2*h, cwid = tall ? aT : 0.2*h, clen = tall ? 2*aT : 0.6*h;
   const ccw = polyArea(P) > 0;   // y points down, so positive = clockwise on screen; the convex test uses the same sign
   const corners = [];
   for(let i=0;i<P.length;i++){ const a = P[(i-1+P.length)%P.length], v = P[i], b = P[(i+1)%P.length];
@@ -1549,7 +1551,7 @@ function shapeGrid(P, h, parapet, adj){
   const E = []; P.forEach((a, i)=>{ const b = P[(i+1)%P.length], dx = b[0]-a[0], dy = b[1]-a[1], L = Math.hypot(dx,dy), ux = dx/L, uy = dy/L;
     let nx = -uy, ny = ux; const mx = (a[0]+b[0])/2 + nx*0.01, my = (a[1]+b[1])/2 + ny*0.01; if(!inPoly(mx, my, P)){ nx = -nx; ny = -ny; }
     let p0 = 0; const pieces = []; SP[i].forEach(([s0,s1])=>{ if(s0 - p0 > tol) pieces.push([p0, s0]); p0 = Math.max(p0, s1); }); if(L - p0 > tol) pieces.push([p0, L]);
-    pieces.forEach(([q0,q1])=>E.push({a:[a[0]+ux*q0, a[1]+uy*q0], L:q1-q0, ux, uy, nx, ny, ext0: q0 > tol ? 0 : (convex.has(a) ? 0 : w1), ext1: q1 < L - tol ? 0 : (convex.has(b) ? 0 : w1)})); });
+    pieces.forEach(([q0,q1])=>E.push({a:[a[0]+ux*q0, a[1]+uy*q0], L:q1-q0, ux, uy, nx, ny, ext0: q0 > tol ? 0 : (convex.has(a) ? 0 : (tall ? w2 : w1)), ext1: q1 < L - tol ? 0 : (convex.has(b) ? 0 : (tall ? w2 : w1))})); });
   const inCorner = (x, y) => corners.some(({v, legs, lim})=>legs.some((e, li)=>{ const dx = e[0]-v[0], dy = e[1]-v[1], L = Math.hypot(dx,dy); if(!L) return false; const ux = dx/L, uy = dy/L, t = (x-v[0])*ux + (y-v[1])*uy, n = Math.abs((x-v[0])*uy - (y-v[1])*ux); return t >= 0 && t <= Math.min(clen, L, lim ? lim[li] : Infinity) && n <= cwid; }));
   // exact zone at any point (null = off the roof); the grid below samples it at cell centers
   const zoneXY = (x, y) => { if(!inPoly(x, y, P)) return null;
@@ -1572,7 +1574,7 @@ function shapeApply(c, v){
   const fx = n => Math.round(n).toLocaleString("en-US");
   (c.press||[]).slice(1, 5).forEach((row, i)=>{ row[5] = fx(g.area[i]); row[6] = (g.area[i]/100).toFixed(1); });
   const dims = `${v.SHAPE}, ${["A","B","C","D","E"].map((k,i)=>[k, [v.B11,v.B12,v.SC,v.SD,v.SE][i]]).filter(x=>parseFloat(x[1])>0).map(x=>x[0]+" "+x[1]+"'").join(", ")}`;
-  const fp = `Field Prime (1'): interior, ${fx(g.area[0])} sf`;
+  const fp = h > 60 ? "Zone 1' not used (h over 60 ft): interior is Zone 1" : `Field Prime (1'): interior, ${fx(g.area[0])} sf`;
   if(Array.isArray(c.zones) && c.zones.length) c.zones[0] = fp; c.fpLabel = fp;
   if(c.attach && c.attach[1]) c.attach[1][7] = "interior";
   (c.info||[]).forEach(p=>{ if(p[0]==="Length x width") p[1] = dims; if(p[0]==="Total roof area") p[1] = fx(tot) + " sf (" + (tot/100).toFixed(1) + " sq)"; });
@@ -2374,9 +2376,16 @@ function geoRender(){
 
 /* ---------- built-in wind uplift calculator (runs the Excel calculator's own formulas) ---------- */
 const IN_S = "Inputs & Results", AW_S = "Approvals & Warranty", AF_S = "Approval Finder";
+const LOC_OTHER = "Other location (enter wind speed)";
+const RC_OPTS = ["II (most buildings)","I (low hazard, e.g. storage)","III (schools, assembly, 300+ people)","IV (hospitals, fire, police, shelters)"];
+const SLOPES = ["1/8:12","1/4:12","1/2:12","3/4:12","1:12","1-1/2:12","2:12","3:12"];
+const slopeNum = s => { const m = String(s||"1/4:12").match(/^(?:(\d+)-)?(\d+)(?:\/(\d+))?:12/); if(!m) return 0.25; return (+(m[1]||0)) + (m[3] ? +m[2]/+m[3] : +m[2]); };
+const SLOPE_MAX = 12*Math.tan(7*Math.PI/180);   // ASCE 7-22 Fig. 30.3-2A covers roofs up to 7 degrees
 const JOB_F = [
   {a:"B6", label:"Project name", type:"text", ph:"Project name"},
-  {a:"B7", label:"Location", type:"select"},
+  {a:"B7", label:"Location", type:"select", help:"Sets the Risk Category II wind speed for that area (the higher end of each range). For a city not listed, pick Other location and enter V from the ASCE Hazard Tool (ascehazardtool.org) or FBC Figure 1609.3."},
+  {a:"RC", label:"Risk category", type:"select", noCell:true, half:true, opts:RC_OPTS, help:"ASCE 7-22 Table 1.5-1. II covers most buildings. III: schools, assembly over 300 people, jails. IV: hospitals, fire and police stations, emergency shelters and operations centers. III and IV have their own, higher wind speed maps, so enter V for the address."},
+  {a:"VUSER", label:"Wind speed V (mph)", type:"num", noCell:true, half:true, ph:"From location", help:"Leave blank to use the location value (Risk Category II). Required for Risk Category III or IV and for Other location. Get the ultimate V for the address and risk category from the ASCE Hazard Tool (ascehazardtool.org)."},
   {a:"B8", label:"Exposure", type:"select", help:"B: urban, suburban or wooded upwind for at least 2,600 ft or 20 × roof height, whichever is greater (1,500 ft if h ≤ 30 ft). D: open water or flat open ground upwind for 5,000 ft or 20 × height, whichever is greater, or the site is within 600 ft or 20 × height of that. C: everything else. ASCE 7-22 §26.7.3."},
   {a:"B9", label:"Enclosure", type:"select"},
   {a:"G14", label:"Approval source", type:"select", help:"FBC approvals for most of Florida. Miami-Dade NOA for HVHZ (Broward, Miami-Dade)."},
@@ -2392,6 +2401,7 @@ const ROOF_F = [
   {a:"SC", label:"Side C (ft)", type:"num", noCell:true, half:true},
   {a:"SD", label:"Side D (ft)", type:"num", noCell:true, half:true},
   {a:"SE", label:"Side E (ft)", type:"num", noCell:true, half:true},
+  {a:"SLOPE", label:"Roof slope", type:"select", noCell:true, half:true, opts:SLOPES, help:"Field slope of this roof area. Goes on the assembly letter request. This calculator covers low slope roofs up to 7 degrees (about 1-1/2:12); steeper roofs use ASCE 7-22 Fig. 30.3-2B to 2I."},
   {a:"G5", label:"3 ft parapet?", type:"select", help:"Yes only if it runs around the whole roof. Yes means no Zone 3: corners use the Zone 2 pressure (h up to 60 ft)."},
   {a:"OPEN", label:"Bay / overhead doors over 10% of a wall?", type:"select", noCell:true, opts:["No","Yes"], help:"Carlisle Sure-Weld spec 3.05 D.4.e: when the openings in any one wall add up to more than 10% of that wall's area, 4 perimeter sheets are centered over each opening, the perimeter area is at least 2.5 times the opening width deep (or an adhered section), and Carlisle should review the job before bid. Also check the Enclosure input."},
   {a:"OWALL", label:"Wall(s) with the doors", type:"select", noCell:true, opts:["Bottom (length)","Top (length)","Both length walls","Left (width)","Right (width)","Both width walls","Bottom + left","Bottom + right","All walls"], help:"As drawn on the sheet layout: length walls run along L (top and bottom), width walls along W (left and right)."},
@@ -2441,8 +2451,14 @@ function calcText(sheet, a){
 }
 function applyRoof(i){
   const B = CALC.book, r = CALC.roofs[i];
-  for(const f of JOB_F) B.set(IN_S, f.a, CALC.job[f.a]);
+  for(const f of JOB_F) if(!f.noCell) B.set(IN_S, f.a, CALC.job[f.a]);
   for(const f of ROOF_F) if(!f.noCell) B.set(IN_S, f.a, r.v[f.a]);
+  // wind speed: the workbook looks V up from the location table, so an entered V (or Other location) replaces that row for this run
+  (CALC.locBase||[]).forEach(([a, b], k)=>{ B.set("Reference", "A"+(45+k), a); B.set("Reference", "B"+(45+k), b); });
+  { const loc = CALC.job.B7, vu = parseFloat(CALC.job.VUSER);
+    if(loc === LOC_OTHER){ B.set("Reference", "A45", LOC_OTHER); B.set("Reference", "B45", vu > 0 ? vu : null); }
+    else if(vu > 0){ const k = (CALC.locBase||[]).findIndex(x=>x[0]===loc); if(k >= 0) B.set("Reference", "B"+(45+k), vu); } }
+  B.set("Wind Calc", "B13", slopeNum(r.v.SLOPE));
   B.set(AW_S, "N13", r.pick || CALC.defaults.N13 || "");
   B.set(AF_S, "AB70", r.override || "");
   B.set(AF_S, "AB73", /^Standard/.test((r.v||{}).MEMB||"") ? (r.v.MEMB = "BareBack") : ((r.v||{}).MEMB || "Any"));
@@ -2452,6 +2468,9 @@ function applyRoof(i){
 function calcMissing(r){
   const v = r.v || {}, j = CALC.job || {}, num = x => parseFloat(x) > 0, out = [];
   if(!String(j.B7||"").trim()) out.push(["B7","Location"]);
+  if(!(parseFloat(j.VUSER) > 0)){
+    if(j.B7 === LOC_OTHER) out.push(["VUSER","Wind speed V (Other location)"]);
+    else if(/^I(II|V) /.test(j.RC||"")) out.push(["VUSER","Wind speed V for Risk Category " + String(j.RC).split(" ")[0] + " (ASCE Hazard Tool)"]); }
   if(!num(v.B10)) out.push(["B10","Roof height"]);
   const irr = v.SHAPE && v.SHAPE !== "Rectangle";
   if(!num(v.B11)) out.push(["B11", irr ? "Side A" : "Length"]);
@@ -2471,7 +2490,12 @@ function calcSnapshot(i){
     c.exIns = exInsText(r.v); if(c.exIns && Array.isArray(c.info)) c.info.push(["Existing insulation (stays)", c.exIns]);
     if(c.adj && c.adj.length && Array.isArray(c.info)){ const ft = c.adj.reduce((t,[,a,b])=>t + b - a, 0); c.info.push(["Adjoining roof edges", Math.round(ft) + " ft of edge runs into an adjoining roof at the same level: no perimeter or corner zones along it"]); } c.openNote = openNote(c, r.v); c.memb = r.v.MEMB || "Any"; c.levelName = r.v.B5 || ("Roof " + (i+1)); c.roofNo = i + 1; c.zoneFt = ["B7","B8","B9","B10"].map(a=>parseFloat(calcVal("Layout Engine", a))); c.zonePar = !!calcVal("Wind Calc","B29"); c.planOpt = {perim: r.v.PERIM || "Half sheets", flutes: r.v.FLUTE || "", adhSheet: r.v.ADHSHEET || "16"}; c.vbOpt = String(calcVal(AF_S,"AB68")||""); try{ fingerAttach(c); }catch(e){ console.warn(e); } try{ specApply(c, specFor(i)); }catch(e){ console.warn(e); }
     try{ const ix = selIdx(); c.appr = ix ? {idx:ix, sys:dbVal(ix,"System No."), table:dbVal(ix,"Table"), page:dbVal(ix,"Approval Page"), doc:dbVal(ix,"Document"), zone:dbVal(ix,"Code Zone")} : null; }catch(e){ c.appr = null; } }
+  if(c){ const rc = CALC.job.RC || RC_OPTS[0];
+    c.raw = Object.assign({}, c.raw, {SLOPE: r.v.SLOPE || "1/4:12", RC: rc});
+    (c.info||[]).forEach(p=>{ if(p[0]==="Wind speed"){ if(parseFloat(CALC.job.VUSER) > 0 && CALC.job.B7 !== LOC_OTHER) p[1] = String(p[1]).replace(/ – /, " (entered) – "); p[1] = String(p[1]).replace(LOC_OTHER, "entered for the site") + ", Risk Category " + rc.split(" ")[0]; } });
+    if(c.info && !c.info.some(p=>p[0]==="Roof slope")) c.info.push(["Roof slope", (r.v.SLOPE || "1/4:12") + " (entered)"]); }
   const need = calcMissing(r); if(need.length){ c = null; err = "Fill in " + need.map(x=>x[1]).join(", ") + " to see approvals."; }
+  else if(slopeNum(r.v.SLOPE) > SLOPE_MAX + 1e-9){ c = null; err = "Roof slope " + r.v.SLOPE + " is over 7 degrees. This calculator covers low slope roofs only (ASCE 7-22 Fig. 30.3-2A); steeper roofs use Fig. 30.3-2B to 2I. Send this roof to Carlisle Design Services."; }
   r.calc = c; r.err = err; r.need = need;
   return c;
 }
@@ -2490,11 +2514,14 @@ async function calcInit(){
     const bin = atob(b64), gz = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) gz[i] = bin.charCodeAt(i);
     const pack = await gunzipJson(gz);
     CALC.book = new XLCalc.Book(pack);
+    CALC.locBase = [45,46,47,48,49,50].map(r=>[CALC.book.value("Reference","A"+r), CALC.book.value("Reference","B"+r)]);
     for(const f of JOB_F.concat(ROOF_F)){ if(f.noCell){ CALC.defaults[f.a] = f.opts ? f.opts[0] : ""; continue; } const v = CALC.book.value(IN_S, f.a); CALC.defaults[f.a] = (v===null||XLCalc.isE(v)) ? "" : String(v); }
     CALC.defaults.N13 = String(CALC.book.value(AW_S,"N13")||"");
     for(const f of JOB_F.concat(ROOF_F)) if(f.type==="select") CALC.opts[f.a] = f.opts || dvOptions(IN_S, f.a) || [];
+    if(!CALC.opts.B7.includes(LOC_OTHER)) CALC.opts.B7.push(LOC_OTHER);
+    CALC.defaults.SLOPE = "1/4:12";
     const d = calcLoadDraft();
-    if(d && d.roofs && d.roofs.length){ CALC.job = d.job||{}; CALC.roofs = d.roofs.map(r=>({v:Object.assign({F11:CALC.defaults.F11||"Not specified", F12:"Any", C14:"No", ADH:"As listed in the approval"}, r.v, /miles/i.test(r.v.B14||"") || !r.v.B14 ? {B14:"None"} : /^Torch|^Other|^Any/i.test(r.v.B14) ? {B14:"Other mfr. (UL / FM approved)"} : /^Self/i.test(r.v.B14) ? {B14:"VapAir Seal (self-adhered)"} : {}), pick:r.pick||"", spec:r.spec||null, calc:null, err:""}));
+    if(d && d.roofs && d.roofs.length){ CALC.job = Object.assign({RC:RC_OPTS[0], VUSER:""}, d.job||{}); CALC.roofs = d.roofs.map(r=>({v:Object.assign({SLOPE:"1/4:12", F11:CALC.defaults.F11||"Not specified", F12:"Any", C14:"No", ADH:"As listed in the approval"}, r.v, /miles/i.test(r.v.B14||"") || !r.v.B14 ? {B14:"None"} : /^Torch|^Other|^Any/i.test(r.v.B14) ? {B14:"Other mfr. (UL / FM approved)"} : /^Self/i.test(r.v.B14) ? {B14:"VapAir Seal (self-adhered)"} : {}), pick:r.pick||"", spec:r.spec||null, calc:null, err:""}));
       CALC.roofs.forEach(r=>{ const g = r.v.G5; if(g!=="Yes" && g!=="No") r.v.G5 = parseFloat(g) >= 3 ? "Yes" : "No"; }); CALC.active = Math.min(d.active||0, CALC.roofs.length-1); }
     else calcNewJob(false);
     CALC.ready = true;
@@ -2518,7 +2545,7 @@ function fieldHTML(f, val, scope){
 }
 function calcRenderForm(){
   const r = CALC.roofs[CALC.active];
-  const SIZE_A = ["B5","B10","B11","B12","SHAPE","SC","SD","SE","G5","OPEN","OWALL","OPENW"];
+  const SIZE_A = ["B5","B10","B11","B12","SHAPE","SC","SD","SE","SLOPE","G5","OPEN","OWALL","OPENW"];
   if(!r.v.SHAPE) r.v.SHAPE = "Rectangle";
   $("calcJob").innerHTML = JOB_F.filter(f=>f.a!=="G14").map(f=>fieldHTML(f, CALC.job[f.a]??"", "job")).join("");
   $("calcRoof").innerHTML = ROOF_F.filter(f=>SIZE_A.includes(f.a)).map(f=>fieldHTML(f, r.v[f.a]??"", "roof")).join("");
