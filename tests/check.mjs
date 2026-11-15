@@ -6,8 +6,9 @@ import { chromium } from "playwright";
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");   // fileURLToPath: works in folders with spaces
 const JOBS = JSON.parse(fs.readFileSync(path.join(ROOT, "tests/jobs.json"), "utf8"));
 const EXP_FILE = path.join(ROOT, "tests/expected.json");
 const UPDATE = process.argv.includes("--update");
