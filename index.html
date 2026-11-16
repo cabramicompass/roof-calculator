@@ -728,7 +728,7 @@ async function summaryPdf(c, tg=0){
   const band2 = (t,x,w,yy)=>{ page.drawRectangle({x,y:yy-13,width:w,height:13,color:C.dark}); T(t,x+5,yy-9.5,FB,8,C.white); };
   let infoRows = [];
   if(RO.info){
-    c = Object.assign({}, c, {info: (c.info||[]).filter(p=>p[0]!=="Velocity pressure qh")});
+    c = Object.assign({}, c, {info: (c.info||[]).filter(p=>!["Velocity pressure qh","Adjoining roof edges","Roof slope"].includes(p[0]) && !(p[0]==="Zone layout" && !multiRoof()))});   // summary keeps only what the contractor needs
     const pf = {"Approval":C.lst,"Exposure":C.inp,"Enclosure":C.inp,"Mean roof height":C.inp,"Length x width":C.inp,"Parapet (lowest)":C.inp,"Roof level":C.inp,"Roof slope":/entered\)/.test((c.info[4]||[])[1]||"")?C.inp:C.white};
     const pl = {"Approval":"Approval # (FL / NOA)","Wind speed":"Wind Speed V (from location)","Exposure":"Exposure","Enclosure":"Enclosure","Roof slope":"Roof Slope","Mean roof height":"Mean Roof Height h","Length x width":"Length × Width","Total roof area":"Total Roof Area","Velocity pressure qh":"Velocity Pressure qh","Zone layout":"Roof Zone Layout","Parapet (lowest)":"Continuous parapet, min. 3 ft","Roof level":"Roof Level"};
     const ord = ["Approval","Wind speed","Exposure","Enclosure","Mean roof height","Length x width","Total roof area","Roof slope","Roof level","Zone layout","Parapet (lowest)"];
