@@ -241,6 +241,7 @@ table.kv td.t-ok{color:var(--ok);font-weight:700} table.kv td.t-warn{color:var(-
 .ptabs button.on{background:var(--blue);border-color:var(--blue);color:#fff}
 [data-ptab][hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.geoprec{display:inline-flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap;cursor:pointer}
 </style>
 
 <div class="wrap">
@@ -1927,7 +1928,7 @@ async function trAddToSubmittal(){
 
 /* ---------- find the roof from an address: building outline from Microsoft building footprints (packed in data/bld), satellite picture from Esri ---------- */
 const SHAPE_SAT = "From satellite outline";
-const GEO = {open:false, q:"", lat:null, lon:null, cands:[], pick:-1, msg:"", err:false, busy:false, tiles:{}, imgFail:false, roof:-1};
+const GEO = {precise:(()=>{ try{ return localStorage.getItem("csg-precise") !== "0"; }catch(e){ return true; } })(), open:false, q:"", lat:null, lon:null, cands:[], pick:-1, msg:"", err:false, busy:false, tiles:{}, imgFail:false, roof:-1};
 const GEO_SRC = [   // satellite picture sources, tried in order: Esri World Imagery, then USGS aerial imagery (public domain)
   {url:(z,x,y)=>`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`, credit:"Imagery: Esri, Maxar, Earthstar Geographics"},
   {url:(z,x,y)=>`https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/${z}/${y}/${x}`, credit:"Imagery: USGS The National Map"}];
@@ -2194,7 +2195,7 @@ function geoMap(){
   addTiles();
   GEO.layer = L.layerGroup().addTo(m);
   if(m.pm){ m.pm.setGlobalOptions({snappable:true, snapDistance:12, allowSelfIntersection:false});
-    m.on("pm:create", e=>{ let pts = e.layer.getLatLngs()[0].map(UL); m.removeLayer(e.layer); const sq = geoSquare(pts, 0, 4); if(sq) pts = sq; geoSetDrawn(pts, !!sq); });
+    m.on("pm:create", e=>{ let pts = e.layer.getLatLngs()[0].map(UL); m.removeLayer(e.layer); const sq = GEO.precise ? null : geoSquare(pts, 0, 4); if(sq) pts = sq; geoSetDrawn(pts, !!sq); });
     m.on("pm:drawstart", ()=>{ m.off("mousemove", geoSnapMove); m.on("mousemove", geoSnapMove); });   // after Geoman's own handler, so this one wins
     m.on("pm:drawend", ()=>m.off("mousemove", geoSnapMove)); }
   GEO.map = m; return m;
@@ -2204,7 +2205,7 @@ function geoMap(){
    (the map projection keeps angles true). */
 function geoSnapMove(e){
   const m = GEO.map, d = m && m.pm && m.pm.Draw && m.pm.Draw.Polygon; if(!d || !d._enabled || !d._layer || !d._hintMarker) return;
-  if(e.originalEvent && e.originalEvent.altKey) return;
+  if(GEO.precise || (e.originalEvent && e.originalEvent.altKey)) return;   // precise tracing: corners go exactly where you click
   const ll = d._layer.getLatLngs(); if(ll.length < 2) return;
   const P = ll.map(x=>m.latLngToLayerPoint(x)), p = P[P.length-1], q = m.latLngToLayerPoint(e.latlng);
   if(d._hintMarker._snapped) return;   // Geoman already snapped to a corner or an outline
@@ -2320,9 +2321,9 @@ function geoMapSync(slot){
     const pg = L.polygon(b.pts.map(LL), {color:on ? "#4fb3ff" : prop ? "#5fe08a" : "#ffd34d", weight:on ? 3 : 2, fillColor:on ? "#0b4f9c" : "#ffffff", fillOpacity:on ? 0.28 : 0.08, interactive:!(m.pm && m.pm.globalDrawModeEnabled()), snapIgnore:true});   // drawing never snaps to these outlines
     pg.on("click", ()=>{ if(m.pm && m.pm.globalDrawModeEnabled()) return; if(GEO.pick !== i){ GEO.pick = i; GEO.edit = false; geoRender(); } });
     pg.addTo(GEO.layer);
-    if(on && GEO.edit && pg.pm){ pg.pm.enable({allowSelfIntersection:false, draggable:false}); pg.on("pm:edit pm:vertexadded pm:vertexremoved", ()=>{ b.pts = pg.getLatLngs()[0].map(UL); b.edited = true; geoInfo(); });
+    if(on && GEO.edit && pg.pm){ pg.pm.enable({allowSelfIntersection:false, draggable:false, snappable:false}); pg.on("pm:edit pm:vertexadded pm:vertexremoved", ()=>{ b.pts = pg.getLatLngs()[0].map(UL); b.edited = true; geoInfo(); });
       pg.on("pm:markerdragend", async e=>{ b.pts = pg.getLatLngs()[0].map(UL); b.edited = true; geoInfo();
-        const oe = e.markerEvent && e.markerEvent.originalEvent; if(oe && oe.altKey) return;
+        const oe = e.markerEvent && e.markerEvent.originalEvent; if(GEO.precise || (oe && oe.altKey)) return;
         const i = Array.isArray(e.indexPath) ? e.indexPath[e.indexPath.length-1] : -1, n = b.pts.length; if(i < 0 || n < 3) return;
         try{ const r = await geoFit(b.pts, [(i-1+n)%n, i]); if(r.moved && GEO.cands[GEO.pick] === b){ b.pts = r.pts; geoInfo(); geoRender(); } }catch(err){ /* photo not readable: keep the hand placed corner */ } }); }
   });
@@ -2345,9 +2346,10 @@ function geoHtml(){
     const drawing = GEO.map && GEO.map.pm && GEO.map.pm.globalDrawModeEnabled();
     map = `<div id="geoMapSlot" class="geomapslot"></div>
       <div class="geotools">${drawing
-        ? `<span class="geodrawhint">Click each roof corner on the photo. Sides lock square when you're within a few degrees (hold Alt to draw free). Click the first corner again to finish.</span><button type="button" id="geoCancel">Cancel</button>`
+        ? `<span class="geodrawhint">Click each roof corner on the photo${GEO.precise ? "; corners go exactly where you click. Zoom in for small details." : ". Sides lock square when you're within a few degrees (hold Alt to draw free)."} Click the first corner again to finish.</span><button type="button" id="geoCancel">Cancel</button>`
         : `<button type="button" id="geoDraw">Draw my own outline</button>${GEO.cands[GEO.pick] ? `<button type="button" id="geoEdit">${GEO.edit ? "Done adjusting" : "Adjust corners"}</button><button type="button" id="geoFitB" title="Move each side onto the roof edge in the photo">Fit to photo</button><button type="button" id="geoSq" title="Clean up jogs and spikes, make corners 90 degrees">Clean up and square</button>` : ""}
-           <span class="hint">${GEO.edit ? "Drag the white corner dots to fix the outline; a moved corner snaps its sides to the roof edge in the photo (hold Alt to skip). Drag a middle dot to add a corner; right click a corner to remove it." : "Building missing or outline wrong? Draw or adjust it on the photo; the scale is automatic."}</span>`}</div>
+           <label class="geoprec" title="On: corners stay exactly where you put them. Off: sides lock square and moved corners snap to the roof edge in the photo."><input type="checkbox" id="geoPrecise"${GEO.precise ? " checked" : ""}> Precise tracing</label>
+           <span class="hint">${GEO.edit ? (GEO.precise ? "Drag the white corner dots to fix the outline; they stay exactly where you drop them." : "Drag the white corner dots to fix the outline; a moved corner snaps its sides to the roof edge in the photo (hold Alt to skip).") + " Drag a middle dot to add a corner; right click a corner to remove it." : "Building missing or outline wrong? Draw or adjust it on the photo; the scale is automatic."}</span>`}</div>
       <p class="hint">Scroll or pinch to zoom, drag to move. Click an outline to pick it.</p>`;
   }
   const info = `<div id="geoInfo">${geoInfoHtml()}</div>`;
@@ -2370,7 +2372,8 @@ function geoRender(){
     else if(e.key === "Escape"){ GEO.sug = []; geoSugDraw(); }
     else if(e.key === "Enter"){ e.preventDefault(); if(L.length && GEO.sugI >= 0) geoSugPick(L[GEO.sugI]); else if(L.length) geoSugPick(L[0]); else geoFind(); } };
   const slot = $("geoMapSlot"); if(slot) geoMapSync(slot);
-  if($("geoDraw")) $("geoDraw").onclick = ()=>{ GEO.edit = false; GEO.map.pm.enableDraw("Polygon", {snappable:true, snapDistance:12, continueDrawing:false}); geoRender(); };
+  if($("geoPrecise")) $("geoPrecise").onchange = e=>{ GEO.precise = e.target.checked; try{ localStorage.setItem("csg-precise", GEO.precise ? "1" : "0"); }catch(err){} geoRender(); };
+  if($("geoDraw")) $("geoDraw").onclick = ()=>{ GEO.edit = false; GEO.map.pm.enableDraw("Polygon", {snappable:true, snapDistance:GEO.precise ? 6 : 12, continueDrawing:false}); geoRender(); };
   if($("geoCancel")) $("geoCancel").onclick = ()=>{ GEO.map.pm.disableDraw(); geoRender(); };
   if($("geoEdit")) $("geoEdit").onclick = ()=>{ GEO.edit = !GEO.edit; geoRender(); };
   if($("geoSq")) $("geoSq").onclick = ()=>{ const b = GEO.cands[GEO.pick]; if(!b) return; const before = b.pts.length, sq = geoSquare(b.pts);
