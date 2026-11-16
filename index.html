@@ -2913,11 +2913,11 @@ function asmLayers(c){
   // is fastened through the top board. Carlisle Sure-Weld / Sure-Flex spec 07/2026, 3.04 C.2: 5 fasteners and plates
   // per 4x8 board for insulation 1-1/2 in. and thicker, 8 per 4x8 for insulation under 1-1/2 in. Same in every zone.
   if(MA && !RB){   // the insulation attachment field only applies to adhered systems
-    const tb = [...L].reverse().find(x=>/^(iso|eps|hd|gyp)$/.test(x.k));
+    const tb = [...L].reverse().find(x=>/^(iso|eps|hd|gyp)$/.test(x.k) && !/^Existing/i.test(x.t||""));   // existing insulation that stays is not refastened
     if(tb){
       const parseT = v => { const m = String(v||"").match(/(\d+(?:\.\d+)?)(?:\s*-\s*(\d+)\/(\d+))?\s*(?:"|”|in\b|-inch)/i) || String(v||"").match(/(\d+)\/(\d+)\s*(?:"|”|in\b)/); if(!m) return NaN;
         if(m.length === 3) return +m[1] / +m[2]; return +m[1] + (m[2] ? +m[2] / +m[3] : 0); };
-      const insL = L.filter(x=>/^(iso|eps)$/.test(x.k)), tIns = insL.length ? insL.reduce((sum, x)=>{ const v = parseT(x.t); return sum + (isFinite(v) ? v : 0); }, 0) : NaN;
+      const insL = L.filter(x=>/^(iso|eps)$/.test(x.k) && !/^Existing/i.test(x.t||"")), tIns = insL.length ? insL.reduce((sum, x)=>{ const v = parseT(x.t); return sum + (isFinite(v) ? v : 0); }, 0) : NaN;
       const tRaw = parseT(thk), tt = isFinite(tRaw) && tRaw > 0 ? tRaw : tIns;
       if(isFinite(tt) && tt > 0){
         const per = tt >= 1.5 ? 5 : 8;
