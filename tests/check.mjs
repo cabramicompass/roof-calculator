@@ -53,11 +53,14 @@ for (const [job, inputs] of Object.entries(JOBS)) {
       out.strips = p.strips.map(s => [+s.u0.toFixed(1), +s.w.toFixed(2), s.perim ? 1 : 0, (s.segs || []).map(r => r.map(v => +v.toFixed(1)))]);
       out.fingers = p.rows.filter(r => r.extra).map(r => [+r.u.toFixed(1), +r.v0.toFixed(1), +r.v1.toFixed(1), r.z]);
       out.emptyStrips = p.strips.filter(s => !(s.segs || [[0,1]]).length).length;
+      if (c.poly) { const on = (x, y) => inPoly(x, y, c.poly) || c.poly.some((a, i) => segDist(x, y, a, c.poly[(i+1) % c.poly.length]) < 0.3);   // fastener rows must stay on the roof
+        const off = p.rows.filter(r => [r.v0, (r.v0 + r.v1)/2, r.v1].some(v => !on(...(p.flutesAlongL ? [r.u, v] : [v, r.u])))).length; if (off) out.rowsOff = off; }
       out.legend = planLegend(p);
     } catch (e) { out.plan = "not drawn: " + (e.message || e); }
     return out;
   });
   if (errs.length) problems.push(`${job}: page error ${errs[0]}`);
+  if (results[job].rowsOff) problems.push(`${job}: ${results[job].rowsOff} fastener row(s) in the layout run off the roof outline`);
   if (results[job].emptyStrips) problems.push(`${job}: ${results[job].emptyStrips} sheet(s) in the layout have no length on the roof`);
   await pg.close();
 }
