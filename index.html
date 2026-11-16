@@ -1542,11 +1542,14 @@ function shapeGrid(P, h, parapet, adj){
   const tall = h > 60, aT = Math.max(3, 0.1*Math.min(X, Y));
   const w2 = tall ? aT : 0.6*h, w1 = tall ? Infinity : 1.2*h, cwid = tall ? aT : 0.2*h, clen = tall ? 2*aT : 0.6*h;
   const ccw = polyArea(P) > 0;   // y points down, so positive = clockwise on screen; the convex test uses the same sign
-  const corners = [];
+  const corners = [], convexAll = new Set();
   for(let i=0;i<P.length;i++){ const a = P[(i-1+P.length)%P.length], v = P[i], b = P[(i+1)%P.length];
-    const cr = (v[0]-a[0])*(b[1]-v[1]) - (v[1]-a[1])*(b[0]-v[0]); if((cr > 0) === ccw && !vtxCovered(i)) corners.push({v, legs:[a, b], lim:[legIn(i), legOut(i)]}); }
+    const cr = (v[0]-a[0])*(b[1]-v[1]) - (v[1]-a[1])*(b[0]-v[0]); if((cr > 0) !== ccw || vtxCovered(i)) continue;
+    // a point on a curve (the edge turns less than 30 degrees there) is not a corner: no Zone 3, the edge bands just follow the curve
+    const l1 = Math.hypot(v[0]-a[0], v[1]-a[1]), l2 = Math.hypot(b[0]-v[0], b[1]-v[1]), dot = ((v[0]-a[0])*(b[0]-v[0]) + (v[1]-a[1])*(b[1]-v[1])) / Math.max(1e-9, l1*l2);
+    convexAll.add(v); if(dot < Math.cos(30*Math.PI/180)) corners.push({v, legs:[a, b], lim:[legIn(i), legOut(i)]}); }
   // bands follow the edges square: each edge's band runs past an inside (re-entrant) corner, so the band turns a right angle instead of rounding
-  const convex = new Set(corners.map(k=>k.v));
+  const convex = convexAll;
   // each edge is split into its roof-edge pieces; adjoining stretches carry no band and a band stops square where one starts
   const E = []; P.forEach((a, i)=>{ const b = P[(i+1)%P.length], dx = b[0]-a[0], dy = b[1]-a[1], L = Math.hypot(dx,dy), ux = dx/L, uy = dy/L;
     let nx = -uy, ny = ux; const mx = (a[0]+b[0])/2 + nx*0.01, my = (a[1]+b[1])/2 + ny*0.01; if(!inPoly(mx, my, P)){ nx = -nx; ny = -ny; }
@@ -2058,10 +2061,13 @@ function geoOutline(b){
       for(let i=0;i<out.length;i++){ const a = out[(i-1+out.length)%out.length], p = out[i], c = out[(i+1)%out.length];
         const l1 = Math.hypot(p[0]-a[0], p[1]-a[1]), l2 = Math.hypot(c[0]-p[0], c[1]-p[1]);
         const cr = Math.abs((p[0]-a[0])*(c[1]-p[1]) - (p[1]-a[1])*(c[0]-p[0])) / Math.max(1e-9, l1*l2);
-        if(l1 < 1.5 || cr < Math.sin(8 * Math.PI/180)){ out.splice(i,1); ch = true; break; } } } return out; };
+        const off = cr * l1 * l2 / Math.max(1e-9, Math.hypot(c[0]-a[0], c[1]-a[1]));   // how far the point sits off the line from a to c
+        if(l1 < 1.5 || off < 1){ out.splice(i,1); ch = true; break; } } } return out; };   // by distance, not angle, so a traced curve keeps its points
   P = clean(P);
-  // square up edges within 6 degrees of the building axes
+  // square up edges within 6 degrees of the building axes; edges on a curve (a gentle turn at either end) are left as traced
+  const turn = (i, Q) => { const a = Q[(i-1+Q.length)%Q.length], p = Q[i], c = Q[(i+1)%Q.length]; let t = Math.abs(Math.atan2(c[1]-p[1], c[0]-p[0]) - Math.atan2(p[1]-a[1], p[0]-a[0])) * 180/Math.PI; return t > 180 ? 360 - t : t; };
   for(let it=0; it<3; it++) for(let i=0;i<P.length;i++){ const a = P[i], c = P[(i+1)%P.length], dx = c[0]-a[0], dy = c[1]-a[1];
+    if(turn(i, P) < 30 || turn((i+1)%P.length, P) < 30) continue;
     const ang = Math.abs(Math.atan2(dy, dx) * 180 / Math.PI) % 180;
     if(ang < 6 || ang > 174){ const m = (a[1]+c[1])/2; a[1] = m; c[1] = m; } else if(Math.abs(ang - 90) < 6){ const m = (a[0]+c[0])/2; a[0] = m; c[0] = m; } }
   P = clean(P);
@@ -3324,7 +3330,8 @@ function sheetPlan(c, opt){
       if(z < 0){ v = v1; continue; }
       const need = Z[z].sheet ? (Z[z].extra ? Z[z].sheet/2 : Z[z].sheet) : s.w;
       const n = Math.max(1, Math.ceil(s.w/need - 0.01));
-      for(let k=1;k<n;k++) rows.push({u: s.u0 + k*s.w/n, v0:v, v1, z, extra:true});
+      for(let k=1;k<n;k++){ const u = s.u0 + k*s.w/n;   // each row stops at the roof edge along its own line (a sloped or curved edge cuts it short)
+        (c.poly ? runs(u) : [[0, V]]).forEach(([r0, r1])=>{ const a0 = Math.max(v, r0), a1 = Math.min(v1, r1); if(a1 - a0 > 0.05) rows.push({u, v0:a0, v1:a1, z, extra:true}); }); }
       v = v1;
     }
   });
