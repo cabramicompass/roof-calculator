@@ -36,6 +36,7 @@
       <div class="ws-job"><b id="wsJob">New job</b><span id="wsJobSub"></span></div>
       <div class="ws-seg" role="tablist" aria-label="Sections"><button type="button" class="on" data-ws-go="1">Calculator</button><button type="button" data-ws-go="3">Submittal</button></div>
       <div class="ws-actions">
+        <button type="button" class="ws-btn" id="wsHist" title="Saved jobs on this computer: reopen and change them">History</button>
         <button type="button" class="ws-btn primary" id="wsSum">Summary PDF</button>
         <div class="ws-more"><button type="button" class="ws-btn" id="wsMoreBtn" aria-haspopup="true" aria-expanded="false">More</button>
           <div class="ws-menu" id="wsMenu" hidden>
@@ -113,6 +114,18 @@
     const seg = top.querySelectorAll("[data-ws-go]");
     seg.forEach(b=>b.onclick = ()=>{ seg.forEach(x=>x.classList.toggle("on", x === b)); const t = b.dataset.wsGo;
       document.body.classList.toggle("ws-sub3", t !== "1"); goTab(t === "1" ? "1" : t); if(t === "1"){ document.querySelectorAll('section.step[data-ptab="1"]').forEach(s=>s.hidden = true); } });
+    /* ---- history: saved jobs on this computer ---- */
+    const hb = document.createElement("div"); hb.id = "histBox"; hb.className = "ws-hist"; hb.hidden = true;
+    hb.innerHTML = `<div class="ws-hist-card" role="dialog" aria-label="Job history"><div class="ws-hist-h"><b>History</b><span>Saved automatically on this computer. Open a job to change it.</span><button type="button" class="ws-btn" id="histClose">Close</button></div>
+      <input type="search" id="histQ" placeholder="Search by project, address or county"><div id="histList"></div></div>`;
+    document.body.appendChild(hb);
+    const histShow = on => { hb.hidden = !on; if(on && typeof histRender === "function"){ histRender(); setTimeout(()=>$("histQ").focus(), 50); } };
+    $("wsHist").onclick = ()=>histShow(true);
+    $("histClose").onclick = ()=>histShow(false);
+    hb.addEventListener("click", e=>{ if(e.target === hb) histShow(false); });
+    document.addEventListener("keydown", e=>{ if(e.key === "Escape" && !hb.hidden) histShow(false); });
+    $("histQ").addEventListener("input", ()=>{ if(typeof histRender === "function") histRender(); });
+    document.addEventListener("hist:opened", ()=>{ histShow(false); show("plan"); });
     $("wsSum").onclick = ()=>{ const b = $("calcSumBtn"); if(b) b.click(); show("sum"); };
     const menu = $("wsMenu"), mb = $("wsMoreBtn");
     mb.onclick = e=>{ e.stopPropagation(); menu.hidden = !menu.hidden; mb.setAttribute("aria-expanded", !menu.hidden); };

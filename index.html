@@ -358,8 +358,8 @@ table.kv td.t-ok{color:var(--ok);font-weight:700} table.kv td.t-warn{color:var(-
 <script charset="utf-8" src="vendor/xlsx.full.min.js"></script>
 <script charset="utf-8" src="vendor/pdf-lib.min.js"></script>
 <link rel="stylesheet" href="vendor/leaflet.css">
-<link rel="stylesheet" href="ws/workspace.css?v=1794408396">
-<script src="ws/workspace.js?v=1794408396"></script>
+<link rel="stylesheet" href="ws/workspace.css?v=1794847346">
+<script src="ws/workspace.js?v=1794847346"></script>
 <script src="vendor/leaflet.js"></script>
 <link rel="stylesheet" href="vendor/leaflet-geoman.css">
 <script src="vendor/leaflet-geoman.min.js"></script>
@@ -2520,7 +2520,48 @@ function newRoof(from){
   if(from) v.B5 = "";
   return {v, pick:"", calc:null, err:""};
 }
-function calcSave(){ try{ localStorage.setItem("csg-calc-draft", JSON.stringify({job:CALC.job, roofs:CALC.roofs.map(r=>({v:r.v, pick:r.pick, spec:r.spec||null})), active:CALC.active})); }catch(e){} }
+function calcData(){ return {job:CALC.job, roofs:CALC.roofs.map(r=>({v:r.v, pick:r.pick, spec:r.spec||null})), active:CALC.active}; }
+function calcApplyData(d){ CALC.job = Object.assign({RC:RC_OPTS[0], VUSER:""}, d.job||{}); CALC.roofs = d.roofs.map(r=>({v:Object.assign({SLOPE:"1/4:12", F11:CALC.defaults.F11||"Not specified", F12:"Any", C14:"No", ADH:"As listed in the approval"}, r.v, /miles/i.test(r.v.B14||"") || !r.v.B14 ? {B14:"None"} : /^Torch|^Other|^Any/i.test(r.v.B14) ? {B14:"Other mfr. (UL / FM approved)"} : /^Self/i.test(r.v.B14) ? {B14:"VapAir Seal (self-adhered)"} : {}), pick:r.pick||"", spec:r.spec||null, calc:null, err:""}));
+      CALC.roofs.forEach(r=>{ const g = r.v.G5; if(g!=="Yes" && g!=="No") r.v.G5 = parseFloat(g) >= 3 ? "Yes" : "No"; }); CALC.active = Math.min(d.active||0, CALC.roofs.length-1);
+  if(!CALC.job._id) CALC.job._id = histId(); }
+function calcSave(){ try{ localStorage.setItem("csg-calc-draft", JSON.stringify(calcData())); }catch(e){} histSave(); }
+/* History: every job is kept on this computer (this browser) so it can be reopened and changed later.
+   A job is listed once it has a project name or a roof outline / size; the newest change is on top. */
+const HIST_KEY = "csg-history", HIST_MAX = 150;
+function histId(){ return "j" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function histLoad(){ try{ const h = JSON.parse(localStorage.getItem(HIST_KEY) || "[]"); return Array.isArray(h) ? h : []; }catch(e){ return []; } }
+function histStore(h){ try{ localStorage.setItem(HIST_KEY, JSON.stringify(h.slice(0, HIST_MAX))); return true; }catch(e){ return false; } }
+let histTimer = null;
+function histSave(now){ clearTimeout(histTimer); const run = ()=>{
+  if(!CALC.job) return; if(!CALC.job._id) CALC.job._id = histId();
+  const name = String(CALC.job.B6 || "").trim(), worth = name || CALC.roofs.some(r=>r.v && (r.v.POLY || r.v.GEO));
+  if(!worth) return;
+  const geo = (()=>{ for(const r of CALC.roofs){ try{ const g = JSON.parse(r.v.GEO || "null"); if(g && g.q) return String(g.q).replace(/\s*·.*$/, ""); }catch(e){} } return ""; })();
+  const h = histLoad().filter(x=>x.id !== CALC.job._id);
+  h.unshift({id:CALC.job._id, name, addr:geo, loc:CALC.job.B7 || "", roofs:CALC.roofs.length, at:Date.now(), data:calcData()});
+  histStore(h); if(document.getElementById("histBox") && !document.getElementById("histBox").hidden) histRender(); };
+  if(now) run(); else histTimer = setTimeout(run, 600); }
+function histOpen(id){
+  const e = histLoad().find(x=>x.id === id); if(!e) return;
+  histSave(true);   // keep the job that is open now before switching
+  calcApplyData(JSON.parse(JSON.stringify(e.data)));
+  if(typeof GEO !== "undefined"){ GEO.cands = []; GEO.prop = []; GEO.pick = -1; GEO.lat = null; GEO.lon = null; GEO.q = ""; GEO.msg = ""; GEO.edit = false; }
+  calcRenderForm(); calcRunAll(); calcSave();
+  try{ if(typeof geoRender === "function") geoRender(); }catch(err){}
+  document.dispatchEvent(new CustomEvent("hist:opened"));
+}
+function histDelete(id){ histStore(histLoad().filter(x=>x.id !== id)); histRender(); }
+function histRender(){
+  const box = document.getElementById("histList"); if(!box) return;
+  const q = (document.getElementById("histQ") || {}).value || "", ql = q.trim().toLowerCase();
+  const h = histLoad().filter(x=>!ql || [x.name, x.addr, x.loc].join(" ").toLowerCase().includes(ql));
+  const when = t => { const d = new Date(t); return d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"}) + " " + d.toLocaleTimeString("en-US", {hour:"numeric", minute:"2-digit"}); };
+  box.innerHTML = h.length ? h.map(x=>`<div class="hrow${CALC.job && x.id === CALC.job._id ? " on" : ""}"><div class="hm"><b>${esc(x.name || x.addr || "Unnamed job")}</b><span>${esc([x.name && x.addr ? x.addr : "", x.loc, x.roofs + (x.roofs > 1 ? " roofs" : " roof"), "edited " + when(x.at)].filter(Boolean).join(" · "))}</span></div>
+    <div class="hb">${CALC.job && x.id === CALC.job._id ? `<em>Open now</em>` : `<button type="button" data-ho="${x.id}">Open</button>`}<button type="button" class="hdel" data-hd="${x.id}">Delete</button></div></div>`).join("")
+    : `<p class="hint">${ql ? "No saved jobs match." : "No saved jobs yet. Jobs are saved here automatically once they have a project name or a roof outline."}</p>`;
+  box.querySelectorAll("[data-ho]").forEach(b=>b.onclick = ()=>{ histOpen(b.dataset.ho); histRender(); });
+  box.querySelectorAll("[data-hd]").forEach(b=>b.onclick = ()=>{ if(b.dataset.armed === "1"){ histDelete(b.dataset.hd); return; } b.dataset.armed = "1"; b.textContent = "Click again to delete"; setTimeout(()=>{ b.dataset.armed = ""; b.textContent = "Delete"; }, 3500); });
+}
 function calcLoadDraft(){ try{ return JSON.parse(localStorage.getItem("csg-calc-draft")||"null"); }catch(e){ return null; } }
 
 async function calcInit(){
@@ -2536,8 +2577,7 @@ async function calcInit(){
     if(!CALC.opts.B7.includes(LOC_OTHER)) CALC.opts.B7.push(LOC_OTHER);
     CALC.defaults.SLOPE = "1/4:12";
     const d = calcLoadDraft();
-    if(d && d.roofs && d.roofs.length){ CALC.job = Object.assign({RC:RC_OPTS[0], VUSER:""}, d.job||{}); CALC.roofs = d.roofs.map(r=>({v:Object.assign({SLOPE:"1/4:12", F11:CALC.defaults.F11||"Not specified", F12:"Any", C14:"No", ADH:"As listed in the approval"}, r.v, /miles/i.test(r.v.B14||"") || !r.v.B14 ? {B14:"None"} : /^Torch|^Other|^Any/i.test(r.v.B14) ? {B14:"Other mfr. (UL / FM approved)"} : /^Self/i.test(r.v.B14) ? {B14:"VapAir Seal (self-adhered)"} : {}), pick:r.pick||"", spec:r.spec||null, calc:null, err:""}));
-      CALC.roofs.forEach(r=>{ const g = r.v.G5; if(g!=="Yes" && g!=="No") r.v.G5 = parseFloat(g) >= 3 ? "Yes" : "No"; }); CALC.active = Math.min(d.active||0, CALC.roofs.length-1); }
+    if(d && d.roofs && d.roofs.length) calcApplyData(d);
     else calcNewJob(false);
     CALC.ready = true;
     $("calcLoading").hidden = true; $("calcUI").hidden = false;
@@ -2546,9 +2586,11 @@ async function calcInit(){
   } catch(e){ console.error(e); $("calcLoading").textContent = "The built-in calculator couldn't load (" + (e.message||e) + "). You can still load a calculator .xlsx below."; }
 }
 function calcNewJob(render=true){
-  CALC.job = {}; for(const f of JOB_F) CALC.job[f.a] = BLANK_NEW.includes(f.a) ? "" : CALC.defaults[f.a];
+  if(render) histSave(true);   // the job being cleared stays in History
+  CALC.job = {_id:histId()}; for(const f of JOB_F) CALC.job[f.a] = BLANK_NEW.includes(f.a) ? "" : CALC.defaults[f.a];
   CALC.roofs = [newRoof()]; CALC.active = 0;
-  if(render){ calcRenderForm(); calcRunAll(); }
+  if(typeof GEO !== "undefined"){ GEO.cands = []; GEO.prop = []; GEO.pick = -1; GEO.lat = null; GEO.lon = null; GEO.q = ""; GEO.msg = ""; GEO.edit = false; }
+  if(render){ calcRenderForm(); calcRunAll(); try{ if(typeof geoRender === "function") geoRender(); }catch(e){} }
 }
 function fieldHTML(f, val, scope){
   const id = "cf-" + f.a;
