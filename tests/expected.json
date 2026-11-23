@@ -479,7 +479,7 @@
   "fingers": [],
   "emptyStrips": 0,
   "legend": [
-   "Sheets run across the width: 12 x 16' sheets, 1 x 8' sheet."
+   "Roof zones only. A sheet layout is drawn for mechanically attached systems; fully adhered membrane is not laid out by sheet here."
   ],
   "boards": [
    "Flexible FAST beads 12\" o.c. @ Zone 1'/Zone 1",
@@ -759,7 +759,7 @@
   "fingers": [],
   "emptyStrips": 0,
   "legend": [
-   "Sheets run across the width: 12 x 16' sheets, 1 x 8' sheet."
+   "Roof zones only. A sheet layout is drawn for mechanically attached systems; fully adhered membrane is not laid out by sheet here."
   ],
   "boards": [
    "Flexible FAST ribbons 12\" o.c. @ Zone 1'/Zone 1",
@@ -7732,7 +7732,7 @@
   "fingers": [],
   "emptyStrips": 0,
   "legend": [
-   "Sheets run along the length: 9 x 16' sheets, 1 x 6' sheet."
+   "Roof zones only. A sheet layout is drawn for mechanically attached systems; fully adhered membrane is not laid out by sheet here."
   ],
   "boards": [
    "Flexible FAST ribbons 12\" o.c. @ Zone 1'/Zone 1",
@@ -9181,7 +9181,7 @@
   "fingers": [],
   "emptyStrips": 0,
   "legend": [
-   "Sheets run across the width: 21 x 16' sheets, 1 x 3' sheet."
+   "Roof zones only. A sheet layout is drawn for mechanically attached systems; fully adhered membrane is not laid out by sheet here."
   ],
   "boards": [
    "Flexible FAST ribbons 12\" o.c. @ Zone 1'/Zone 1",
@@ -13484,7 +13484,7 @@
   "fingers": [],
   "emptyStrips": 0,
   "legend": [
-   "Sheets run across the width: 30 x 10' sheets."
+   "Roof zones only. A sheet layout is drawn for mechanically attached systems; RhinoBond membrane is not laid out by sheet here."
   ],
   "boards": [
    "8 RhinoBond Plates @ Zone 1'",
@@ -13831,7 +13831,7 @@
   "fingers": [],
   "emptyStrips": 0,
   "legend": [
-   "Sheets run across the width: 18 x 16' sheets, 1 x 12' sheet."
+   "Roof zones only. A sheet layout is drawn for mechanically attached systems; fully adhered membrane is not laid out by sheet here."
   ],
   "boards": [
    "Flexible FAST beads 6\" o.c. @ Zone 1'/Zone 1",

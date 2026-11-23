@@ -254,7 +254,7 @@
 ],
 [
 "G10",
-"Yes, slope 1/4"
+"Yes, maximum slope 1/4"
 ],
 [
 "OPEN",
@@ -312,7 +312,7 @@
 ],
 [
 "G10",
-"Yes, slope 1/4"
+"Yes, maximum slope 1/4"
 ]
 ],
 "ul12": [
@@ -358,7 +358,7 @@
 ],
 [
 "G10",
-"Yes, slope 1/2"
+"Yes, maximum slope 1/2"
 ]
 ],
 "usrW": [
