@@ -824,24 +824,25 @@ async function summaryPdf(c, tg=0){
   if(RO.pat){ let PB = [], PM = [], pma = null, pp = null; try{ pp = sheetPlan(c, Object.assign({}, c.planOpt, {flutes: fluteCases(c.planOpt||{})[0].flutes || "Length"})); if(pp){ PB = planBoards(pp, c); PM = membBoards(pp, c); pma = membAdh(c); } }catch(e){ console.warn(e); }
     const LIST = [...PB.map(b=>Object.assign({grp:"ins"}, b)), ...PM.map(b=>Object.assign({grp:"mem"}, b))];
     if(LIST.length){
-      if(y < 150){ page = doc.addPage([W,H]); y = H - M; }
-      band("FASTENING AND ADHESIVE PATTERNS (per 4' x 8' board, Carlisle patterns)");
+      // compact, so the whole summary stays on one page: boards on the left, the notes beside them
+      band("FASTENING AND ADHESIVE PATTERNS (Carlisle patterns)");
+      const n = LIST.length, gap = 8, sc = Math.min(0.36, (CW*0.62 - gap*(n-1)) / n / 96), rowH = 48*sc;
+      const used = LIST.reduce((t,b)=>t + Math.max((b.sz === "4x4" ? 48 : 96)*sc, 62) + gap, 0), NX = M + Math.min(used, CW*0.64) + 6, NW = M + CW - NX;
       const notes = [boardNote(pp, c), pma ? "Membrane: " + pma.name + ". " + pma.note : ""].filter(Boolean).join(" ");
-      wrap(notes, F, 6.2, CW).slice(0, 4).forEach(l=>{ T(l, M, y-7, F, 6.2, C.grey); y -= 7.6; }); y -= 4;
-      const n = LIST.length, gap = 10, sc = Math.min(0.62, (CW - gap*(n-1)) / n / 96), rowH = 48*sc;
+      let ny = y; wrap(notes, F, 5.6, NW).slice(0, 7).forEach(l=>{ T(l, NX, ny-6, F, 5.6, C.grey); ny -= 6.6; });
       let bx = M; const yTop = y;
       LIST.forEach(b=>{ const bw = (b.sz === "4x4" ? 48 : 96)*sc, bh = rowH, memb = b.surf === "memb";
         page.drawRectangle({x:bx, y:yTop-bh, width:bw, height:bh, color:hex(memb ? "FFFFFF" : "F6EFE0"), borderColor:hex(memb ? "5B6878" : "1D3FB8"), borderWidth:.8});
-        if(b.kind === "beads"){ const k = Math.max(1, Math.round(48 / b.rib)); for(let i=0;i<k;i++){ const yy = yTop - (i+0.5)*bh/k; page.drawLine({start:{x:bx+1.5, y:yy}, end:{x:bx+bw-1.5, y:yy}, thickness:Math.max(.8, 1.5*sc), color:hex("4AA3DF")}); } }
+        if(b.kind === "beads"){ const k = Math.max(1, Math.round(48 / b.rib)), amp = Math.min(bh/k*0.32, 3); for(let i=0;i<k;i++) page.drawSvgPath(serpD(1.5, bw-1.5, (i+0.5)*bh/k, amp, 16*sc), {x:bx, y:yTop, borderColor:hex("4AA3DF"), borderWidth:Math.max(.7, 1.3*sc)}); }
         else if(b.kind === "full"){ for(let d=-bh; d<bw; d+=3.5){ const x0 = Math.max(bx, bx+d), x1 = Math.min(bx+bw, bx+d+bh); page.drawLine({start:{x:x0, y:yTop-(x0-(bx+d))}, end:{x:x1, y:yTop-(x1-(bx+d))}, thickness:.5, color:hex("B39A55")}); } }
         else if(b.over) T("over the largest pattern", bx+3, yTop-bh/2-2, FB, 5.6, hex("C0392B"));
         else boardPts(b.n, b.kind === "rb").forEach(([px,py])=>{ const cx = bx + px*sc, cy = yTop - py*sc, r = Math.max(1.6, 3.4*sc);
           if(b.kind === "rb") page.drawCircle({x:cx, y:cy, size:r, color:hex("9EC5FF"), borderColor:hex("1D3FB8"), borderWidth:.5});
           else { page.drawCircle({x:cx, y:cy, size:r, color:hex("FFFFFF"), borderColor:hex("C0392B"), borderWidth:.6}); const q = r*0.65; page.drawLine({start:{x:cx-q, y:cy-q}, end:{x:cx+q, y:cy+q}, thickness:.5, color:hex("C0392B")}); page.drawLine({start:{x:cx-q, y:cy+q}, end:{x:cx+q, y:cy-q}, thickness:.5, color:hex("C0392B")}); } });
-        const lw = Math.max(bw, 96*sc) + gap - 2, tl = wrap(b.title, FB, 6.2, lw).slice(0,3), zs = b.zones.length >= 4 || /Every zone/i.test(b.zones.join(" ")) ? "All zones" : b.zones.join(", ");
-        tl.forEach((l,i)=>T(l, bx, yTop-bh-8-i*7, FB, 6.2)); wrap((b.grp === "mem" ? "Membrane: " : "") + zs, F, 5.8, lw).slice(0,2).forEach((l,i)=>T(l, bx, yTop-bh-9-tl.length*7-i*6.6, F, 5.8, C.grey));
-        bx += Math.max(bw, 96*sc) + gap; });
-      y = yTop - rowH - 40;
+        const lw = Math.max(bw, 62) + gap - 2, tl = wrap(b.title, FB, 5.6, lw).slice(0,2), zs = b.zones.length >= 4 || /Every zone/i.test(b.zones.join(" ")) ? "All zones" : b.zones.join(", ");
+        tl.forEach((l,i)=>T(l, bx, yTop-bh-7-i*6.4, FB, 5.6)); T(fit((b.grp === "mem" ? "Membrane: " : "") + zs, F, 5.4, lw), bx, yTop-bh-8-tl.length*6.4, F, 5.4, C.grey);
+        bx += Math.max(bw, 62) + gap; });
+      y = Math.min(yTop - rowH - 22, ny - 4);
     } }
   // inputs
   if(RO.inputs){
@@ -3384,13 +3385,17 @@ function sheetPlan(c, opt){
   const minStrip = 3;   // a leftover under 3 ft is split with its neighbour into two equal cut sheets
   const adhW = parseFloat(opt.adhSheet) || 0;
   const fieldW = FA && adhW ? adhW : (Z[0].sheet || Z[1].sheet || 10);
-  const zoneMode = u => { const n = [0,0,0,0]; runs(u).forEach(([v0,v1])=>{ for(let v=v0+0.25; v<v1; v+=Math.max(0.5,V/200)) { const z = zoneAt(u, v); if(z < 3) n[z]++; } }); let b = 0; for(let k=1;k<3;k++) if(n[k] > n[b]) b = k; return b; };
+  // the zone a strip runs through, read with the exact zone function (the grid misreads a line that sits right on the roof edge)
+  const zoneMode = u => { const n = [0,0,0,0]; runs(u).forEach(([v0,v1])=>{ for(let v=v0+0.25; v<v1; v+=Math.max(0.5,V/200)) { const z = exact ? zoneHere(u, v) : zoneAt(u, v); if(z >= 0 && z < 3) n[z]++; } }); let b = 0; for(let k=1;k<3;k++) if(n[k] > n[b]) b = k; return b; };
   const perimRow = MA && /row/i.test(opt.perim||"");
   const widthFor = u => { if(FA || perimRow) return fieldW; const z = c.poly ? zoneMode(u + 0.01) : zoneAt(u + 0.01, V/2); const w = Z[z].sheet ? (Z[z].extra ? Z[z].sheet/2 : Z[z].sheet) : fieldW; return Math.min(w, fieldW); };   // along the edges a zone that needs a finger gets half sheets instead; only sheets crossing the band get fingers
   // perimeter strips from each edge while the band needs narrower sheets, full field sheets between, the cut sheet last (against the far perimeter)
   const left = [], right = []; let a = 0, b = U;
-  while(b - a > 1e-6 && widthFor(a) < fieldW - 0.02){ const w = Math.min(widthFor(a), b - a); left.push([a, a + w, 1]); a += w; }
-  while(b - a > 1e-6 && widthFor(b - 0.02) < fieldW - 0.02){ const w = Math.min(widthFor(b - 0.02), b - a); right.unshift([b - w, b, 1]); b -= w; }
+  // the plan is drawn on rounded dimensions; read the edge zones from the real outline's extent so both edges are treated the same
+  const uLo = c.poly ? Math.min(...c.poly.map(q=>flutesAlongL ? q[0] : q[1])) : 0, uHi = c.poly ? Math.max(...c.poly.map(q=>flutesAlongL ? q[0] : q[1])) : U;
+  const wLo = u => widthFor(Math.max(u, uLo) + 0.24), wHi = u => widthFor(Math.min(u, uHi) - 0.25);
+  while(b - a > 1e-6 && wLo(a) < fieldW - 0.02){ const w = Math.min(wLo(a), b - a); left.push([a, a + w, 1]); a += w; }
+  while(b - a > 1e-6 && wHi(b) < fieldW - 0.02){ const w = Math.min(wHi(b), b - a); right.unshift([b - w, b, 1]); b -= w; }
   // no part sheet in the field: when the field doesn't divide into full sheets, the last full sheet runs into the far perimeter
   // and the perimeter sheets there are trimmed (the cut sheet ends up in the perimeter, where sheets are narrower anyway)
   // first choice: fill the field exactly with full sheets, using some narrower stock widths (10', 8') so no sheet is cut
@@ -3402,11 +3407,12 @@ function sheetPlan(c, opt){
     for(let k = kmax; k >= Math.max(0, kmax - 3) && !fill; k--){ const r = combo(F0 - k*fieldW, 4); if(r) fill = [...Array(k).fill(fieldW), ...r.sort((x,y)=>y-x)]; }
   }
   if(fill){ for(const w of fill){ left.push([a, a + w]); a += w; } a = b; }
-  else if(MA && right.length && (b - a) % fieldW > 0.05 && fieldW - (b - a) % fieldW < 0.999 * (right[right.length-1][1] - right[0][0])){
-    let o = fieldW - (b - a) % fieldW;
-    // skip if the trim would leave a perimeter piece under the minimum width
-    let ok = true; { let oo = o; for(const r0 of right){ const w0 = r0[1] - r0[0]; if(oo <= 1e-6) break; if(w0 <= oo + 1e-6){ oo -= w0; continue; } if(w0 - oo < minStrip - 1e-6) ok = false; oo = 0; } }
-    if(ok) while(o > 1e-6 && right.length){ const w0 = right[0][1] - right[0][0]; if(w0 <= o + 1e-6){ right.shift(); o -= w0; b += w0; } else { right[0][0] += o; b += o; o = 0; } }
+  else if(MA && right.length && (b - a) % fieldW > 0.05){
+    // the same perimeter treatment on both edges: the far band keeps its narrow perimeter sheets and takes the leftover,
+    // cut into equal sheets no wider than the band's sheet (no field sheet runs into the band, no part sheet in the field)
+    const rem = (b - a) % fieldW, r0 = right[0], pw = r0[1] - r0[0], tot = pw + rem, n = Math.ceil(tot / pw - 1e-6), w = tot / n;
+    right.shift(); b = r0[1] - tot; for(let k=n-1;k>=0;k--) right.unshift([b + k*w, b + (k+1)*w, 1]);
+    right.sort((x,y)=>x[0]-y[0]);
   }
   const nF = Math.floor((b - a + 1e-6) / fieldW); for(let k=0;k<nF;k++){ left.push([a, a + fieldW]); a += fieldW; }
   if(b - a > 0.05) left.push([a, b]);
@@ -3554,11 +3560,14 @@ function boardPts(n, rb){
    The approval's ribbon spacing is used where it is tighter. */
 function fastBeads(c){
   const mph = parseFloat((c.raw||{}).G13 || (typeof CALC !== "undefined" && CALC.job ? CALC.job.G13 : "") || 55) || 55;
-  const [f, p] = mph >= 110 ? [4, 4] : mph >= 100 ? [6, 4] : [12, 6];
-  const h = parseFloat((c.raw||{}).B10) || 0, band = h <= 25 ? 4 : h <= 50 ? 8 : h <= 75 ? 12 : h <= 100 ? 16 : 24;   // PDS perimeter band by building height
-  return {f, p, mph, band};
+  const h = parseFloat((c.raw||{}).B10) || 0, band = h <= 25 ? 4 : h <= 50 ? 8 : h <= 75 ? 12 : h <= 100 ? 16 : 24;   // Flexible FAST PDS perimeter band by building height
+  const tm = String(c.warranty||"").match(/Table\s+(IV|V)\b/), tb = tm ? tm[1] : "IV", key = [55,72,80,90,100,110,120].find(k=>k >= mph) || 120;
+  let f = mph >= 110 ? 4 : mph >= 100 ? 6 : 12, p = mph >= 100 ? 4 : 6, cor = p, board = "4'x4'", src = "Flexible FAST PDS / Carlisle Insulation Field Guide";
+  try{ const sid = CALC.book.sid["Warranty Tables"]; for(let r=44; r<60; r++){ if(String(CALC.book.get(sid, r, 1)) !== tb + "|" + key) continue;
+      const n = k => parseFloat(String(CALC.book.get(sid, r, k)||"")); if(n(2) > 0) f = n(2); if(n(3) > 0) p = n(3); if(n(4) > 0) cor = n(4); board = String(CALC.book.get(sid, r, 5) || board); src = `Carlisle spec Table ${tb}, ${key} mph`; break; } }catch(e){}
+  return {f, p, cor, mph, band, board, src, big: /4'x8'/.test(board)};
 }
-function beadAt(c, z, i){ const b = fastBeads(c), t = i >= 2 ? b.p : b.f, r = parseFloat(z && z.rib); return r > 0 ? Math.min(t, r) : t; }
+function beadAt(c, z, i){ const b = fastBeads(c), t = i >= 3 ? b.cor : i >= 2 ? b.p : b.f, r = parseFloat(z && z.rib); return r > 0 ? Math.min(t, r) : t; }
 function membAdh(c){
   const raw = c.raw || {}, fb = /FleeceBACK/i.test(raw.MEMB || "") || /FleeceBACK/i.test(c.memb || "");
   if(!/Adhered/i.test(c.system||"")) return null;
@@ -3581,7 +3590,8 @@ function planBoards(p, c){
   p.Z.forEach((z, i)=>{ if(!has(i)) return;
     if(p.RB){ if(z.per) add([PLAN_ZN[i]], {kind:"rb", n:z.per, over: z.per > 24, title: z.per > 24 ? `${z.per} RhinoBond plates needed (over the 24 pattern)` : `${z.per} RhinoBond Plates`, sub: z.per > 24 ? "No Carlisle pattern: contact Carlisle Design Services" : "Induction Welding FP-1 / FP-2"}); }
     else if(p.FA && /^Fastened/i.test(ins)){ if(z.per) add([PLAN_ZN[i]], {kind:"fast", n:z.per, over: z.per > 32, title: z.per > 32 ? `${z.per} fasteners needed (over the 32 pattern)` : `${z.per} Insulation Fasteners & Plates`, sub: z.per > 32 ? "No 4x8 pattern: use 4' x 4' boards or a design professional" : "Carlisle insulation fastening pattern"}); }
-    else if(p.FA && /^Adhered/i.test(ins)){ const r = beadAt(c, z, i); add([PLAN_ZN[i]], {kind:"beads", rib:r, sz: r >= 12 ? "4x4" : "4x8", title:`Flexible FAST beads ${r}" o.c.`, sub: r >= 12 ? "4' x 4' boards (max. at 12 in. o.c.)" : "4' x 8' boards"}); }
+    else if(p.FA && /^Adhered/i.test(ins)){ const r = beadAt(c, z, i), fb = fastBeads(c), big = fb.big && r <= 6;   // 4' x 8' only where the Carlisle table allows it and beads are at 6 in. or closer (PDS)
+      add([PLAN_ZN[i]], {kind:"beads", rib:r, sz: big ? "4x8" : "4x4", title:`Flexible FAST beads ${r}" o.c.`, sub: big ? "4' x 4' or 4' x 8' boards" : "4' x 4' boards max. (adhered)"}); }
   });
   return out;
 }
@@ -3590,7 +3600,7 @@ function boardNote(p, c){ const ins = String((c.raw||{}).G11||""), b = fastBeads
     return `Insulation fastened through the top board, the same pattern in every zone. ${src || "Carlisle spec 3.04 C.2: 5 per 4x8 board for insulation 1-1/2 in. and thicker, 8 under 1-1/2 in. "}The membrane fasteners in the laps carry the uplift. Keep fasteners at least 6 in. from board edges.`; }
   if(p.RB) return "RhinoBond plates per 4x8 board by zone, Carlisle Induction Welding attachment patterns FP-1 / FP-2. For FM insured projects, consult FM Global before installation.";
   if(p.FA && /^Fastened/i.test(ins)) return "Insulation fasteners and plates per 4x8 board by zone (Carlisle Insulation Field Guide patterns). Never put a fastener less than 6 in. from a board edge.";
-  if(p.FA && /^Adhered/i.test(ins)) return `Flexible FAST beads: ${b.f} in. o.c. field, ${b.p} in. o.c. perimeter and corners (${b.mph} mph warranty; Flexible FAST PDS and Carlisle Insulation Field Guide; tighter where the approval says so). Carlisle perimeter band at least ${b.band} ft for this building height. Max. 4' x 4' boards at 12 in. o.c.` + (/Steel/i.test(String(c.deck||(c.raw||{}).G7||"")) ? " Steel deck: beads run along, and on top of, the flutes." : "");
+  if(p.FA && /^Adhered/i.test(ins)) return `Flexible FAST serpentine ribbons: ${b.f} in. o.c. field, ${b.p} in. perimeter, ${b.cor} in. corners (${b.src}; tighter where the approval says so). Max. adhered board ${b.board.replace(/'/g, "'")}${b.big ? " (4' x 8' only with beads at 6 in. or closer)" : ""}. Perimeter band at least ${b.band} ft for this building height.` + (/Steel/i.test(String(c.deck||(c.raw||{}).G7||"")) ? " Steel deck: beads run along, and on top of, the flutes." : "");
   return "";
 }
 function boardShape(n, kind){ return {W:8, H:4, pts:boardPts(n, kind === "rb").map(([x,y])=>[x/12, y/12])}; }
@@ -3612,17 +3622,20 @@ function boardSvg(b){
     dimRow(xs, W).forEach(([a, c])=>{ const x0 = ox+a*k, x1 = ox+c*k; g += `<line x1="${x0}" y1="${oy-8}" x2="${x1}" y2="${oy-8}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x0}" y1="${oy-12}" x2="${x0}" y2="${oy-4}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x1}" y1="${oy-12}" x2="${x1}" y2="${oy-4}" stroke="#1f2a36" stroke-width=".7"/><text x="${(x0+x1)/2}" y="${oy-11}" text-anchor="middle" font-size="${(c-a) < 8 ? 7 : 8.5}" fill="#1f2a36">${+(c-a).toFixed(1)}"</text>`; });
     dimRow(ys, H).forEach(([a, c])=>{ const y0 = oy+a*k, y1 = oy+c*k, x = ox+sw+8; g += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y1}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x-4}" y1="${y0}" x2="${x+4}" y2="${y0}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x-4}" y1="${y1}" x2="${x+4}" y2="${y1}" stroke="#1f2a36" stroke-width=".7"/><text x="${x+6}" y="${(y0+y1)/2+3}" font-size="8.5" fill="#1f2a36">${+(c-a).toFixed(1)}"</text>`; });
   } else if(b.kind === "beads"){
-    const n = Math.max(1, Math.round(H / b.rib)); for(let i=0;i<n;i++){ const y = oy + (i+0.5)*sh/n; g += `<line x1="${ox+4}" y1="${y}" x2="${ox+sw-4}" y2="${y}" stroke="#4aa3df" stroke-width="${Math.max(2.5, 1.5*k)}" stroke-linecap="round"/>`; }
+    const n = Math.max(1, Math.round(H / b.rib)), amp = Math.min(sh/n*0.32, 6); for(let i=0;i<n;i++){ const y = oy + (i+0.5)*sh/n; g += `<path d="${serpD(ox+5, ox+sw-5, y, amp, 16*k)}" fill="none" stroke="#4aa3df" stroke-width="${Math.max(2.2, 1.2*k)}" stroke-linecap="round"/>`; }
     const y0 = oy + 0.5*sh/n, y1 = oy + 1.5*sh/n, x = ox+sw+8; if(n > 1) g += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y1}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x-4}" y1="${y0}" x2="${x+4}" y2="${y0}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x-4}" y1="${y1}" x2="${x+4}" y2="${y1}" stroke="#1f2a36" stroke-width=".7"/><text x="${x+6}" y="${(y0+y1)/2+3}" font-size="8.5" fill="#1f2a36">${b.rib}" o.c.</text>`;
   } else if(b.kind === "full"){ g += `<rect x="${ox}" y="${oy}" width="${sw}" height="${sh}" fill="url(#adhfull)"/>`; }
   g += `<text x="${ox+sw/2}" y="${oy+sh+13}" text-anchor="middle" font-size="9" fill="#1f2a36">${mem ? "substrate under the membrane sheet" : (W === 96 ? "8'" : "4'") + " x 4' board"}</text>`;
   const vw = ox + sw + 44, vh = oy + sh + 18;
   return `<figure class="bfig"><svg viewBox="0 0 ${vw} ${vh}" width="${vw}" height="${vh}" role="img" aria-label="${esc(b.title)}"><defs><pattern id="adhfull" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#e8dcb5"/><line x1="0" y1="0" x2="0" y2="6" stroke="#b39a55" stroke-width="2"/></pattern></defs>${g}</svg><figcaption><b>${esc(b.title)}</b><br>${esc(b.zones.join(", "))}${b.sub ? `<br><span class="hint">${esc(b.sub)}</span>` : ""}</figcaption></figure>`;
 }
+/* serpentine (snake) ribbon along x at height y, as an SVG path: Flexible FAST is laid down in waves, not straight lines */
+function serpD(x0, x1, y, amp, wl){ let d = `M${x0.toFixed(1)} ${y.toFixed(1)}`; const n = Math.max(2, Math.round((x1 - x0) / wl * 2)), st = (x1 - x0) / n;
+  for(let i=0;i<n;i++){ const xa = x0 + i*st, xb = xa + st, sg = i % 2 ? 1 : -1; d += ` C${(xa + st*0.35).toFixed(1)} ${(y + sg*amp).toFixed(1)} ${(xb - st*0.35).toFixed(1)} ${(y + sg*amp).toFixed(1)} ${xb.toFixed(1)} ${y.toFixed(1)}`; } return d; }
 function membBoards(p, c){ const m = membAdh(c); if(!m) return [];
   if(m.kind === "full") return [{kind:"full", surf:"memb", title:m.name, zones:["Every zone"], sub:"full coverage, both surfaces"}];
   if(!m.rib){ const out = []; p.Z.forEach((z, i)=>{ const b = fastBeads(c), r = i >= 2 ? b.p : b.f, hit = out.find(x=>x.rib === r); if(hit) hit.zones.push(PLAN_ZN[i]); else out.push({kind:"beads", surf:"memb", rib:r, sz:"4x8", title:`Flexible FAST ribbons ${r}" o.c.`, zones:[PLAN_ZN[i]], sub:"Carlisle minimum: confirm with the spec"}); }); return out; }
-  return [{kind:"beads", surf:"memb", rib:m.rib, sz:"4x8", title: m.full ? `Flexible FAST full coverage (${m.rib}" o.c. ribbons)` : `Flexible FAST ribbons ${m.rib}" o.c.`, zones:["Every zone (as listed)"], sub:"under the FleeceBACK sheet"}]; }
+  return [{kind:"beads", surf:"memb", rib:m.rib, sz:"4x8", title: m.full ? `FAST ribbons ${m.rib}" o.c. (full)` : `Flexible FAST ribbons ${m.rib}" o.c.`, zones:["Every zone (as listed)"], sub:"under the FleeceBACK sheet"}]; }
 function planBoardsSvg(p, c){
   const B = planBoards(p, c), M = membBoards(p, c), m = membAdh(c); if(!B.length && !m) return "";
   let h = "";
@@ -3663,7 +3676,7 @@ async function planPdf(c, opt){
   const drawBoards = (head, note, list) => { if(!list.length) return; ty -= 4; page.drawText(clean(head).slice(0,70), {x:tx, y:ty, size:8.5, font:FB}); ty -= 11; wrap(note, F, 6.6).forEach(l=>{ page.drawText(l, {x:tx, y:ty, size:6.6, font:F}); ty -= 8.4; }); ty -= 4;
     let bx = tx; const s = 1.2; list.forEach(b=>{ const W = (b.sz === "4x4" ? 48 : 96), bw = W*s, bh = 48*s; if(bx + bw > tx + tw){ bx = tx; ty -= bh + 34; }
       page.drawRectangle({x:bx, y:ty-bh, width:bw, height:bh, color:hx(b.surf === "memb" ? "#ffffff" : "#f6efe0"), borderColor:hx(b.surf === "memb" ? "#5b6878" : "#1d3fb8"), borderWidth:1});
-      if(b.kind === "beads"){ const n = Math.max(1, Math.round(48 / b.rib)); for(let i=0;i<n;i++){ const yy = ty - (i+0.5)*bh/n; page.drawLine({start:{x:bx+2, y:yy}, end:{x:bx+bw-2, y:yy}, thickness:1.6, color:hx("#4aa3df")}); } }
+      if(b.kind === "beads"){ const n = Math.max(1, Math.round(48 / b.rib)), amp = Math.min(bh/n*0.32, 4); for(let i=0;i<n;i++){ page.drawSvgPath(serpD(2, bw-2, (i+0.5)*bh/n, amp, 16*s), {x:bx, y:ty, borderColor:hx("#4aa3df"), borderWidth:1.4}); } }
       else if(b.kind === "full"){ for(let d=-bh; d<bw; d+=4){ const x0 = Math.max(bx, bx+d), y0 = ty - (x0 - (bx+d)), x1 = Math.min(bx+bw, bx+d+bh), y1 = ty - (x1 - (bx+d)); page.drawLine({start:{x:x0, y:y0}, end:{x:x1, y:y1}, thickness:.6, color:hx("#b39a55")}); } }
       else if(b.over) page.drawText("over the largest pattern", {x:bx+4, y:ty-bh/2-2, size:6.2, font:FB, color:hx("#c0392b")});
       else boardPts(b.n, b.kind === "rb").forEach(([x,y])=>{ const cx = bx + x*s, cy = ty - y*s; if(b.kind === "rb"){ page.drawCircle({x:cx, y:cy, size:2.6, color:hx("#9ec5ff"), borderColor:hx("#1d3fb8"), borderWidth:.6}); }
