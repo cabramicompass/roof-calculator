@@ -671,7 +671,7 @@ function apprTitle(a){
 }
 let APPR_BOX = null;
 function roofTag(c){ const n = c.roofNo || 1, nm = String(c.levelName||"").trim(); return "Roof " + n + (nm && !/^Roof \d+$/i.test(nm) ? " (" + nm + ")" : ""); }
-const REPORT_OPTS = [["info","Project information"],["press","Design uplift pressures"],["layout","Sheet layout and roof zones"],["asm","Assembly illustration"],["attach","Attachment by zone and warranty check"],["inputs","Job inputs and code checks (UL)"],["notes","Data notes and disclaimer"]];
+const REPORT_OPTS = [["info","Project information"],["press","Design uplift pressures"],["layout","Sheet layout and roof zones"],["asm","Assembly illustration"],["attach","Attachment by zone and warranty check"],["pat","Fastening and adhesive patterns"],["inputs","Job inputs and code checks (UL)"],["notes","Data notes and disclaimer"]];
 function reportOpts(){ const o = {}; REPORT_OPTS.forEach(([k])=>{ const el = document.getElementById("ro-"+k); o[k] = el ? el.checked : true; }); return o; }
 function reportOptsHtml(){ let sv = {}; try{ sv = JSON.parse(localStorage.getItem("csg-report-opts")||"{}"); }catch(e){}
   return `<details class="ropts"><summary>Report contents (all included unless unticked)</summary><div class="rol">${REPORT_OPTS.map(([k,l])=>`<label><input type="checkbox" id="ro-${k}" ${sv[k]===false?"":"checked"}> ${esc(l)}</label>`).join("")}</div></details>`; }
@@ -820,6 +820,29 @@ async function summaryPdf(c, tg=0){
     y-=h; });
   const wl = wrap(c.warranty,FB,6.5,CW-4).slice(0,2); wl.forEach((l,i)=>T(l,M,y-8-i*8,FB,6.5)); y-=wl.length*8+8;
   }
+  // fastening and adhesive patterns: boards drawn like the Carlisle charts, one row
+  if(RO.pat){ let PB = [], PM = [], pma = null, pp = null; try{ pp = sheetPlan(c, Object.assign({}, c.planOpt, {flutes: fluteCases(c.planOpt||{})[0].flutes || "Length"})); if(pp){ PB = planBoards(pp, c); PM = membBoards(pp, c); pma = membAdh(c); } }catch(e){ console.warn(e); }
+    const LIST = [...PB.map(b=>Object.assign({grp:"ins"}, b)), ...PM.map(b=>Object.assign({grp:"mem"}, b))];
+    if(LIST.length){
+      if(y < 150){ page = doc.addPage([W,H]); y = H - M; }
+      band("FASTENING AND ADHESIVE PATTERNS (per 4' x 8' board, Carlisle patterns)");
+      const notes = [boardNote(pp, c), pma ? "Membrane: " + pma.name + ". " + pma.note : ""].filter(Boolean).join(" ");
+      wrap(notes, F, 6.2, CW).slice(0, 4).forEach(l=>{ T(l, M, y-7, F, 6.2, C.grey); y -= 7.6; }); y -= 4;
+      const n = LIST.length, gap = 10, sc = Math.min(0.62, (CW - gap*(n-1)) / n / 96), rowH = 48*sc;
+      let bx = M; const yTop = y;
+      LIST.forEach(b=>{ const bw = (b.sz === "4x4" ? 48 : 96)*sc, bh = rowH, memb = b.surf === "memb";
+        page.drawRectangle({x:bx, y:yTop-bh, width:bw, height:bh, color:hex(memb ? "FFFFFF" : "F6EFE0"), borderColor:hex(memb ? "5B6878" : "1D3FB8"), borderWidth:.8});
+        if(b.kind === "beads"){ const k = Math.max(1, Math.round(48 / b.rib)); for(let i=0;i<k;i++){ const yy = yTop - (i+0.5)*bh/k; page.drawLine({start:{x:bx+1.5, y:yy}, end:{x:bx+bw-1.5, y:yy}, thickness:Math.max(.8, 1.5*sc), color:hex("4AA3DF")}); } }
+        else if(b.kind === "full"){ for(let d=-bh; d<bw; d+=3.5){ const x0 = Math.max(bx, bx+d), x1 = Math.min(bx+bw, bx+d+bh); page.drawLine({start:{x:x0, y:yTop-(x0-(bx+d))}, end:{x:x1, y:yTop-(x1-(bx+d))}, thickness:.5, color:hex("B39A55")}); } }
+        else if(b.over) T("over the largest pattern", bx+3, yTop-bh/2-2, FB, 5.6, hex("C0392B"));
+        else boardPts(b.n, b.kind === "rb").forEach(([px,py])=>{ const cx = bx + px*sc, cy = yTop - py*sc, r = Math.max(1.6, 3.4*sc);
+          if(b.kind === "rb") page.drawCircle({x:cx, y:cy, size:r, color:hex("9EC5FF"), borderColor:hex("1D3FB8"), borderWidth:.5});
+          else { page.drawCircle({x:cx, y:cy, size:r, color:hex("FFFFFF"), borderColor:hex("C0392B"), borderWidth:.6}); const q = r*0.65; page.drawLine({start:{x:cx-q, y:cy-q}, end:{x:cx+q, y:cy+q}, thickness:.5, color:hex("C0392B")}); page.drawLine({start:{x:cx-q, y:cy+q}, end:{x:cx+q, y:cy-q}, thickness:.5, color:hex("C0392B")}); } });
+        const lw = Math.max(bw, 96*sc) + gap - 2, tl = wrap(b.title, FB, 6.2, lw).slice(0,3), zs = b.zones.length >= 4 || /Every zone/i.test(b.zones.join(" ")) ? "All zones" : b.zones.join(", ");
+        tl.forEach((l,i)=>T(l, bx, yTop-bh-8-i*7, FB, 6.2)); wrap((b.grp === "mem" ? "Membrane: " : "") + zs, F, 5.8, lw).slice(0,2).forEach((l,i)=>T(l, bx, yTop-bh-9-tl.length*7-i*6.6, F, 5.8, C.grey));
+        bx += Math.max(bw, 96*sc) + gap; });
+      y = yTop - rowH - 40;
+    } }
   // inputs
   if(RO.inputs){
   band(c.inputsHead||"JOB INPUTS & CODE CHECKS");
@@ -2850,6 +2873,18 @@ function insLabel(prod, t){
   if(!/insulation/i.test(p)) p = p.replace(/^([^,]+)/, "$1 insulation");
   return (p + thk).replace(/\bMin\./g, "min.");
 }
+/* Carlisle Sure-Weld spec Table IX (mechanically fastened systems): insulation / cover board fasteners per 4x8 board, read from the
+   workbook's Warranty Tables (top layer rows; columns MF new, MF recover smooth, MF recover gravel). Same count in every zone. */
+function maTableIX(top, tt, app){
+  try{ const sid = CALC.book.sid["Warranty Tables"]; if(sid == null) return null;
+    const col = /gravel/i.test(app||"") ? 18 : /^Recover/i.test(app||"") ? 17 : 16;
+    const key = top && !/^None/i.test(top) ? top : !(tt > 0) ? null : tt < 1.5 ? 'Polyiso – InsulBase 1.0-1.4"' : tt < 2 ? 'Polyiso – InsulBase 1.5-1.9"' : 'Polyiso – InsulBase 2.0"+';
+    if(!key) return null;
+    for(let r=62; r<120; r++){ const k = CALC.book.get(sid, r, 1); if(k == null || String(k).trim() !== key) continue;
+      const v = String(CALC.book.get(sid, r, col) || ""), m = v.match(/(\d+)\s*per\s*4x8/i);
+      return m ? {per:+m[1], src:`Carlisle spec Table IX (${col === 16 ? "new / tear-off" : col === 17 ? "recover, smooth" : "recover, gravel"}): ${v}`} : {per:null, src:v}; }
+  }catch(e){} return null;
+}
 function asmLayers(c){
   const raw = c.raw || {}, sys = c.system || raw.G6 || "", deck = c.deck || raw.G7 || "", app = c.application || raw.G8 || "";
   const top = c.top || raw.G12 || "None", ins = c.insul || raw.G11 || "", thk = raw.F11 || "";
@@ -2935,7 +2970,9 @@ function asmLayers(c){
         if(m.length === 3) return +m[1] / +m[2]; return +m[1] + (m[2] ? +m[2] / +m[3] : 0); };
       const insL = L.filter(x=>/^(iso|eps)$/.test(x.k) && !/^Existing/i.test(x.t||"")), tIns = insL.length ? insL.reduce((sum, x)=>{ const v = parseT(x.t); return sum + (isFinite(v) ? v : 0); }, 0) : NaN;
       const tRaw = parseT(thk), tt = isFinite(tRaw) && tRaw > 0 ? tRaw : tIns;
-      if(isFinite(tt) && tt > 0){
+      const t9 = maTableIX(top, tt, app);   // Carlisle spec Table IX: per board by top layer and new / recover
+      if(t9 && t9.per){ tb.plates = "maIns"; tb.maPer = t9.per; tb.maSrc = t9.src; tb.maNote = `mechanically fastened, ${t9.per} per 4x8 board`; }
+      else if(isFinite(tt) && tt > 0){
         const per = tt >= 1.5 ? 5 : 8;
         tb.plates = "maIns"; tb.maPer = per;
         tb.maNote = `mechanically fastened, ${per} per 4x8 board`;   // Carlisle spec 3.04 C.2
@@ -3463,7 +3500,7 @@ function planSvg(c, opt){
 /* fastening patterns from the Carlisle 4x8 board chart: [x along the 96 in. side, y along the 48 in. side] in inches */
 const BOARD_PAT = (()=>{ const g = (xs, ys) => ys.flatMap(y=>xs.map(x=>[x,y])), X6 = [6,24,42,54,72,90], X8 = [6,18,30,42,54,66,78,90];
   return {
-    6:  [[12,12],[84,12],[48,19],[48,29],[12,36],[84,36]],
+    6:  g([12,48,84],[12,36]),
     8:  g([12,36,60,84],[12,36]),
     10: [...g([6,42,54,90],[6,42]), [24,24],[72,24]],
     11: [...g([12,36,60,84],[6,42]), ...g([24,48,72],[24])],
@@ -3539,7 +3576,7 @@ function planBoards(p, c){
   const present = new Set(); if(p.g) for(const row of p.g.cells) for(const v of row) if(v!=null && !isNaN(v)) present.add(Math.max(0, Math.min(3, v)));
   const has = i => !present.size || present.has(i);
   if(p.MA && !p.RB){ let per = null; try{ const L = asmModel(c).layers, tb = L.find(l=>l.plates === "maIns"); per = tb ? tb.maPer : null; }catch(e){}
-    if(per) add(PLAN_ZN.filter((_, i)=>has(i)), {kind:"fast", n:per, title:`${per} Insulation Fasteners & Plates`, sub:"every zone (Carlisle spec 3.04 C.2)"});
+    if(per) add(PLAN_ZN.filter((_, i)=>has(i)), {kind:"fast", n:per, title:`${per} Insulation Fasteners & Plates`, sub:"every zone (Carlisle spec Table IX)"});
     return out; }
   p.Z.forEach((z, i)=>{ if(!has(i)) return;
     if(p.RB){ if(z.per) add([PLAN_ZN[i]], {kind:"rb", n:z.per, over: z.per > 24, title: z.per > 24 ? `${z.per} RhinoBond plates needed (over the 24 pattern)` : `${z.per} RhinoBond Plates`, sub: z.per > 24 ? "No Carlisle pattern: contact Carlisle Design Services" : "Induction Welding FP-1 / FP-2"}); }
@@ -3549,7 +3586,8 @@ function planBoards(p, c){
   return out;
 }
 function boardNote(p, c){ const ins = String((c.raw||{}).G11||""), b = fastBeads(c);
-  if(p.MA && !p.RB) return "Insulation fastened through the top board, the same pattern in every zone (Carlisle Sure-Weld / Sure-Flex spec 3.04 C.2: 5 per 4x8 board for insulation 1-1/2 in. and thicker, 8 under 1-1/2 in.). Keep fasteners at least 6 in. from board edges.";
+  if(p.MA && !p.RB){ let src = ""; try{ const tb = asmModel(c).layers.find(l=>l.plates === "maIns"); src = tb && tb.maSrc ? tb.maSrc + ". " : ""; }catch(e){}
+    return `Insulation fastened through the top board, the same pattern in every zone. ${src || "Carlisle spec 3.04 C.2: 5 per 4x8 board for insulation 1-1/2 in. and thicker, 8 under 1-1/2 in. "}The membrane fasteners in the laps carry the uplift. Keep fasteners at least 6 in. from board edges.`; }
   if(p.RB) return "RhinoBond plates per 4x8 board by zone, Carlisle Induction Welding attachment patterns FP-1 / FP-2. For FM insured projects, consult FM Global before installation.";
   if(p.FA && /^Fastened/i.test(ins)) return "Insulation fasteners and plates per 4x8 board by zone (Carlisle Insulation Field Guide patterns). Never put a fastener less than 6 in. from a board edge.";
   if(p.FA && /^Adhered/i.test(ins)) return `Flexible FAST beads: ${b.f} in. o.c. field, ${b.p} in. o.c. perimeter and corners (${b.mph} mph warranty; Flexible FAST PDS and Carlisle Insulation Field Guide; tighter where the approval says so). Carlisle perimeter band at least ${b.band} ft for this building height. Max. 4' x 4' boards at 12 in. o.c.` + (/Steel/i.test(String(c.deck||(c.raw||{}).G7||"")) ? " Steel deck: beads run along, and on top of, the flutes." : "");
