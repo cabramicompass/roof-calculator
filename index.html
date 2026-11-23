@@ -2775,6 +2775,10 @@ function calcRenderOut(){
   const lfill = ["#F2F2F2","#F8CBAD","#C6E0B4","#A6A6A6","#A6A6A6"], ltxt = ["#14202e","#14202e","#14202e","#14202e","#14202e"];
   $("calcStatus").className = "cstat " + (okIn ? (r.calc ? "ok" : "warn") : "warn");
   $("calcStatus").innerHTML = `<b>${esc(missTxt || (r.calc ? "Inputs complete." : "Check inputs."))}</b><span>${esc(stat.replace(/^Status:\s*/,""))}</span>`;
+  { // mechanically attached: the insulation fastener count (Carlisle Table IX) depends on the thickness, so flag it until it is entered
+    let tbA = null; try{ tbA = r.calc && /Mechanically/i.test(r.calc.system||"") ? asmModel(r.calc).layers.find(l=>l.plates === "maIns" && l.maAssumed) : null; }catch(e){}
+    const fi = $("cf-F11"); if(fi) fi.closest("label").classList.toggle("need", !!tbA);
+    if(tbA){ $("calcStatus").className = "cstat warn"; $("calcStatus").insertAdjacentHTML("beforeend", `<span><b>Enter the insulation thickness.</b> The insulation fasteners per board (Carlisle Table IX: ${esc(String(tbA.maPer))} per 4x8) assume the approval minimum of ${esc(String(+(+tbA.maT).toFixed(2)))} in.</span>`); } }
   $("calcZones").innerHTML = zt.length ? `<div class="zwrap"><table class="ztab"><thead><tr>${hdr.map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${zt.map((row,i)=>`<tr class="${i===zt.length-1&&/total/i.test(row[0])?"tot":""}">${row.map((c,k)=>`<td${k===1?' class="asd"':""}>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>` : "";
   $("calcDraw").innerHTML = grid ? `<div class="zlay"><div class="zleg"><b>${esc(calcText("Report","A24"))}</b>${legend.map((t,i)=>`<span style="--z:${lfill[i]};--zt:${ltxt[i]}">${esc(t)}</span>`).join("")}</div>${zoneSvg(grid)}</div><p class="hint">${esc(calcText("Report","J17")||String(calcVal(IN_S,"J17")))}</p>` : "";
   const COLS = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N"];
@@ -2979,6 +2983,7 @@ function asmLayers(c){
         tb.plates = "maIns"; tb.maPer = per;
         tb.maNote = `mechanically fastened, ${per} per 4x8 board`;   // Carlisle spec 3.04 C.2
       } else { tb.plates = "maIns"; tb.maPer = 5; tb.maNote = "mechanically fastened"; }
+      tb.maAssumed = !(isFinite(tRaw) && tRaw > 0) && /^None/i.test(top || "None"); tb.maT = tt;   // thickness not entered: the approval minimum is used
     }
   }
   L.push({k:"mem", t:mem, h:fb ? 4 : 3, fb});
@@ -3607,7 +3612,8 @@ function planBoards(p, c){
 }
 function boardNote(p, c){ const ins = String((c.raw||{}).G11||""), b = fastBeads(c);
   if(p.MA && !p.RB){ let src = ""; try{ const tb = asmModel(c).layers.find(l=>l.plates === "maIns"); src = tb && tb.maSrc ? tb.maSrc + ". " : ""; }catch(e){}
-    return `Insulation fastened through the top board, the same pattern in every zone. ${src || "Carlisle spec 3.04 C.2: 5 per 4x8 board for insulation 1-1/2 in. and thicker, 8 under 1-1/2 in. "}The membrane fasteners in the laps carry the uplift. Keep fasteners at least 6 in. from board edges.`; }
+    let asm = ""; try{ const tb = asmModel(c).layers.find(l=>l.plates === "maIns"); if(tb && tb.maAssumed) asm = `Insulation thickness not entered: the count assumes the approval minimum of ${+(+tb.maT).toFixed(2)} in.; enter the actual thickness to confirm. `; }catch(e){}
+    return `${asm}Insulation fastened through the top board, the same pattern in every zone. ${src || "Carlisle spec 3.04 C.2: 5 per 4x8 board for insulation 1-1/2 in. and thicker, 8 under 1-1/2 in. "}The membrane fasteners in the laps carry the uplift. Keep fasteners at least 6 in. from board edges.`; }
   if(p.RB) return "RhinoBond plates per 4x8 board by zone, Carlisle Induction Welding attachment patterns FP-1 / FP-2. For FM insured projects, consult FM Global before installation.";
   if(p.FA && /^Fastened/i.test(ins)) return "Insulation fasteners and plates per 4x8 board by zone (Carlisle Insulation Field Guide patterns). Never put a fastener less than 6 in. from a board edge.";
   if(p.FA && /^Adhered/i.test(ins)) return `Flexible FAST serpentine ribbons: ${b.f} in. o.c. field, ${b.p} in. perimeter, ${b.cor} in. corners (${b.src}; tighter where the approval says so). Adhered boards max. 4' x 4' per the Florida code${b.big ? " (Carlisle alone would allow 4' x 8' here with beads at 6 in. or closer)" : ""}. Perimeter band at least ${b.band} ft for this building height.` + (/Steel/i.test(String(c.deck||(c.raw||{}).G7||"")) ? " Steel deck: beads run along, and on top of, the flutes." : "");
