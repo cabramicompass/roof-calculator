@@ -484,8 +484,7 @@
   "boards": [
    "Flexible FAST beads 12\" o.c. @ Zone 1'/Zone 1",
    "Flexible FAST beads 6\" o.c. @ Zone 2/Zone 3",
-   "Flexible FAST beads 12\" o.c. @ Zone 1'/Zone 1",
-   "Flexible FAST beads 6\" o.c. @ Zone 2/Zone 3"
+   "Flexible FAST full coverage (4\" o.c. ribbons) @ Every zone (as listed)"
   ]
  },
  "brwN": {
@@ -763,8 +762,8 @@
    "Sheets run across the width: 12 x 16' sheets, 1 x 8' sheet."
   ],
   "boards": [
-   "Flexible FAST beads 12\" o.c. @ Zone 1'/Zone 1",
-   "Flexible FAST beads 6\" o.c. @ Zone 2/Zone 3"
+   "Flexible FAST ribbons 12\" o.c. @ Zone 1'/Zone 1",
+   "Flexible FAST ribbons 6\" o.c. @ Zone 2/Zone 3"
   ]
  },
  "usrUL": {
@@ -7736,8 +7735,8 @@
    "Sheets run along the length: 9 x 16' sheets, 1 x 6' sheet."
   ],
   "boards": [
-   "Flexible FAST beads 12\" o.c. @ Zone 1'/Zone 1",
-   "Flexible FAST beads 6\" o.c. @ Zone 2/Zone 3"
+   "Flexible FAST ribbons 12\" o.c. @ Zone 1'/Zone 1",
+   "Flexible FAST ribbons 6\" o.c. @ Zone 2/Zone 3"
   ]
  },
  "outline1": {
@@ -9185,8 +9184,8 @@
    "Sheets run across the width: 21 x 16' sheets, 1 x 3' sheet."
   ],
   "boards": [
-   "Flexible FAST beads 12\" o.c. @ Zone 1'/Zone 1",
-   "Flexible FAST beads 6\" o.c. @ Zone 2/Zone 3"
+   "Flexible FAST ribbons 12\" o.c. @ Zone 1'/Zone 1",
+   "Flexible FAST ribbons 6\" o.c. @ Zone 2/Zone 3"
   ]
  },
  "riskIII": {
@@ -13837,8 +13836,7 @@
   "boards": [
    "Flexible FAST beads 6\" o.c. @ Zone 1'/Zone 1",
    "Flexible FAST beads 4\" o.c. @ Zone 2/Zone 3",
-   "Flexible FAST beads 6\" o.c. @ Zone 1'/Zone 1",
-   "Flexible FAST beads 4\" o.c. @ Zone 2/Zone 3"
+   "Flexible FAST full coverage (4\" o.c. ribbons) @ Every zone (as listed)"
   ]
  }
 }

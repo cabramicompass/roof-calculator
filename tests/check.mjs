@@ -76,7 +76,7 @@ else {
     if (a !== b) {
       for (const k of new Set([...Object.keys(results[job]||{}), ...Object.keys(exp[job]||{})]))
         if (JSON.stringify((results[job]||{})[k]) !== JSON.stringify((exp[job]||{})[k]))
-          problems.push(`${job}: ${k} changed\n   expected ${JSON.stringify((exp[job]||{})[k]).slice(0, 300)}\n   got      ${JSON.stringify((results[job]||{})[k]).slice(0, 300)}`);
+          problems.push(`${job}: ${k} changed\n   expected ${String(JSON.stringify((exp[job]||{})[k])).slice(0, 300)}\n   got      ${String(JSON.stringify((results[job]||{})[k])).slice(0, 300)}`);
     }
   }
   console.log(`Checked ${Object.keys(JOBS).length} jobs.`);
