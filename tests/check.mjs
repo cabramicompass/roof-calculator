@@ -56,6 +56,7 @@ for (const [job, inputs] of Object.entries(JOBS)) {
       if (c.poly) { const on = (x, y) => inPoly(x, y, c.poly) || c.poly.some((a, i) => segDist(x, y, a, c.poly[(i+1) % c.poly.length]) < 0.3);   // fastener rows must stay on the roof
         const off = p.rows.filter(r => [r.v0, (r.v0 + r.v1)/2, r.v1].some(v => !on(...(p.flutesAlongL ? [r.u, v] : [v, r.u])))).length; if (off) out.rowsOff = off; }
       out.legend = planLegend(p);
+      const bd = [...planBoards(p, c), ...membBoards(p, c)].map(b => b.title + " @ " + b.zones.join("/")); if (bd.length) out.boards = bd;   // insulation and membrane attachment panels
       if (/^Not known/i.test((c.planOpt||{}).flutes||"")) out.both = fluteCases(c.planOpt).map(o => { const q = sheetPlan(c, o); return [q.flutesAlongL ? 1 : 0, q.strips.length, planLegend(q)[0]]; });   // flute direction not known: both layouts
     } catch (e) { out.plan = "not drawn: " + (e.message || e); }
     return out;

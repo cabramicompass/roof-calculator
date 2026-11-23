@@ -480,6 +480,12 @@
   "emptyStrips": 0,
   "legend": [
    "Sheets run across the width: 12 x 16' sheets, 1 x 8' sheet."
+  ],
+  "boards": [
+   "Flexible FAST beads 12\" o.c. @ Zone 1'/Zone 1",
+   "Flexible FAST beads 6\" o.c. @ Zone 2/Zone 3",
+   "Flexible FAST beads 12\" o.c. @ Zone 1'/Zone 1",
+   "Flexible FAST beads 6\" o.c. @ Zone 2/Zone 3"
   ]
  },
  "brwN": {
@@ -755,6 +761,10 @@
   "emptyStrips": 0,
   "legend": [
    "Sheets run across the width: 12 x 16' sheets, 1 x 8' sheet."
+  ],
+  "boards": [
+   "Flexible FAST beads 12\" o.c. @ Zone 1'/Zone 1",
+   "Flexible FAST beads 6\" o.c. @ Zone 2/Zone 3"
   ]
  },
  "usrUL": {
@@ -6747,6 +6757,9 @@
   "legend": [
    "Sheets run along the length: 16 x 12' sheets, 1 x 8' sheet.",
    "Perimeter and corner bands use full field sheets subdivided by a row of seam fastening plates with cover strip down the middle, through that band only."
+  ],
+  "boards": [
+   "5 Insulation Fasteners & Plates @ Zone 1'/Zone 1/Zone 2/Zone 3"
   ]
  },
  "village": {
@@ -7476,6 +7489,9 @@
   "legend": [
    "Sheets run along the length: 16 x 12' sheets, 1 x 8' sheet.",
    "Perimeter and corner bands use full field sheets subdivided by a row of seam fastening plates with cover strip down the middle, through that band only."
+  ],
+  "boards": [
+   "5 Insulation Fasteners & Plates @ Zone 1'/Zone 1/Zone 2/Zone 3"
   ]
  },
  "broward": {
@@ -7718,6 +7734,10 @@
   "emptyStrips": 0,
   "legend": [
    "Sheets run along the length: 9 x 16' sheets, 1 x 6' sheet."
+  ],
+  "boards": [
+   "Flexible FAST beads 12\" o.c. @ Zone 1'/Zone 1",
+   "Flexible FAST beads 6\" o.c. @ Zone 2/Zone 3"
   ]
  },
  "outline1": {
@@ -8808,8 +8828,8 @@
     "-66.6",
     "-40.0",
     "-45.0",
-    "38,055",
-    "380.6"
+    "38,149",
+    "381.5"
    ],
    [
     "Zone 1 (Field)",
@@ -8817,8 +8837,8 @@
     "-115.9",
     "-69.6",
     "-75.0",
-    "17,437",
-    "174.4"
+    "17,379",
+    "173.8"
    ],
    [
     "Zone 2 (Perimeter)",
@@ -8826,8 +8846,8 @@
     "-152.9",
     "-91.7",
     "-97.5",
-    "19,086",
-    "190.9"
+    "19,051",
+    "190.5"
    ],
    [
     "Zone 3 (Corner)",
@@ -9163,6 +9183,10 @@
   "emptyStrips": 0,
   "legend": [
    "Sheets run across the width: 21 x 16' sheets, 1 x 3' sheet."
+  ],
+  "boards": [
+   "Flexible FAST beads 12\" o.c. @ Zone 1'/Zone 1",
+   "Flexible FAST beads 6\" o.c. @ Zone 2/Zone 3"
   ]
  },
  "riskIII": {
@@ -12636,6 +12660,1185 @@
     11,
     "Sheets run along the length: 7 x 10' sheets, 4 x 8' sheets."
    ]
+  ]
+ },
+ "notch": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-72.6",
+    "-43.6",
+    "-45.0",
+    "7,177",
+    "71.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-126.4",
+    "-75.8",
+    "-82.5",
+    "5,456",
+    "54.6"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-166.7",
+    "-100.0",
+    "-105.0",
+    "6,418",
+    "64.2"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-227.2",
+    "-136.3",
+    "-142.5",
+    "551",
+    "5.5"
+   ]
+  ],
+  "appr": null,
+  "approval": "—",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "43.6",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "interior"
+   ],
+   [
+    "Zone 1 (Field)",
+    "75.8",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "12 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "100.0",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "12 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "136.3",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "4 × 12 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    10,
+    0,
+    [
+     [
+      0,
+      99.6
+     ]
+    ]
+   ],
+   [
+    10,
+    10,
+    0,
+    [
+     [
+      0,
+      99.6
+     ]
+    ]
+   ],
+   [
+    20,
+    10,
+    0,
+    [
+     [
+      0,
+      99.6
+     ]
+    ]
+   ],
+   [
+    30,
+    10,
+    0,
+    [
+     [
+      6.4,
+      99.6
+     ]
+    ]
+   ],
+   [
+    40,
+    10,
+    0,
+    [
+     [
+      6.4,
+      99.6
+     ]
+    ]
+   ],
+   [
+    50,
+    10,
+    0,
+    [
+     [
+      6.4,
+      99.6
+     ]
+    ]
+   ],
+   [
+    60,
+    10,
+    0,
+    [
+     [
+      6.4,
+      99.6
+     ]
+    ]
+   ],
+   [
+    70,
+    10,
+    0,
+    [
+     [
+      0.5,
+      99.6
+     ]
+    ]
+   ],
+   [
+    80,
+    10,
+    0,
+    [
+     [
+      0.5,
+      99.6
+     ]
+    ]
+   ],
+   [
+    90,
+    10,
+    0,
+    [
+     [
+      0.5,
+      99.6
+     ]
+    ]
+   ],
+   [
+    100,
+    10,
+    0,
+    [
+     [
+      0.5,
+      99.6
+     ]
+    ]
+   ],
+   [
+    110,
+    10,
+    0,
+    [
+     [
+      0.5,
+      99.6
+     ]
+    ]
+   ],
+   [
+    120,
+    10,
+    0,
+    [
+     [
+      0.5,
+      99.6
+     ]
+    ]
+   ],
+   [
+    130,
+    10,
+    0,
+    [
+     [
+      5.5,
+      99.6
+     ]
+    ]
+   ],
+   [
+    140,
+    10,
+    0,
+    [
+     [
+      5.5,
+      99.6
+     ]
+    ]
+   ],
+   [
+    150,
+    10,
+    0,
+    [
+     [
+      5.5,
+      99.6
+     ]
+    ]
+   ],
+   [
+    160,
+    10,
+    0,
+    [
+     [
+      5.5,
+      99.6
+     ]
+    ]
+   ],
+   [
+    170,
+    8,
+    0,
+    [
+     [
+      0,
+      99.6
+     ]
+    ]
+   ],
+   [
+    178,
+    8,
+    0,
+    [
+     [
+      0,
+      99.6
+     ]
+    ]
+   ],
+   [
+    186,
+    8,
+    0,
+    [
+     [
+      0,
+      99.6
+     ]
+    ]
+   ],
+   [
+    194,
+    8,
+    0,
+    [
+     [
+      0,
+      99.6
+     ]
+    ]
+   ]
+  ],
+  "fingers": [],
+  "emptyStrips": 0,
+  "legend": [
+   "Sheets run across the width: 17 x 10' sheets, 4 x 8' sheets.",
+   "Perimeter and corner bands use full field sheets subdivided by a row of seam fastening plates with cover strip down the middle, through that band only."
+  ]
+ },
+ "rbPat": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-66.6",
+    "-40.0",
+    "-45.0",
+    "29,184",
+    "291.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-115.9",
+    "-69.6",
+    "-75.0",
+    "14,112",
+    "141.1"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-152.9",
+    "-91.7",
+    "-97.5",
+    "15,984",
+    "159.8"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-208.4",
+    "-125.0",
+    "-127.5",
+    "720",
+    "7.2"
+   ]
+  ],
+  "appr": "SC-299 PEER-CRL-003.A.R39 for FL14083-R38",
+  "approval": "SC-299 – FL14083 Non-HVHZ (Tbl 2G, p. 54)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Attachment",
+    "—",
+    "Plate Density",
+    "—",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "40.0",
+    "OK as tested",
+    "RhinoBond",
+    "—",
+    "8 plates / 4x8 (25.0 / sq)",
+    "—",
+    "228' × 128'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "69.6",
+    "Extrapolate",
+    "RhinoBond",
+    "—",
+    "10 plates / 4x8 (31.3 / sq)",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "91.7",
+    "Extrapolate",
+    "RhinoBond",
+    "—",
+    "15 plates / 4x8 (46.9 / sq)",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "125.0",
+    "Extrapolate",
+    "RhinoBond",
+    "—",
+    "18 plates / 4x8 (56.3 / sq)",
+    "—",
+    "6 × 18 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    10,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    20,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    30,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    40,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    50,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    60,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    70,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    80,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    90,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    100,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    110,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    120,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    130,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    140,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    150,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    160,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    170,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    180,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    190,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    200,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    210,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    220,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    230,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    240,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    250,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    260,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    270,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    280,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    290,
+    10,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ]
+  ],
+  "fingers": [],
+  "emptyStrips": 0,
+  "legend": [
+   "Sheets run across the width: 30 x 10' sheets."
+  ],
+  "boards": [
+   "8 RhinoBond Plates @ Zone 1'",
+   "10 RhinoBond Plates @ Zone 1",
+   "15 RhinoBond Plates @ Zone 2",
+   "18 RhinoBond Plates @ Zone 3"
+  ]
+ },
+ "faFast": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-66.6",
+    "-40.0",
+    "-45.0",
+    "29,184",
+    "291.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-115.9",
+    "-69.6",
+    "-75.0",
+    "14,112",
+    "141.1"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-152.9",
+    "-91.7",
+    "-97.5",
+    "15,984",
+    "159.8"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-208.4",
+    "-125.0",
+    "-127.5",
+    "720",
+    "7.2"
+   ]
+  ],
+  "appr": "C-96 PEER-CRL-003.A.R39 for FL14083-R38",
+  "approval": "C-96 – FL14083 Non-HVHZ (Tbl 3A, p. 74)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "—",
+    "Adhesive Beads",
+    "—",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "40.0",
+    "OK as tested",
+    "Up to 12' sheet",
+    "—",
+    "6 in. o.c.",
+    "—",
+    "228' × 128'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "69.6",
+    "OK as tested",
+    "Up to 12' sheet",
+    "—",
+    "6 in. o.c.",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "91.7",
+    "OK as tested",
+    "Up to 12' sheet",
+    "—",
+    "4 in. o.c.",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "125.0",
+    "OK as tested",
+    "Up to 12' sheet",
+    "—",
+    "4 in. o.c.",
+    "—",
+    "6 × 18 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    16,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    32,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    48,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    64,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    80,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    96,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    112,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    128,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    144,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    160,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    176,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    192,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    208,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    224,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    240,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    256,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    272,
+    16,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ],
+   [
+    288,
+    12,
+    0,
+    [
+     [
+      0,
+      200
+     ]
+    ]
+   ]
+  ],
+  "fingers": [],
+  "emptyStrips": 0,
+  "legend": [
+   "Sheets run across the width: 18 x 16' sheets, 1 x 12' sheet."
+  ],
+  "boards": [
+   "Flexible FAST beads 6\" o.c. @ Zone 1'/Zone 1",
+   "Flexible FAST beads 4\" o.c. @ Zone 2/Zone 3",
+   "Flexible FAST beads 6\" o.c. @ Zone 1'/Zone 1",
+   "Flexible FAST beads 4\" o.c. @ Zone 2/Zone 3"
   ]
  }
 }
