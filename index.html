@@ -236,6 +236,7 @@ table.kv td.t-ok{color:var(--ok);font-weight:700} table.kv td.t-warn{color:var(-
 .plg{margin:8px 0 0;padding-left:18px;font-size:13px;display:grid;gap:3px}
 .pcn{margin-top:12px;border-top:1px solid var(--line);padding-top:8px;font-size:13px}.pbd{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px}.pbd figure{margin:0;display:flex;gap:6px;align-items:flex-start;font-size:12px;max-width:190px}
 .rbottom{display:grid;gap:10px;margin-top:6px;border-top:1px solid var(--line);padding-top:14px}.ropts{border:1px solid var(--line);border-radius:6px;padding:8px 12px;grid-column:1 / -1}.ropts summary{cursor:pointer;font-weight:600}.rol{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px}.rol label{display:flex;gap:6px;align-items:center;font-size:13.5px}
+.fcase{margin:14px 0 6px;font:700 14px/1.3 var(--display);color:var(--blue)}.fcase:first-child{margin-top:0}
 .ptabs{position:sticky;top:0;z-index:20;display:flex;gap:6px;flex-wrap:wrap;background:var(--bg,#fff);padding:8px 0;border-bottom:1px solid var(--line)}
 .ptabs button{flex:1 1 160px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);font-weight:600;cursor:pointer}
 .ptabs button.on{background:var(--blue);border-color:var(--blue);color:#fff}
@@ -777,10 +778,14 @@ async function summaryPdf(c, tg=0){
     planKey(p, c).forEach(k=>{ page.drawRectangle({x:KX, y:ly-8, width:10, height:8, color:hex(k.fill.slice(1)), borderColor:C.line, borderWidth:.4}); T(k.name, KX+13, ly-6.5, FB, 6.3); ly -= 8; wrap(k.txt, F, 6, LW-13).slice(0,Math.max(2,5-tg)).forEach(l=>{ T(l, KX+13, ly-6, F, 6); ly -= 7; }); ly -= 2; });
     if(p.MA){ page.drawLine({start:{x:KX,y:ly-4},end:{x:KX+10,y:ly-4},thickness:.8,color:hex("1F2A36"),dashArray:[1,1.2]}); T("Fasteners in laps", KX+13, ly-6, F, 6); ly -= 8;
       page.drawLine({start:{x:KX,y:ly-4},end:{x:KX+10,y:ly-4},thickness:.8,color:hex("C0392B"),dashArray:[2.4,1.2]}); T("Seam plate row + cover strip", KX+13, ly-6, F, 6); ly -= 9; }
-    wrap(planLegend(p)[0], F, 5.6, LW).slice(0,4).forEach(l=>{ T(l,KX,ly-6,F,5.6,C.grey); ly-=6.4; });
-    { const fn = fluteNote(c); if(fn){ ly -= 1; wrap(fn, FB, 5.8, LW).slice(0,3).forEach(l=>{ T(l,KX,ly-6,FB,5.8,hex("C0392B")); ly-=6.6; }); } } }
+    if(fluteCases(c.planOpt||{}).length < 2) wrap(planLegend(p)[0], F, 5.6, LW).slice(0,4).forEach(l=>{ T(l,KX,ly-6,F,5.6,C.grey); ly-=6.4; });   // with both layouts each one is labelled above its plan
+    { const fn = fluteNote(c); if(fn){ ly -= 1; wrap(fn, FB, 5.8, LW).slice(0,5).forEach(l=>{ T(l,KX,ly-6,FB,5.8,hex("C0392B")); ly-=6.6; }); } } }
   else if(planNeedsFlutes(c)){ ly -= 6; wrap("Sheet layout not drawn: the deck flute direction was not entered. Sheets run perpendicular to the steel deck flutes.", FB, 6.2, LW).forEach(l=>{ T(l,KX,ly-6,FB,6.2,hex("C0392B")); ly-=7.2; }); }
-  if(p){ try{ planBot = planDrawBox(page, p, RX, top-10, RW, (RO.asm ? 170 : 250) - 18*tg, F, FB); }catch(e){ console.warn(e); } }
+  if(p){ try{ const cs = fluteCases(c.planOpt||{}), hM = (RO.asm ? 170 : 250) - 18*tg;
+    if(cs.length > 1){ const gw = (RW - 10)/2; planBot = top; cs.forEach((o, n)=>{ const q = sheetPlan(c, o); if(!q) return; const bx = RX + n*(gw + 10);
+        wrap(fluteCaseTitle(o), FB, 6.4, gw).slice(0,2).forEach((l, li)=>T(l, bx, top - 6 - li*7.4, FB, 6.4, C.blue));
+        planBot = Math.min(planBot, planDrawBox(page, q, bx, top - 22, gw, hM, F, FB)); }); }
+    else planBot = planDrawBox(page, p, RX, top-10, RW, hM, F, FB); }catch(e){ console.warn(e); } }
   }
   let asmBot = planBot;
   if(RO.asm){
@@ -2391,6 +2396,7 @@ function geoRender(){
 
 /* ---------- built-in wind uplift calculator (runs the Excel calculator's own formulas) ---------- */
 const IN_S = "Inputs & Results", AW_S = "Approvals & Warranty", AF_S = "Approval Finder";
+const FLUTE_BOTH = "Not known (show both)";   // flute direction not known: the sheet layout is drawn both ways
 const LOC_OTHER = "Other location (enter wind speed)";
 const RC_OPTS = ["II (most buildings)","I (low hazard, e.g. storage)","III (schools, assembly, 300+ people)","IV (hospitals, fire, police, shelters)"];
 const SLOPES = ["1/8:12","1/4:12","1/2:12","3/4:12","1:12","1-1/2:12","2:12","3:12"];
@@ -2423,7 +2429,7 @@ const ROOF_F = [
   {a:"OPENW", label:"Widest door (ft)", type:"num", noCell:true, half:true},
   {a:"G6", label:"System type", type:"select"},
   {a:"G7", label:"Deck type", type:"select"},
-  {a:"FLUTE", label:"Flutes run along", type:"select", noCell:true, opts:["Length","Width"], help:"Mechanically attached sheets run perpendicular to the flutes. Used for the sheet layout. Not used for RhinoBond (attachment is through the insulation)."},
+  {a:"FLUTE", label:"Flutes run along", type:"select", noCell:true, opts:["Length","Width",FLUTE_BOTH], help:"Mechanically attached sheets run perpendicular to the flutes. Used for the sheet layout. Not known: both layouts are drawn (flutes along the length, and along the width) so the right one can be used once the deck is checked. Not used for RhinoBond (attachment is through the insulation)."},
   {a:"G8", label:"Application", type:"select"},
   {a:"EXINS", label:"Existing insul. (stays)", type:"select", noCell:true, half:true, opts:["None","Not known","1\"","1.5\"","2\"","2.5\"","3\"","3.5\"","4\"+"], help:"Recover only. Insulation already under the existing roof that stays in place. It is part of the existing roof, not new insulation, and is not used to pick the approval. Enter only the insulation you are adding over the existing roof in New insulation below."},
   {a:"EXINT", label:"Existing insul. type", type:"select", noCell:true, half:true, opts:["Polyiso","Perlite","Fiberboard","EPS","Not known"]},
@@ -2755,7 +2761,7 @@ function calcRenderOut(){
   const windBar = `<div class="wbar"><span><b>${esc(String(calcVal("Wind Calc","B10")))} mph</b> ultimate</span><span>Exposure ${esc(String(calcVal(IN_S,"B8")))}</span><span>h ${esc(String(calcVal(IN_S,"B10")))} ft</span>${zp.map(z=>`<span>${esc(z[0])}: <b>${Math.abs(z[1]).toFixed(1)} psf</b></span>`).join("")}</div>`;
   const ovHtml = `<div class="ovr"><label class="f">Use a specific approval instead (system number)<input type="text" id="ovIn" value="${esc(ovTxt)}" placeholder="e.g. SC-334"></label><button type="button" id="ovGo">Use it</button>${ovTxt?'<button type="button" id="ovClr">Back to Top 5</button>':""}</div>${ovMsg}`;
   try{ const zl = `<div class="zleg"><b>${esc(calcText("Report","A24"))}</b>${legend.map((t,i)=>`<span style="--z:${lfill[i]};--zt:${ltxt[i]}">${esc(t)}</span>`).join("")}</div>`;
-    const ps = r.calc ? planSvg(r.calc, Object.assign({}, r.calc.planOpt, {zoneLegend: zl})) : ""; const FA = /Adhered/i.test(String(calcVal(IN_S,"G6")));
+    const ps = r.calc ? fluteCases(r.calc.planOpt).map((o, n)=>{ const t = fluteCaseTitle(o), h = planSvg(r.calc, Object.assign({}, o, {zoneLegend: n ? "" : zl})); return h && t ? `<h4 class="fcase">${esc(t)}</h4>${h}` : h; }).join("") : ""; const FA = /Adhered/i.test(String(calcVal(IN_S,"G6")));
     const selH = (k, lab, opts, dflt, hint) => `<label class="f cf half">${esc(lab)}<select data-plan="${k}">${opts.map(o=>`<option${String(r.v[k]||dflt)===o?" selected":""}>${o}</option>`).join("")}</select>${hint?`<span class="hint">${esc(hint)}</span>`:""}</label>`;
     const ctl = `<div class="cfields" style="margin-top:12px">${FA ? selH("ADHSHEET","Adhered sheet width (ft)",["16","12","10","8","6"],"16","Roll width the crew will run.") : ""}</div>`;
     const flMiss = r.calc && planNeedsFlutes(r.calc);
@@ -3409,11 +3415,14 @@ function planShapes(p){
   (p.opens||[]).forEach(o=>{ if(o._wall) S.push({t:"line", x0:o._wall[0][0], y0:o._wall[0][1], x1:o._wall[1][0], y1:o._wall[1][1], stroke:"#7b2cbf", sw:4, dash:null}); });
   return S;
 }
+/* flute direction not known: draw the layout both ways (A = flutes along the length, B = along the width) */
+function fluteCases(opt){ const o = opt || {}; return /^Not known/i.test(o.flutes||"") ? [Object.assign({}, o, {flutes:"Length", both:"A"}), Object.assign({}, o, {flutes:"Width", both:"B"})] : [o]; }
+function fluteCaseTitle(o){ return o.both ? `Option ${o.both}: deck flutes along the ${o.flutes === "Width" ? "width" : "length"}, sheets run along the ${o.flutes === "Width" ? "length" : "width"}` : ""; }
 /* FL14083 Note 15A and the Sure-Weld spec 3.05 B.2: mechanically attached membrane runs perpendicular to the steel deck flutes */
 function fluteNote(c){
   if(!/Mechanically/i.test(c.system||"")) return "";
   const deck = String(c.deck || (c.raw||{}).G7 || ""); if(!/Steel/i.test(deck) || /metal retrofit/i.test(String(c.application||(c.raw||{}).G8||""))) return "";
-  return "NOTE: Membrane sheets must run perpendicular to the steel deck flutes.";
+  return "NOTE: Membrane sheets must run perpendicular to the steel deck flutes." + (/^Not known/i.test((c.planOpt||{}).flutes||"") ? " Flute direction not confirmed: both layouts shown. Use the one that matches the deck." : "");
 }
 function planLegend(p){
   const L = [];
@@ -3513,12 +3522,13 @@ function planBoardsSvg(p, c){
 }
 /* PDF page: same geometry drawn with pdf-lib */
 async function planPdf(c, opt){
+  const cs = fluteCases(opt); if(cs.length > 1){ const out = await PDFDocument.create(); for(const o of cs){ const d = await planPdf(c, o); if(d) (await out.copyPages(d, d.getPageIndices())).forEach(pg=>out.addPage(pg)); } return out.getPageCount() ? out : null; }
   const p = sheetPlan(c, opt||{}); if(!p) return null; p.deck = c.deck || (c.raw||{}).G7; p.flNote = fluteNote(c);
   const doc = await PDFDocument.create(); const page = doc.addPage([792, 612]);
   const F = await doc.embedFont(StandardFonts.Helvetica), FB = await doc.embedFont(StandardFonts.HelveticaBold);
   const hx = h => rgb(parseInt(h.slice(1,3),16)/255, parseInt(h.slice(3,5),16)/255, parseInt(h.slice(5,7),16)/255);
   page.drawRectangle({x:30, y:612-52, width:732, height:22, color:hx("#0b4f9c")});
-  page.drawText(clean("SHEET LAYOUT AND FASTENING PLAN" + (multiRoof() ? "  |  " + roofTag(c) : "") + (c.approval ? "  |  " + c.approval : "")).slice(0,120), {x:38, y:612-45, size:10, font:FB, color:rgb(1,1,1)});
+  page.drawText(clean("SHEET LAYOUT AND FASTENING PLAN" + ((opt||{}).both ? "  |  OPTION " + opt.both + " (FLUTES ALONG " + (opt.flutes === "Width" ? "WIDTH" : "LENGTH") + ")" : "") + (multiRoof() ? "  |  " + roofTag(c) : "") + (c.approval ? "  |  " + c.approval : "")).slice(0,140), {x:38, y:612-45, size:10, font:FB, color:rgb(1,1,1)});
   const wide = p.L/p.W > 1.6;   // long roofs: plan across the full page, legend underneath
   const boxW = wide ? 712 : 500, boxH = wide ? 300 : 470, k = Math.min(boxW/p.L, boxH/p.W), ox = 40, oy = 612-70 - p.W*k;
   const Y = y => oy + (p.W - y)*k;
