@@ -781,13 +781,15 @@ async function summaryPdf(c, tg=0){
     if(p.MA){ page.drawLine({start:{x:KX,y:ly-4},end:{x:KX+10,y:ly-4},thickness:.8,color:hex("1F2A36"),dashArray:[1,1.2]}); T("Fasteners in laps", KX+13, ly-6, F, 6); ly -= 8;
       page.drawLine({start:{x:KX,y:ly-4},end:{x:KX+10,y:ly-4},thickness:.8,color:hex("C0392B"),dashArray:[2.4,1.2]}); T("Seam plate row + cover strip", KX+13, ly-6, F, 6); ly -= 9; }
     if(fluteCases(c.planOpt||{}).length < 2) wrap(planLegend(p)[0], F, 5.6, LW).slice(0,4).forEach(l=>{ T(l,KX,ly-6,F,5.6,C.grey); ly-=6.4; });   // with both layouts each one is labelled above its plan
-    { const fn = fluteNote(c); if(fn){ ly -= 1; wrap(fn, FB, 5.8, LW).slice(0,5).forEach(l=>{ T(l,KX,ly-6,FB,5.8,hex("C0392B")); ly-=6.6; }); } } }
+ }
   else if(planNeedsFlutes(c)){ ly -= 6; wrap("Sheet layout not drawn: the deck flute direction was not entered. Sheets run perpendicular to the steel deck flutes.", FB, 6.2, LW).forEach(l=>{ T(l,KX,ly-6,FB,6.2,hex("C0392B")); ly-=7.2; }); }
   if(p){ try{ const cs = fluteCases(c.planOpt||{}), hM = (RO.asm ? 170 : 250) - 18*tg;
     if(cs.length > 1){ const gw = (RW - 10)/2; planBot = top; cs.forEach((o, n)=>{ const q = sheetPlan(c, o); if(!q) return; const bx = RX + n*(gw + 10);
         wrap(fluteCaseTitle(o), FB, 6.4, gw).slice(0,2).forEach((l, li)=>T(l, bx, top - 6 - li*7.4, FB, 6.4, C.blue));
         planBot = Math.min(planBot, planDrawBox(page, q, bx, top - 22, gw, hM, F, FB)); }); }
-    else planBot = planDrawBox(page, p, RX, top-10, RW, hM, F, FB); }catch(e){ console.warn(e); } }
+    else planBot = planDrawBox(page, p, RX, top-10, RW, hM, F, FB); }catch(e){ console.warn(e); }
+    // flute note under the plan(s), across their width, instead of lengthening the key column
+    const fn = fluteNote(c); if(fn){ wrap(fn, FB, 5.8, RW).slice(0,2).forEach(l=>{ T(l, RX, planBot-7, FB, 5.8, hex("C0392B")); planBot -= 6.8; }); planBot -= 2; } }
   }
   let asmBot = planBot;
   if(RO.asm){
@@ -845,7 +847,9 @@ async function summaryPdf(c, tg=0){
     let warnT = ""; try{ const tb = asmModel(c).layers.find(l=>l.plates === "maIns"); if(tb && tb.maAssumed) warnT = `Insulation thickness not entered: count assumes the approval minimum of ${+(+tb.maT).toFixed(2)} in.`; }catch(e){}
     if(LIST.some(b=>b.over)) warnT = (warnT ? warnT + " " : "") + "A zone needs more than the largest pattern: use smaller boards or a design professional.";
     const nl = warnT ? wrap(warnT, FB, 5.6, PW2).slice(0, 2) : [];
-    const hTarget = Math.max(side ? yRow - yIn : 0, 100) + (LIST.length >= 3 ? 45 : 0), labH = 20, n = LIST.length, gap = 10, U = b => b.sz === "4x4" ? 48 : 96;
+    // never taller than what is left above the fine print (which needs its own room to stay on this page)
+    const fpNeed = RO.notes ? (wrap(c.note, FI, 4.8, CW).length + wrap(c.legal, F, 4.8, CW).length) * 4.8 * 1.18 + 26 : 8;
+    const hTarget = Math.max(60, Math.min(Math.max(side ? yRow - yIn : 0, 100) + (LIST.length >= 3 ? 45 : 0) - 20*tg, yRow - M - fpNeed)), labH = 20, n = LIST.length, gap = 10, U = b => b.sz === "4x4" ? 48 : 96;
     const fitRows = r => { const per = Math.ceil(n / r); let best = 0; for(let k=0;k<n;k+=per){ best = Math.max(best, LIST.slice(k, k+per).reduce((t,b)=>t + U(b), 0)); }
       return Math.min(1.25, (PW2 - gap*(per-1)) / best, (hTarget - 17 - r*labH - nl.length*6.2 - 4) / (48*r)); };
     const rowsN = n >= 3 && fitRows(2) > fitRows(1) * 1.08 ? 2 : 1, sc = Math.max(0.28, fitRows(rowsN)), bh = 48*sc, per = Math.ceil(n / rowsN);
