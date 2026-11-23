@@ -85,7 +85,7 @@
     const V = [
       ["roof", "Find roof", [$("calcGeo")]],
       ["plan", "Sheet layout", [$("calcTrace"), $("calcPlan")]],
-      ["zones", "Assembly", [$("calcZones"), $("calcDraw"), $("calcAsm")]],
+      ["zones", "Assembly", [$("calcZones"), $("calcDraw"), $("calcAsm"), $("calcPat")]],
       ["appr", "Approval & warranty", [$("calcTop"), $("calcWar")]],
       ["sum", "Summary Sheet Generator", [$("roofList"), document.querySelector(".sumh"), $("sumWrap"), document.querySelector(".rbottom")]],
     ];
