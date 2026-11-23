@@ -3525,7 +3525,12 @@ function beadAt(c, z, i){ const b = fastBeads(c), t = i >= 2 ? b.p : b.f, r = pa
 function membAdh(c){
   const raw = c.raw || {}, fb = /FleeceBACK/i.test(raw.MEMB || "") || /FleeceBACK/i.test(c.memb || "");
   if(!/Adhered/i.test(c.system||"")) return null;
-  if(fb) return {kind:"beads", name:"Flexible FAST adhesive (FleeceBACK membrane)", note:"Beads min. 1.5 in. wide foamed, or splatter at 50% coverage on smooth flat surfaces only (Flexible FAST PDS). Keep adhesive out of the end laps."};
+  if(fb){   // FleeceBACK: the ribbon spacing comes from the approval listing (Roof Cover application), e.g. "(RIBBON, 12-inch o.c.)" or "(FULL)"
+    let lt = ""; try{ const ix = c.appr && c.appr.idx; lt = ix ? (dbVal(ix, "Roof Cover Application") || dbVal(ix, "Fastener / Plate / Membrane adhesive")) : ""; }catch(e){}
+    const m = lt.match(/(\d+(?:\.\d+)?)\s*-?\s*inch\s*o\.?\s*c/i), full = /\(FULL\)|full coverage/i.test(lt), spl = /SPLATTER/i.test(lt);
+    const rib = m ? +m[1] : full ? 4 : null;
+    const b = fastBeads(c), src = m ? `Approval listing: ribbons ${rib} in. o.c.` : full ? "Approval listing: full coverage (4 in. o.c. ribbons or 1 gal/sq)" : `The approval listing gives no ribbon spacing: shown at the Carlisle minimum for the ${b.mph} mph warranty (${b.f} in. o.c. field, ${b.p} in. o.c. perimeter and corners); confirm against the Carlisle spec`;
+    return {kind:"beads", rib, full, name:"Flexible FAST adhesive (FleeceBACK membrane)", note:`${src}${spl ? " (splatter also listed)" : ""}. Beads min. 1.5 in. wide foamed; splatter at 50% coverage on smooth flat surfaces only (Flexible FAST PDS). Keep adhesive out of the end laps.`}; }
   const pvc = /PVC|KEE/i.test(c.source || raw.G14 || "");
   return {kind:"full", name: c.adhPref === "CG" ? (pvc ? "CAV-GRIP PVC adhesive" : "CAV-GRIP III adhesive / primer") : (pvc ? "Sure-Flex PVC Low-VOC Bonding Adhesive" : "Sure-Weld Bonding Adhesive"), note:"Full coverage, applied to both the membrane underside and the substrate, mated when tacky (no beads)."};
 }
@@ -3578,12 +3583,13 @@ function boardSvg(b){
 }
 function membBoards(p, c){ const m = membAdh(c); if(!m) return [];
   if(m.kind === "full") return [{kind:"full", surf:"memb", title:m.name, zones:["Every zone"], sub:"full coverage, both surfaces"}];
-  const out = []; p.Z.forEach((z, i)=>{ const r = beadAt(c, z, i), hit = out.find(b=>b.rib === r); if(hit) hit.zones.push(PLAN_ZN[i]); else out.push({kind:"beads", surf:"memb", rib:r, sz:"4x8", title:`Flexible FAST beads ${r}" o.c.`, zones:[PLAN_ZN[i]], sub:"under the FleeceBACK sheet"}); }); return out; }
+  if(!m.rib){ const out = []; p.Z.forEach((z, i)=>{ const b = fastBeads(c), r = i >= 2 ? b.p : b.f, hit = out.find(x=>x.rib === r); if(hit) hit.zones.push(PLAN_ZN[i]); else out.push({kind:"beads", surf:"memb", rib:r, sz:"4x8", title:`Flexible FAST ribbons ${r}" o.c.`, zones:[PLAN_ZN[i]], sub:"Carlisle minimum: confirm with the spec"}); }); return out; }
+  return [{kind:"beads", surf:"memb", rib:m.rib, sz:"4x8", title: m.full ? `Flexible FAST full coverage (${m.rib}" o.c. ribbons)` : `Flexible FAST ribbons ${m.rib}" o.c.`, zones:["Every zone (as listed)"], sub:"under the FleeceBACK sheet"}]; }
 function planBoardsSvg(p, c){
-  const B = planBoards(p, c), M = membBoards(p, c), m = membAdh(c); if(!B.length && !M.length) return "";
+  const B = planBoards(p, c), M = membBoards(p, c), m = membAdh(c); if(!B.length && !m) return "";
   let h = "";
   if(B.length) h += `<h4 class="fcase">Insulation attachment per board</h4><p class="hint" style="margin:0 0 6px">${esc(boardNote(p, c))}</p><div class="pbd">${B.map(boardSvg).join("")}</div>`;
-  if(M.length) h += `<h4 class="fcase">Membrane adhesive: ${esc(m.name)}</h4><p class="hint" style="margin:0 0 6px">${esc(m.note)}${m.kind === "beads" ? ` Spacing shown is the minimum for the ${fastBeads(c).mph} mph warranty; confirm with Carlisle for longer warranties.` : ""}</p><div class="pbd">${M.map(boardSvg).join("")}</div>`;
+  if(m) h += `<h4 class="fcase">Membrane adhesive: ${esc(m.name)}</h4><p class="hint" style="margin:0 0 6px">${esc(m.note)}</p><div class="pbd">${M.map(boardSvg).join("")}</div>`;
   return h;
 }
 /* PDF page: same geometry drawn with pdf-lib */
