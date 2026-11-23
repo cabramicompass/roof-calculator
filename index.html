@@ -806,7 +806,7 @@ async function summaryPdf(c, tg=0){
   // attachment
   if(RO.attach){
   band(c.attachHead||"ATTACHMENT (extrapolated from approved assembly)");
-  let sysl = c.sysline||""; if(c.adhPref){ const pvc = /PVC/i.test(c.source||""); const nm = c.adhPref === "BA" ? (pvc ? "Sure-Flex PVC Low-VOC Bonding Adhesive" : "Sure-Weld Bonding Adhesive") : (pvc ? "CAV-GRIP PVC" : "CAV-GRIP III"); sysl = /Membrane adh\.:/.test(sysl) ? sysl.replace(/Membrane adh\.:[^|]*/, "Membrane adh.: " + nm + " ") : sysl + " | Membrane adh.: " + nm; }
+  let sysl = c.sysline||""; if(c.adhPref){ const pvc = /PVC/i.test(c.source||""); const nm = c.adhPref === "BA" ? (pvc ? "Sure-Flex PVC Low-VOC Bonding Adhesive" : "Sure-Weld Bonding Adhesive") : (pvc ? "CAV-GRIP PVC or Sure-Flex PVC Low-VOC Bonding Adhesive" : "CAV-GRIP III or Sure-Weld Bonding Adhesive"); sysl = /Membrane adh\.:/.test(sysl) ? sysl.replace(/Membrane adh\.:[^|]*/, "Membrane adh.: " + nm + " ") : sysl + " | Membrane adh.: " + nm; }
   if(c.spec){ const sp = c.spec, bits = []; if(sp.under && !/^None/i.test(sp.under)) bits.push("Bottom layer " + sp.under); if(sp.insul) bits.push("Insulation " + sp.insul); if(sp.top && !/^None/i.test(sp.top)) bits.push("Top layer " + sp.top); if(sp.cover && !/^None/i.test(sp.cover)) bits.push("Cover board " + sp.cover); if(bits.length) sysl += " | Specified: " + bits.join("; "); }
   // keep only columns that say something: drop blank / "—" columns, and columns where every zone reads the same (e.g. "RhinoBond", "Up to 16' sheet")
   const AR = c.attach.slice(1).filter(r=>r && r[0]);
@@ -1001,7 +1001,7 @@ function alrFromCalc(c){
   v.memb = clean1(pick(d,/membrane/i));
   v.system = FA ? "Fully Adhered" : "Mechanically Fastened"; v.use = "Weather Protection Only";
   v.membAdh = FA ? clean1(pick(d,/adhesive \/ application|adhesive/i)) : "";
-  if(FA && c.adhPref){ const pvc = /PVC/i.test(c.source||""); v.membAdh = c.adhPref === "BA" ? (pvc ? "Sure-Flex PVC Low-VOC Bonding Adhesive" : "Sure-Weld Bonding Adhesive") : (pvc ? "CAV-GRIP PVC" : "CAV-GRIP III"); if(c.spec && c.spec.adhName) v.membAdh = c.spec.adhName; v.membAdh += (c.spec && c.spec.adhListed === false) ? " (not listed in this approval; CAV-GRIP and bonding adhesive are interchangeable, please confirm)" : ""; }
+  if(FA && c.adhPref){ const pvc = /PVC/i.test(c.source||""); v.membAdh = c.adhPref === "BA" ? (pvc ? "Sure-Flex PVC Low-VOC Bonding Adhesive" : "Sure-Weld Bonding Adhesive") : (pvc ? "CAV-GRIP PVC or Sure-Flex PVC Low-VOC Bonding Adhesive" : "CAV-GRIP III or Sure-Weld Bonding Adhesive"); if(c.spec && c.spec.adhName && c.adhPref !== "CG") v.membAdh = c.spec.adhName; v.membAdh += (c.spec && c.spec.adhListed === false) ? " (not listed in this approval; CAV-GRIP and bonding adhesive are interchangeable, please confirm)" : ""; }
   const at = (c.attach||[]).slice(1).filter(a=>a[0] && /\d/.test(a[3]||"") );
   if(MA){ const fz = clean1(pick(d,/roof cover – fastener$/i)); v.membFast = (fz? fz+". " : "") + at.map(a=>a[0].replace(/ \(.*\)/,"")+": "+a[3]+" @ "+a[5]).join("; "); }
   if(RB){ v.membFast = "RhinoBond (induction welded): " + (clean1(pick(d,/attachment – fastener|fastener/i))) + ". " + at.map(a=>a[0].replace(/ \(.*\)/,"")+": "+a[6]).join("; "); }
@@ -2975,10 +2975,11 @@ function asmLayers(c){
     if(c.adhPref === "BA") adh = pvc ? "Low VOC PVC Bonding Adhesive" : "Sure-Weld Bonding Adhesive";
     if(c.adhPref === "CG") adh = pvc ? "CAV-GRIP PVC" : "CAV-GRIP III";
     if(!c.adhPref && c.spec && c.spec.adhName) adh = c.spec.adhName;
+    if(/CAV-GRIP/i.test(adh || "")) adh = pvc ? "CAV-GRIP PVC or Sure-Flex PVC Low-VOC Bonding Adhesive" : "CAV-GRIP III or Sure-Weld Bonding Adhesive";   // CAV-GRIP is always named with its bonding adhesive alternative
     if(/Flexible FAST/i.test(adh)) { L.push({k:"fast", t:"Flexible FAST adhesive (membrane)", h:4}); adh = null; }
     if(adh === null){}
     else if(fb) L.push({k:"fast", t:"Flexible FAST adhesive (FleeceBACK)", h:4});
-    else L.push({k:/CAV-?GRIP/i.test(adh) ? "adhY" : "adh", t:adh ? adh.replace(/\s+/g," ").slice(0,40) : "Membrane bonding adhesive", h:4});
+    else L.push({k:/CAV-?GRIP/i.test(adh) ? "adhY" : "adh", t:adh ? adh.replace(/\s+/g," ").slice(0,64) : "Membrane bonding adhesive", h:4});
   }
   L.forEach(x=>{ if(x.k==="iso" && /Insulfoam|\bEPS\b|ChannelDry|Flute-filled/i.test(epsName(x.src||"")) && !/HD Composite|Composite EPS/i.test(x.src||"")) x.k = "eps"; });
   const lastBoard = [...L].reverse().find(x=>/iso|eps|hd|gyp|conc|lwc|steel|wood|^ex/.test(x.k));
@@ -3609,7 +3610,7 @@ function membAdh(c){
     const b = fastBeads(c), src = m ? `Approval listing: ribbons ${rib} in. o.c.` : full ? "Approval listing: full coverage (4 in. o.c. ribbons or 1 gal/sq)" : `The approval listing gives no ribbon spacing: shown at the Carlisle minimum for the ${b.mph} mph warranty (${b.f} in. o.c. field, ${b.p} in. o.c. perimeter and corners); confirm against the Carlisle spec`;
     return {kind:"beads", rib, full, name:"Flexible FAST adhesive (FleeceBACK membrane)", note:`${src}${spl ? " (splatter also listed)" : ""}. Beads min. 1.5 in. wide foamed; splatter at 50% coverage on smooth flat surfaces only (Flexible FAST PDS). Keep adhesive out of the end laps.`}; }
   const pvc = /PVC|KEE/i.test(c.source || raw.G14 || "");
-  return {kind:"full", name: c.adhPref === "CG" ? (pvc ? "CAV-GRIP PVC adhesive" : "CAV-GRIP III adhesive / primer") : (pvc ? "Sure-Flex PVC Low-VOC Bonding Adhesive" : "Sure-Weld Bonding Adhesive"), note:"Full coverage, applied to both the membrane underside and the substrate, mated when tacky (no beads)."};
+  return {kind:"full", name: c.adhPref === "CG" ? (pvc ? "CAV-GRIP PVC or Sure-Flex PVC Low-VOC Bonding Adhesive" : "CAV-GRIP III or Sure-Weld Bonding Adhesive") : (pvc ? "Sure-Flex PVC Low-VOC Bonding Adhesive" : "Sure-Weld Bonding Adhesive"), note:"Full coverage, applied to both the membrane underside and the substrate, mated when tacky (no beads)."};
 }
 function planBoards(p, c){
   const ins = String((c.raw||{}).G11||""), out = [], add = (zs, o) => { const k = JSON.stringify([o.kind, o.n || 0, o.rib || 0, o.sz || ""]); const hit = out.find(b=>b.key === k); if(hit) hit.zones.push(...zs); else out.push(Object.assign({key:k, zones:zs.slice()}, o)); };
