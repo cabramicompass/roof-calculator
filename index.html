@@ -3029,10 +3029,17 @@ function asmModel(c){
       if(fl){ // bonding adhesive / CAV-GRIP: a rolled coat over most of the board
         add(P([T(0.04,0.08), T(0.7,0.08), T(0.62,0.92), T(0.04,0.92)]), col[1], col[2], 0.4);
         for(let k2 = 0; k2 < 40; k2++){ const u = 0.06 + 0.56*(((k2*37)%97)/97), v = 0.12 + 0.76*(((k2*53)%89)/89), q = T(u, v); add(`M${f1(q[0])} ${f1(q[1])} h2`, "none", col[2], 0.4); }
-      } else { // Flexible FAST: serpentine ribbons of beads
-        const nR = l.k === "beads" && FLD.rib ? Math.max(3, Math.min(11, Math.round(5*12/FLD.rib))) : 6, du = 0.84/nR;
-        const rows = 3;   // serpentine ribbons of beads running across the board, like they are laid down on site
-        for(let r2 = 0; r2 < rows; r2++){ const u0 = 0.2 + 0.6*r2/(rows-1); for(let v = 0.04; v <= 0.96; v += 0.012){ const q = T(u0 + 0.07*Math.sin(v*Math.PI*6), v); ell(q[0], q[1], 1.9, "#3d94cb", "#2a77a8"); } }   // ribbons run back across the strip
+      } else { // Flexible FAST: one continuous serpentine bead, side-to-side passes from the top (back) edge, U-turns at the ends; splatter where the listing says full coverage
+        let ma = null; try{ ma = l.k === "fast" ? membAdh(c) : null; }catch(e){}
+        const rib = l.k === "beads" ? (FLD.rib || 12) : (ma && ma.rib) || 12, splat = !!(ma && ma.full);
+        if(splat){ for(let k2 = 0; k2 < 160; k2++){ const u = 0.05 + 0.6*(((k2*37)%101)/101), v = 0.06 + 0.88*(((k2*53)%97)/97), q = T(u, v); ell(q[0], q[1], 1.1 + (k2%3)*0.45, "#5fb3e6", "#3d94cb"); } }
+        else {
+          const n = rib >= 12 ? 4 : rib >= 6 ? 6 : 8, v0 = 0.1, v1 = 0.9, dv = (v1 - v0) / (n - 1), uL = 0.05, uR = 0.62, ru = 0.035;
+          const pts = [[uL, v0]];
+          for(let i2 = 0; i2 < n; i2++){ const v = v0 + i2*dv, right = i2 % 2 === 0, ue = right ? uR : uL; pts.push([ue, v]);
+            if(i2 < n-1){ for(let a = 1; a < 12; a++){ const th = Math.PI*a/12, vv = v + dv*(1 - Math.cos(th))/2, uu = ue + (right ? 1 : -1)*ru*Math.sin(th); pts.push([uu, vv]); } } }
+          const q = pts.map(([u,v])=>T(u,v)); add(`M${q.map(p=>f1(p[0]) + " " + f1(p[1])).join(" L")}`, "none", "#3d94cb", 2.6);
+        }
       }
       const mq = T(fl ? 0.62 : 0.74, 0.5); marks.push({n:i+1, x:mq[0], y:mq[1], t:l.t});
       return;
@@ -3075,10 +3082,12 @@ function asmModel(c){
         const PAT = {4:[[1/8,1/4],[7/8,1/4],[1/8,3/4],[7/8,3/4]].map(([u,v])=>[u,v]), 5:[[1/8,1/4],[7/8,1/4],[1/2,1/2],[1/8,3/4],[7/8,3/4]],
           6:[[1/8,1/4],[1/2,1/4],[7/8,1/4],[1/8,3/4],[1/2,3/4],[7/8,3/4]], 8:[[1/8,1/4],[3/8,1/4],[5/8,1/4],[7/8,1/4],[1/8,3/4],[3/8,3/4],[5/8,3/4],[7/8,3/4]]};
         if(l.plates === "maIns"){}
+        else if((l.plates === "rb" || l.plates === "insul") && typeof boardPts === "function" && boardPts(nb, l.plates === "rb").length) pts = boardPts(nb, l.plates === "rb").map(([x,y])=>[0.08 + 0.84*x/96, 0.06 + 0.88*y/48]);   // the real Carlisle pattern, true spacing
         else if(PAT[nb]) pts = PAT[nb].map(([u,v])=>[0.08 + 0.84*u, 0.06 + 0.88*v]);
         else { const cols = nb >= 12 && top ? 4 : nb >= 9 && top ? 3 : 2, rows = Math.ceil(nb/cols);
           pts = []; for(let r2=0;r2<rows;r2++) for(let k2=0;k2<cols && pts.length<nb;k2++) pts.push([0.08 + 0.84*(k2+0.5)/cols, 0.06 + 0.88*(r2+0.5)/rows]); } }
-      const r0 = l.plates === "rb" ? 7.5 : l.plates === "seam" || l.plates === "maIns" ? 5.5 : Math.max(3.2, 6 - (pts.length > 9 ? 2 : 0));
+      const bw = Math.abs(onTop(0.92, 0)[0] - onTop(0.08, 0)[0]);   // board length on screen: plates sized to it so a dense pattern doesn't pile up
+      const r0 = l.plates === "rb" || l.plates === "insul" ? Math.max(2.6, Math.min(5.5, bw * (l.plates === "rb" ? 0.05 : 0.045), bw / (2.6 * Math.sqrt(pts.length * 2)))) : l.plates === "seam" || l.plates === "maIns" ? 5.5 : Math.max(3.2, 6 - (pts.length > 9 ? 2 : 0));
       for(const [u,v] of pts){ const [px,py] = onTop(u,v); ell(px, py, r0, "#cfd5da", "#6f7a86"); ell(px, py, 1.6, "#6f7a86", "#6f7a86"); }
     }
     if(l.k === "mem" && l.fb){
