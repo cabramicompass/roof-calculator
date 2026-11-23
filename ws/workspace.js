@@ -36,6 +36,7 @@
       <div class="ws-job"><b id="wsJob">New job</b><span id="wsJobSub"></span></div>
       <div class="ws-seg" role="tablist" aria-label="Sections"><button type="button" class="on" data-ws-go="1">Calculator</button><button type="button" data-ws-go="3">Submittal</button></div>
       <div class="ws-actions">
+        <button type="button" class="ws-btn" id="wsSave" title="Save this job to History now (it also saves automatically)">Save</button>
         <button type="button" class="ws-btn" id="wsHist" title="Saved jobs on this computer: reopen and change them">History</button>
         <button type="button" class="ws-btn primary" id="wsSum">Summary PDF</button>
         <div class="ws-more"><button type="button" class="ws-btn" id="wsMoreBtn" aria-haspopup="true" aria-expanded="false">More</button>
@@ -121,6 +122,10 @@
     document.body.appendChild(hb);
     const histShow = on => { hb.hidden = !on; if(on && typeof histRender === "function"){ histRender(); setTimeout(()=>$("histQ").focus(), 50); } };
     $("wsHist").onclick = ()=>histShow(true);
+    $("wsSave").onclick = ()=>{ const b = $("wsSave"); let ok = false;
+      try{ if(typeof calcSave === "function") localStorage.setItem("csg-calc-draft", JSON.stringify(calcData())); ok = histSave(true, true); }catch(e){}
+      b.textContent = ok ? "Saved ✓" : "Not saved"; b.title = ok ? "Saved to History at " + new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : "Could not save: browser storage is full or blocked";
+      clearTimeout(b._t); b._t = setTimeout(()=>{ b.textContent = "Save"; }, 2000); };
     $("histClose").onclick = ()=>histShow(false);
     hb.addEventListener("click", e=>{ if(e.target === hb) histShow(false); });
     document.addEventListener("keydown", e=>{ if(e.key === "Escape" && !hb.hidden) histShow(false); });
