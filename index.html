@@ -768,7 +768,7 @@ async function summaryPdf(c, tg=0){
   y = Math.min(yI, yP) - 8;
   // sheet layout over the roof zones + assembly, framed as the centerpiece of the page
   if(RO.layout || RO.asm){
-  band(RO.layout && RO.asm ? "SHEET LAYOUT, ROOF ZONES AND ASSEMBLY" : RO.layout ? "SHEET LAYOUT AND ROOF ZONES" : "ASSEMBLY"); const secTop = y + 2, top = y - 6;
+  { const sl = /Mechanically/i.test(c.system||"") ? "SHEET LAYOUT AND ROOF ZONES" : "ROOF ZONES"; band(RO.layout && RO.asm ? sl.replace(" AND ", ", ") + " AND ASSEMBLY" : RO.layout ? sl : "ASSEMBLY"); } const secTop = y + 2, top = y - 6;
   const PAD = 7, KX = M + PAD, LW = RO.layout ? 136 : 0, RX = KX + LW + 12, RW = M + CW - PAD - RX;
   let ly = top, p = null, planBot = top;
   if(RO.layout){
@@ -2486,7 +2486,7 @@ const ROOF_F = [
   {a:"MEMB", label:"Membrane", type:"select", noCell:true, opts:["Any","BareBack","FleeceBACK"], help:"FleeceBACK shows only approvals that list a FleeceBACK membrane. BareBack screens out FleeceBACK only listings. Any lets the finder pick."},
   {a:"F9", label:"Steel gauge", type:"select", half:true},
   {a:"G9", label:"Steel grade", type:"select", half:true},
-  {a:"G10", label:"UL Class A", type:"select", help:"Use the steepest slope on the roof, crickets and saddles included (often about 1/2:12 with a 1/4:12 field). Check the taper plan."},
+  {a:"G10", label:"UL Class A (max. slope)", type:"select", help:"The slopes listed are the maximum slope the UL Class A rating covers. Use the steepest slope on the roof, crickets and saddles included (often about 1/2:12 with a 1/4:12 field). Check the taper plan."},
   {a:"F11", label:"Insulation", type:"select", half:true, help:"Pick None for a non-insulated assembly. For mechanically attached and RhinoBond, approvals needing thicker insulation than entered are screened out."},
   {a:"G11", label:"Insul. attachment", type:"select", half:true, help:"Fully adhered only. Mechanically attached and RhinoBond insulation is fastened."},
   {a:"F12", label:"Insulation type", type:"select", half:true, help:"Only if the contractor or spec names one. Approvals that don't list it are screened out."},
@@ -2558,7 +2558,7 @@ function calcSnapshot(i){
   if(c){ try{ shapeApply(c, r.v); }catch(e){ console.warn(e); }
     if(Array.isArray(c.info)) c.info = c.info.filter(p=>!/^(Existing insulation \(stays\)|Adjoining roof edges)$/.test(p[0]));
     c.exIns = exInsText(r.v); if(c.exIns && Array.isArray(c.info)) c.info.push(["Existing insulation (stays)", c.exIns]);
-    if(c.adj && c.adj.length && Array.isArray(c.info)){ const ft = c.adj.reduce((t,[,a,b])=>t + b - a, 0); c.info.push(["Adjoining roof edges", Math.round(ft) + " ft of edge runs into an adjoining roof at the same level: no perimeter or corner zones along it"]); } c.openNote = openNote(c, r.v); c.memb = r.v.MEMB || "Any"; c.levelName = r.v.B5 || ("Roof " + (i+1)); c.roofNo = i + 1; c.zoneFt = ["B7","B8","B9","B10"].map(a=>parseFloat(calcVal("Layout Engine", a))); c.zonePar = !!calcVal("Wind Calc","B29"); c.planOpt = {perim: r.v.PERIM || "Half sheets", flutes: r.v.FLUTE || "", adhSheet: r.v.ADHSHEET || "16"}; c.vbOpt = String(calcVal(AF_S,"AB68")||""); try{ fingerAttach(c); }catch(e){ console.warn(e); } try{ specApply(c, specFor(i)); }catch(e){ console.warn(e); }
+    if(c.adj && c.adj.length && Array.isArray(c.info)){ const ft = c.adj.reduce((t,[,a,b])=>t + b - a, 0); c.info.push(["Adjoining roof edges", Math.round(ft) + " ft of edge runs into an adjoining roof at the same level: no perimeter or corner zones along it"]); } c.openNote = openNote(c, r.v); c.memb = r.v.MEMB || "Any"; c.levelName = r.v.B5 || ("Roof " + (i+1)); c.roofNo = i + 1; c.zoneFt = ["B7","B8","B9","B10"].map(a=>parseFloat(calcVal("Layout Engine", a))); c.zonePar = !!calcVal("Wind Calc","B29"); c.planOpt = {perim: r.v.PERIM || "Half sheets", flutes: /Mechanically/i.test(c.system||"") || r.v.FLUTE !== FLUTE_BOTH ? (r.v.FLUTE || "") : "Length", adhSheet: r.v.ADHSHEET || "16"}; c.vbOpt = String(calcVal(AF_S,"AB68")||""); try{ fingerAttach(c); }catch(e){ console.warn(e); } try{ specApply(c, specFor(i)); }catch(e){ console.warn(e); }
     try{ const ix = selIdx(); c.appr = ix ? {idx:ix, sys:dbVal(ix,"System No."), table:dbVal(ix,"Table"), page:dbVal(ix,"Approval Page"), doc:dbVal(ix,"Document"), zone:dbVal(ix,"Code Zone")} : null; }catch(e){ c.appr = null; } }
   if(c){ const rc = CALC.job.RC || RC_OPTS[0];
     c.raw = Object.assign({}, c.raw, {SLOPE: r.v.SLOPE || "1/4:12", RC: rc});
@@ -2587,15 +2587,15 @@ function histId(){ return "j" + Date.now().toString(36) + Math.random().toString
 function histLoad(){ try{ const h = JSON.parse(localStorage.getItem(HIST_KEY) || "[]"); return Array.isArray(h) ? h : []; }catch(e){ return []; } }
 function histStore(h){ try{ localStorage.setItem(HIST_KEY, JSON.stringify(h.slice(0, HIST_MAX))); return true; }catch(e){ return false; } }
 let histTimer = null;
-function histSave(now){ clearTimeout(histTimer); const run = ()=>{
+function histSave(now, force){ clearTimeout(histTimer); let ok = false; const run = ()=>{
   if(!CALC.job) return; if(!CALC.job._id) CALC.job._id = histId();
   const name = String(CALC.job.B6 || "").trim(), worth = name || CALC.roofs.some(r=>r.v && (r.v.POLY || r.v.GEO));
-  if(!worth) return;
+  if(!worth && !force) return;
   const geo = (()=>{ for(const r of CALC.roofs){ try{ const g = JSON.parse(r.v.GEO || "null"); if(g && g.q) return String(g.q).replace(/\s*·.*$/, ""); }catch(e){} } return ""; })();
   const h = histLoad().filter(x=>x.id !== CALC.job._id);
-  h.unshift({id:CALC.job._id, name, addr:geo, loc:CALC.job.B7 || "", roofs:CALC.roofs.length, at:Date.now(), data:calcData()});
-  histStore(h); if(document.getElementById("histBox") && !document.getElementById("histBox").hidden) histRender(); };
-  if(now) run(); else histTimer = setTimeout(run, 600); }
+  h.unshift({id:CALC.job._id, name: name || (worth ? "" : "Untitled job"), addr:geo, loc:CALC.job.B7 || "", roofs:CALC.roofs.length, at:Date.now(), data:calcData()});
+  ok = histStore(h); if(document.getElementById("histBox") && !document.getElementById("histBox").hidden) histRender(); };
+  if(now) run(); else histTimer = setTimeout(run, 600); return ok; }
 function histOpen(id){
   const e = histLoad().find(x=>x.id === id); if(!e) return;
   histSave(true);   // keep the job that is open now before switching
@@ -2651,7 +2651,7 @@ function fieldHTML(f, val, scope){
   const id = "cf-" + f.a;
   if(f.type==="select"){
     const opts = CALC.opts[f.a]||[]; const has = opts.includes(String(val));
-    return `<label class="f cf${f.half?" half":""}" data-a="${f.a}"><span class="lt"><span class="ltx" title="${esc(f.label)}">${esc(f.label)}</span>${f.help?`<button type="button" class="fq" aria-label="Help" aria-expanded="false">?</button>`:""}</span><select id="${id}" data-a="${f.a}" data-s="${scope}">${has||val===""?"":`<option>${esc(val)}</option>`}${val===""?'<option value="">Choose…</option>':""}${opts.map(o=>`<option value="${esc(o)}"${String(o)===String(val)?" selected":""}>${esc(String(o).replace(/\s*\(InsulFoam\)/i,""))}</option>`).join("")}</select>${f.help?`<span class="hint fhint" hidden>${esc(f.help)}</span>`:""}</label>`;
+    return `<label class="f cf${f.half?" half":""}" data-a="${f.a}"><span class="lt"><span class="ltx" title="${esc(f.label)}">${esc(f.label)}</span>${f.help?`<button type="button" class="fq" aria-label="Help" aria-expanded="false">?</button>`:""}</span><select id="${id}" data-a="${f.a}" data-s="${scope}">${has||val===""?"":`<option>${esc(val)}</option>`}${val===""?'<option value="">Choose…</option>':""}${opts.map(o=>`<option value="${esc(o)}"${String(o)===String(val)?" selected":""}>${esc(String(o).replace(/\s*\(InsulFoam\)/i,"").replace(/^Yes, slope /,"Yes, maximum slope "))}</option>`).join("")}</select>${f.help?`<span class="hint fhint" hidden>${esc(f.help)}</span>`:""}</label>`;
   }
   return `<label class="f cf${f.half?" half":""}" data-a="${f.a}"><span class="lt"><span class="ltx" title="${esc(f.label)}">${esc(f.label)}</span>${f.help?`<button type="button" class="fq" aria-label="Help" aria-expanded="false">?</button>`:""}</span><input type="text" id="${id}" data-a="${f.a}" data-s="${scope}" value="${esc(val??"")}" ${f.type==="num"?'inputmode="decimal" autocomplete="off"':""} placeholder="${esc(f.ph||"")}">${f.help?`<span class="hint fhint" hidden>${esc(f.help)}</span>`:""}</label>`;
 }
@@ -2816,9 +2816,8 @@ function calcRenderOut(){
   try{ const zl = `<div class="zleg"><b>${esc(calcText("Report","A24"))}</b>${legend.map((t,i)=>`<span style="--z:${lfill[i]};--zt:${ltxt[i]}">${esc(t)}</span>`).join("")}</div>`;
     const ps = r.calc ? fluteCases(r.calc.planOpt).map((o, n)=>{ const t = fluteCaseTitle(o), h = planSvg(r.calc, Object.assign({}, o, {zoneLegend: n ? "" : zl})); return h && t ? `<h4 class="fcase">${esc(t)}</h4>${h}` : h; }).join("") : ""; const FA = /Adhered/i.test(String(calcVal(IN_S,"G6")));
     const selH = (k, lab, opts, dflt, hint) => `<label class="f cf half">${esc(lab)}<select data-plan="${k}">${opts.map(o=>`<option${String(r.v[k]||dflt)===o?" selected":""}>${o}</option>`).join("")}</select>${hint?`<span class="hint">${esc(hint)}</span>`:""}</label>`;
-    const ctl = `<div class="cfields" style="margin-top:12px">${FA ? selH("ADHSHEET","Adhered sheet width (ft)",["16","12","10","8","6"],"16","Roll width the crew will run.") : ""}</div>`;
     const flMiss = r.calc && planNeedsFlutes(r.calc);
-    $("calcPlan").innerHTML = ps ? `<div class="xpan"><div class="xh">SHEET LAYOUT AND FASTENING PLAN</div><div class="xb">${ps}${ctl}</div></div>` : flMiss ? `<div class="xpan"><div class="xh">SHEET LAYOUT AND FASTENING PLAN</div><div class="xb"><p class="missing" style="margin:0"><span>Pick <b>Flutes run along</b> (Length or Width) in the Assembly box to see the sheet layout. Mechanically attached sheets run perpendicular to the steel deck flutes, so the layout can't be drawn without it.</span></p></div></div>` : "";
+    $("calcPlan").innerHTML = ps ? `<div class="xpan"><div class="xh">${/Mechanically/i.test(r.calc.system||"") ? "SHEET LAYOUT AND FASTENING PLAN" : "ROOF ZONES"}</div><div class="xb">${ps}</div></div>` : flMiss ? `<div class="xpan"><div class="xh">SHEET LAYOUT AND FASTENING PLAN</div><div class="xb"><p class="missing" style="margin:0"><span>Pick <b>Flutes run along</b> (Length or Width) in the Assembly box to see the sheet layout. Mechanically attached sheets run perpendicular to the steel deck flutes, so the layout can't be drawn without it.</span></p></div></div>` : "";
     { const fl = $("cf-FLUTE"); if(fl) fl.closest("label").classList.toggle("need", !!flMiss); }
     $("calcPlan").querySelectorAll("[data-plan]").forEach(el=>el.onchange=()=>{ CALC.roofs[CALC.active].v[el.dataset.plan] = el.value; calcRunActive(true); }); if(ps) $("calcDraw").innerHTML = ""; }catch(e){ console.warn(e); $("calcPlan").innerHTML = ""; }
   $("calcTop").innerHTML = windBar + (rows.length ? `<div class="xwrap"><table class="xtab">
@@ -3485,13 +3484,13 @@ function planShapes(p){
   const S = []; const g = p.g;
   for(let r=0;r<g.nr;r++){ let c0 = 0;   // one rect per run of equal cells
     for(let c=1;c<=g.nc;c++){ const v = g.cells[r][c0]; if(c < g.nc && g.cells[r][c] === v) continue;
-      if(!(v==null||isNaN(v))) S.push({t:"rect", x:c0*p.L/g.nc, y:r*p.W/g.nr, w:(c-c0)*p.L/g.nc+0.02, h:p.W/g.nr+0.02, fill:PLAN_FILL[Math.max(0,Math.min(3,v))], op:0.55});
+      if(!(v==null||isNaN(v))) S.push({t:"rect", x:c0*p.L/g.nc, y:r*p.W/g.nr, w:(c-c0)*p.L/g.nc+0.02, h:p.W/g.nr+0.02, fill:PLAN_FILL[Math.max(0,Math.min(3,v))], op:0.55}); if(S.length && S[S.length-1].op){ const q = S[S.length-1], h = q.fill; q.fill = "#" + [1,3,5].map(i=>Math.round(255 - (255 - parseInt(h.slice(i,i+2),16))*0.55).toString(16).padStart(2,"0")).join(""); delete q.op; }   // solid blend: no seams where runs overlap
       c0 = c; } }
   const XY = (u, v) => p.flutesAlongL ? [u, v] : [v, u];
-  p.strips.forEach(s=>(s.segs || [[0, p.V]]).forEach(([v0, v1])=>{ const [x0,y0] = XY(s.u0, v0), [x1,y1] = XY(s.u1, v1); S.push({t:"rect", x:Math.min(x0,x1), y:Math.min(y0,y1), w:Math.abs(x1-x0), h:Math.abs(y1-y0), fill:"none", stroke:s.cut?"#b45309":"#0b4f9c", sw:s.cut?1.4:1}); }));
-  p.rows.forEach(rw=>{ const [x0,y0] = XY(rw.u, rw.v0), [x1,y1] = XY(rw.u, rw.v1); S.push({t:"line", x0, y0, x1, y1, stroke: rw.extra ? "#c0392b" : "#1f2a36", sw: rw.extra ? 1.3 : 1.1, dash: rw.extra ? [4,2] : (p.MA ? [1.2,1.6] : null)}); });
+  if(p.MA) p.strips.forEach(s=>(s.segs || [[0, p.V]]).forEach(([v0, v1])=>{ const [x0,y0] = XY(s.u0, v0), [x1,y1] = XY(s.u1, v1); S.push({t:"rect", x:Math.min(x0,x1), y:Math.min(y0,y1), w:Math.abs(x1-x0), h:Math.abs(y1-y0), fill:"none", stroke:s.cut?"#b45309":"#0b4f9c", sw:s.cut?1.4:1}); }));
+  if(p.MA) p.rows.forEach(rw=>{ const [x0,y0] = XY(rw.u, rw.v0), [x1,y1] = XY(rw.u, rw.v1); S.push({t:"line", x0, y0, x1, y1, stroke: rw.extra ? "#c0392b" : "#1f2a36", sw: rw.extra ? 1.3 : 1.1, dash: rw.extra ? [4,2] : (p.MA ? [1.2,1.6] : null)}); });
   // walls with large openings (Sure-Weld spec 3.05 D.4.e): wall drawn in purple, dashed line at the required perimeter depth
-  (p.opens||[]).forEach(o=>{ const d = Math.min(o.d, o.side==="N"||o.side==="S" ? p.W/2 : p.L/2), C = "#7b2cbf";
+  (p.MA ? p.opens||[] : []).forEach(o=>{ const d = Math.min(o.d, o.side==="N"||o.side==="S" ? p.W/2 : p.L/2), C = "#7b2cbf";
     const seg = o.side==="S" ? [[0,p.W],[p.L,p.W],[0,p.W-d],[p.L,p.W-d]] : o.side==="N" ? [[0,0],[p.L,0],[0,d],[p.L,d]] : o.side==="W" ? [[0,0],[0,p.W],[d,0],[d,p.W]] : [[p.L,0],[p.L,p.W],[p.L-d,0],[p.L-d,p.W]];
     S.push({t:"line", x0:seg[2][0], y0:seg[2][1], x1:seg[3][0], y1:seg[3][1], stroke:C, sw:1.6, dash:[6,3]}); o._wall = seg; });
   if(p.poly) p.poly.forEach((a, i)=>{ const b = p.poly[(i+1)%p.poly.length]; S.push({t:"line", x0:a[0], y0:a[1], x1:b[0], y1:b[1], stroke:"#1f2a36", sw:1.8, dash:null});
@@ -3512,6 +3511,7 @@ function fluteNote(c){
 }
 function planLegend(p){
   const L = [];
+  if(!p.MA) return ["Roof zones only. A sheet layout is drawn for mechanically attached systems; " + (p.RB ? "RhinoBond" : "fully adhered") + " membrane is not laid out by sheet here."];
   const full = p.strips.filter(s=>!s.cut), cut = p.strips.filter(s=>s.cut);
   const widths = {}; full.forEach(s=>{ const k = +s.w.toFixed(3); widths[k] = (widths[k]||0) + 1; });
   L.push(`Sheets run ${p.flutesAlongL ? "across the width" : "along the length"}${/Steel/i.test(p.deck||"") ? ", perpendicular to the deck flutes" : ""}: ` + Object.keys(widths).sort((a,b)=>b-a).map(k=>`${widths[k]} x ${fw(k)} sheet${widths[k]>1?"s":""}`).join(", ") + (cut.length ? `, ${cut.length} cut sheet${cut.length>1?"s":""} (${cut.map(s=>s.w.toFixed(1)+"'").join(", ")})` : "") + ".");
@@ -3524,14 +3524,14 @@ function planSvg(c, opt){
   p.deck = c.deck || (c.raw||{}).G7; p.flNote = fluteNote(c);
   const k = Math.min(760/p.L, 520/p.W), Wpx = p.L*k, Hpx = p.W*k, pad = 28;
   const S = planShapes(p).map(s=>{
-    if(s.t==="rect") return `<rect x="${(pad+s.x*k).toFixed(1)}" y="${(pad+s.y*k).toFixed(1)}" width="${(s.w*k).toFixed(1)}" height="${(s.h*k).toFixed(1)}" fill="${s.fill}"${s.op?` fill-opacity="${s.op}"`:""}${s.stroke?` stroke="${s.stroke}" stroke-width="${s.sw}"`:""}/>`;
+    if(s.t==="rect") return `<rect x="${(pad+s.x*k).toFixed(1)}" y="${(pad+s.y*k).toFixed(1)}" width="${(s.w*k).toFixed(1)}" height="${(s.h*k).toFixed(1)}" fill="${s.fill}"${s.op?` fill-opacity="${s.op}"`:""}${s.fill!=="none"&&!s.stroke?` shape-rendering="crispEdges"`:""}${s.stroke?` stroke="${s.stroke}" stroke-width="${s.sw}"`:""}/>`;
     return `<line x1="${(pad+s.x0*k).toFixed(1)}" y1="${(pad+s.y0*k).toFixed(1)}" x2="${(pad+s.x1*k).toFixed(1)}" y2="${(pad+s.y1*k).toFixed(1)}" stroke="${s.stroke}" stroke-width="${s.sw}"${s.dash?` stroke-dasharray="${s.dash.join(",")}"`:""}/>`;
   }).join("");
   const dims = `<text x="${(pad+Wpx/2).toFixed(1)}" y="18" text-anchor="middle" font-size="12" fill="#1f2a36">L = ${p.L}'</text><text x="12" y="${(pad+Hpx/2).toFixed(1)}" text-anchor="middle" font-size="12" fill="#1f2a36" transform="rotate(-90 12 ${(pad+Hpx/2).toFixed(1)})">W = ${p.W}'</text>`;
-  const arrow = p.flutesAlongL ? `<text x="${(pad+Wpx).toFixed(1)}" y="${(pad+Hpx+18).toFixed(1)}" text-anchor="end" font-size="11" fill="#5b6878">Deck flutes ↔ along L · sheets run ↕</text>` : `<text x="${(pad+Wpx).toFixed(1)}" y="${(pad+Hpx+18).toFixed(1)}" text-anchor="end" font-size="11" fill="#5b6878">Deck flutes ↕ along W · sheets run ↔</text>`;
+  const arrow = !p.MA ? "" : p.flutesAlongL ? `<text x="${(pad+Wpx).toFixed(1)}" y="${(pad+Hpx+18).toFixed(1)}" text-anchor="end" font-size="11" fill="#5b6878">Deck flutes ↔ along L · sheets run ↕</text>` : `<text x="${(pad+Wpx).toFixed(1)}" y="${(pad+Hpx+18).toFixed(1)}" text-anchor="end" font-size="11" fill="#5b6878">Deck flutes ↕ along W · sheets run ↔</text>`;
   const key = planKey(p, c), zl = (opt && opt.zoneLegend) || "";
   const side = `<div class="pkey">${zl}<b>Key</b>${key.map(k=>`<div class="pk"><i style="background:${k.fill}"></i><span><b>${esc(k.name)}</b><br>${esc(k.txt)}</span></div>`).join("")}${p.MA ? '<div class="pk"><i style="border-top:2px dotted #1f2a36;height:0;margin-top:8px"></i><span>Fasteners in sheet laps</span></div><div class="pk"><i style="border-top:2px dashed #c0392b;height:0;margin-top:8px"></i><span>Seam fastening plate row with cover strip (subdivided sheet)</span></div>' : ""}${(p.adj||[]).length ? '<div class="pk"><i style="border-top:3px dashed #1a73e8;height:0;margin-top:8px"></i><span>Runs into an adjoining roof (no perimeter or corner zones)</span></div>' : ""}</div>`;
-  const svg = `<div class="pwrap">${side}<svg viewBox="0 0 ${(Wpx+pad*2).toFixed(0)} ${(Hpx+pad*2).toFixed(0)}" class="psvg" role="img" aria-label="Sheet layout and fastening plan">${S}${dims}${arrow}</svg></div>`;
+  const svg = `<div class="pwrap">${side}<svg viewBox="0 0 ${(Wpx+pad*2).toFixed(0)} ${(Hpx+pad*2).toFixed(0)}" class="psvg" role="img" aria-label="${p.MA ? "Sheet layout and fastening plan" : "Roof zones"}">${S}${dims}${arrow}</svg></div>`;
   return svg + `<ul class="plg">${planLegend(p).map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`;
 }
 /* insulation attachment per 4x8 board, per zone */
@@ -3701,7 +3701,7 @@ async function planPdf(c, opt){
   const F = await doc.embedFont(StandardFonts.Helvetica), FB = await doc.embedFont(StandardFonts.HelveticaBold);
   const hx = h => rgb(parseInt(h.slice(1,3),16)/255, parseInt(h.slice(3,5),16)/255, parseInt(h.slice(5,7),16)/255);
   page.drawRectangle({x:30, y:612-52, width:732, height:22, color:hx("#0b4f9c")});
-  page.drawText(clean("SHEET LAYOUT AND FASTENING PLAN" + ((opt||{}).both ? "  |  OPTION " + opt.both + " (FLUTES ALONG " + (opt.flutes === "Width" ? "WIDTH" : "LENGTH") + ")" : "") + (multiRoof() ? "  |  " + roofTag(c) : "") + (c.approval ? "  |  " + c.approval : "")).slice(0,140), {x:38, y:612-45, size:10, font:FB, color:rgb(1,1,1)});
+  page.drawText(clean((p.MA ? "SHEET LAYOUT AND FASTENING PLAN" : "ROOF ZONES") + ((opt||{}).both ? "  |  OPTION " + opt.both + " (FLUTES ALONG " + (opt.flutes === "Width" ? "WIDTH" : "LENGTH") + ")" : "") + (multiRoof() ? "  |  " + roofTag(c) : "") + (c.approval ? "  |  " + c.approval : "")).slice(0,140), {x:38, y:612-45, size:10, font:FB, color:rgb(1,1,1)});
   const wide = p.L/p.W > 1.6;   // long roofs: plan across the full page, legend underneath
   const boxW = wide ? 712 : 500, boxH = wide ? 300 : 470, k = Math.min(boxW/p.L, boxH/p.W), ox = 40, oy = 612-70 - p.W*k;
   const Y = y => oy + (p.W - y)*k;
@@ -3716,7 +3716,7 @@ async function planPdf(c, opt){
   page.drawText("Legend", {x:tx, y:ty, size:9, font:FB}); ty -= 13;
   planLegend(p).forEach(t=>{ wrap(t, F, 7.2).forEach(l=>{ page.drawText(l, {x:tx, y:ty, size:7.2, font:F}); ty -= 9; }); ty -= 3; });
   planKey(p, c).forEach(k=>{ page.drawRectangle({x:tx, y:ty-6, width:10, height:8, color:hx(k.fill), borderColor:hx("#8a96a3"), borderWidth:.4}); const kl = wrap(k.name + ": " + k.txt, F, 6.8).map(l=>l); kl.forEach((l,i)=>page.drawText(l, {x:tx+14, y:ty-4.5-i*8.5, size:6.8, font:F})); ty -= 3 + 8.5*Math.max(1, kl.length); });
-  page.drawText("Illustration from the selected approval and RAS 137 extrapolation. Confirm sheet layout against the roof plan and deck direction on site.", {x:30, y:24, size:6.5, font:F, color:hx("#5b6878")});
+  page.drawText(p.MA ? "Illustration from the selected approval and RAS 137 extrapolation. Confirm sheet layout against the roof plan and deck direction on site." : "Zones from ASCE 7-22 for this roof outline. Confirm against the roof plan on site.", {x:30, y:24, size:6.5, font:F, color:hx("#5b6878")});
   if(!(opt||{}).both || opt.both === "A"){   // fastening and adhesive patterns: their own page, once per roof
     const pg2 = doc.addPage([792, 612]); { const page = pg2; let ty = 612-80; const tx = 40, tw = 712;
       page.drawRectangle({x:30, y:612-52, width:732, height:22, color:hx("#0b4f9c")});
@@ -3808,7 +3808,7 @@ function planKey(p, c){
     else if(p.FA) t = "membrane adhered (no insulation)";
     out.push({z:i, fill:PLAN_FILL[i], name:PLAN_ZN[i], txt:t});
   });
-  if(p.opens && p.opens.length){ const o = p.opens[0], NM = {N:"top", S:"bottom", W:"left", E:"right"};
+  if(p.MA && p.opens && p.opens.length){ const o = p.opens[0], NM = {N:"top", S:"bottom", W:"left", E:"right"};
     out.push({z:9, fill:"#7b2cbf", name:"Large openings", txt:`${p.opens.map(x=>NM[x.side]).join(", ")} wall${p.opens.length>1?"s":""} (purple): 4 perimeter sheets centered over each door; perimeter area at least ${+o.d.toFixed(1)} ft deep (dashed line, 2.5 × ${+(o.d/2.5).toFixed(1)} ft door)`}); }
   return out;
 }
