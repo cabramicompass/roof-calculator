@@ -12272,5 +12272,370 @@
    "Sheets run along the length: 18 x 12' sheets, 2 x 8' sheets.",
    "Perimeter and corner bands use full field sheets subdivided by a row of seam fastening plates with cover strip down the middle, through that band only."
   ]
+ },
+ "flBoth": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-76.0",
+    "-45.6",
+    "-52.5",
+    "49,715",
+    "497.2"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-132.3",
+    "-79.4",
+    "-82.5",
+    "14,636",
+    "146.4"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-174.5",
+    "-104.7",
+    "-105.0",
+    "16,521",
+    "165.2"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-237.8",
+    "-142.7",
+    "-150.0",
+    "531",
+    "5.3"
+   ]
+  ],
+  "appr": null,
+  "approval": "—",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "45.6",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "interior"
+   ],
+   [
+    "Zone 1 (Field)",
+    "79.4",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "15 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "104.7",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "15 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "142.7",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "5 × 15 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    10,
+    0,
+    [
+     [
+      1.7,
+      102
+     ]
+    ]
+   ],
+   [
+    10,
+    10,
+    0,
+    [
+     [
+      1.2,
+      102
+     ]
+    ]
+   ],
+   [
+    20,
+    10,
+    0,
+    [
+     [
+      0.7,
+      102
+     ]
+    ]
+   ],
+   [
+    30,
+    10,
+    0,
+    [
+     [
+      0.2,
+      102
+     ]
+    ]
+   ],
+   [
+    40,
+    10,
+    0,
+    [
+     [
+      1.1,
+      102
+     ]
+    ]
+   ],
+   [
+    50,
+    10,
+    0,
+    [
+     [
+      2.7,
+      102
+     ]
+    ]
+   ],
+   [
+    60,
+    10,
+    0,
+    [
+     [
+      4.2,
+      102
+     ]
+    ]
+   ],
+   [
+    70,
+    10,
+    0,
+    [
+     [
+      6,
+      102
+     ]
+    ]
+   ],
+   [
+    80,
+    10,
+    0,
+    [
+     [
+      8,
+      102
+     ]
+    ]
+   ],
+   [
+    90,
+    10,
+    0,
+    [
+     [
+      10,
+      102
+     ]
+    ]
+   ],
+   [
+    100,
+    10,
+    0,
+    [
+     [
+      9.4,
+      102
+     ]
+    ]
+   ],
+   [
+    110,
+    10,
+    0,
+    [
+     [
+      8.9,
+      102
+     ]
+    ]
+   ],
+   [
+    120,
+    10,
+    0,
+    [
+     [
+      8.3,
+      102
+     ]
+    ]
+   ],
+   [
+    130,
+    10,
+    0,
+    [
+     [
+      8.3,
+      102
+     ]
+    ]
+   ],
+   [
+    140,
+    10,
+    0,
+    [
+     [
+      9,
+      102
+     ]
+    ]
+   ],
+   [
+    150,
+    10,
+    0,
+    [
+     [
+      9.7,
+      102
+     ]
+    ]
+   ],
+   [
+    160,
+    10,
+    0,
+    [
+     [
+      10.3,
+      102
+     ]
+    ]
+   ],
+   [
+    170,
+    10,
+    0,
+    [
+     [
+      11,
+      102
+     ]
+    ]
+   ],
+   [
+    180,
+    10,
+    0,
+    [
+     [
+      9.9,
+      102
+     ]
+    ]
+   ],
+   [
+    190,
+    10,
+    0,
+    [
+     [
+      8.8,
+      102
+     ]
+    ]
+   ]
+  ],
+  "fingers": [],
+  "emptyStrips": 0,
+  "legend": [
+   "Sheets run across the width: 20 x 10' sheets.",
+   "Perimeter and corner bands use full field sheets subdivided by a row of seam fastening plates with cover strip down the middle, through that band only."
+  ],
+  "both": [
+   [
+    1,
+    20,
+    "Sheets run across the width: 20 x 10' sheets."
+   ],
+   [
+    0,
+    11,
+    "Sheets run along the length: 7 x 10' sheets, 4 x 8' sheets."
+   ]
+  ]
  }
 }
