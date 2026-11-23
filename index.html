@@ -833,7 +833,7 @@ async function summaryPdf(c, tg=0){
       let bx = M; const yTop = y;
       LIST.forEach(b=>{ const bw = (b.sz === "4x4" ? 48 : 96)*sc, bh = rowH, memb = b.surf === "memb";
         page.drawRectangle({x:bx, y:yTop-bh, width:bw, height:bh, color:hex(memb ? "FFFFFF" : "F6EFE0"), borderColor:hex(memb ? "5B6878" : "1D3FB8"), borderWidth:.8});
-        if(b.kind === "beads"){ const k = Math.max(1, Math.round(48 / b.rib)), amp = bh/k*0.36; for(let i=0;i<k;i++) page.drawSvgPath(serpD(1.5, bw-1.5, (i+0.5)*bh/k, amp, amp*2.6), {x:bx, y:yTop, borderColor:hex("4AA3DF"), borderWidth:.55}); }
+        if(b.kind === "beads") page.drawSvgPath(serpBoardD(bw, bh, b.rib*sc, 2*sc), {x:bx, y:yTop, borderColor:hex("4AA3DF"), borderWidth:.7});
         else if(b.kind === "splatter"){ splatPts(bw, bh, 0.12).forEach(([x,y,r])=>page.drawCircle({x:bx+x, y:yTop-y, size:r*0.35, color:hex("4AA3DF"), opacity:.8})); }
         else if(b.kind === "full"){ for(let d=-bh; d<bw; d+=3.5){ const x0 = Math.max(bx, bx+d), x1 = Math.min(bx+bw, bx+d+bh); page.drawLine({start:{x:x0, y:yTop-(x0-(bx+d))}, end:{x:x1, y:yTop-(x1-(bx+d))}, thickness:.5, color:hex("B39A55")}); } }
         else if(b.over) T("over the largest pattern", bx+3, yTop-bh/2-2, FB, 5.6, hex("C0392B"));
@@ -3623,8 +3623,9 @@ function boardSvg(b){
     dimRow(xs, W).forEach(([a, c])=>{ const x0 = ox+a*k, x1 = ox+c*k; g += `<line x1="${x0}" y1="${oy-8}" x2="${x1}" y2="${oy-8}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x0}" y1="${oy-12}" x2="${x0}" y2="${oy-4}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x1}" y1="${oy-12}" x2="${x1}" y2="${oy-4}" stroke="#1f2a36" stroke-width=".7"/><text x="${(x0+x1)/2}" y="${oy-11}" text-anchor="middle" font-size="${(c-a) < 8 ? 7 : 8.5}" fill="#1f2a36">${+(c-a).toFixed(1)}"</text>`; });
     dimRow(ys, H).forEach(([a, c])=>{ const y0 = oy+a*k, y1 = oy+c*k, x = ox+sw+8; g += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y1}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x-4}" y1="${y0}" x2="${x+4}" y2="${y0}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x-4}" y1="${y1}" x2="${x+4}" y2="${y1}" stroke="#1f2a36" stroke-width=".7"/><text x="${x+6}" y="${(y0+y1)/2+3}" font-size="8.5" fill="#1f2a36">${+(c-a).toFixed(1)}"</text>`; });
   } else if(b.kind === "beads"){
-    const n = Math.max(1, Math.round(H / b.rib)), amp = sh/n*0.36; for(let i=0;i<n;i++){ const y = oy + (i+0.5)*sh/n; g += `<path d="${serpD(ox+6, ox+sw-6, y, amp, amp*2.6)}" fill="none" stroke="#4aa3df" stroke-width="${Math.max(1.6, 0.9*k)}" stroke-linecap="round" stroke-linejoin="round"/>`; }
-    const y0 = oy + 0.5*sh/n, y1 = oy + 1.5*sh/n, x = ox+sw+8; if(n > 1) g += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y1}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x-4}" y1="${y0}" x2="${x+4}" y2="${y0}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x-4}" y1="${y1}" x2="${x+4}" y2="${y1}" stroke="#1f2a36" stroke-width=".7"/><text x="${x+6}" y="${(y0+y1)/2+3}" font-size="8.5" fill="#1f2a36">${b.rib}" o.c.</text>`;
+    const sp = b.rib*k, path = serpBoardD(sw, sh, sp, 3*k); g += `<path d="${path}" transform="translate(${ox} ${oy})" fill="none" stroke="#4aa3df" stroke-width="${Math.max(2, 1.5*k)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    const n = Math.max(1, Math.floor((sw - 6*k) / sp + 1e-6) + 1), xa = ox + (sw - (n-1)*sp)/2, xb = xa + sp, yy = oy - 8;
+    if(n > 1) g += `<line x1="${xa}" y1="${yy}" x2="${xb}" y2="${yy}" stroke="#1f2a36" stroke-width=".7"/><line x1="${xa}" y1="${yy-4}" x2="${xa}" y2="${yy+4}" stroke="#1f2a36" stroke-width=".7"/><line x1="${xb}" y1="${yy-4}" x2="${xb}" y2="${yy+4}" stroke="#1f2a36" stroke-width=".7"/><text x="${xb+4}" y="${yy+3}" font-size="8.5" fill="#1f2a36">${b.rib}" o.c.</text>`;
   } else if(b.kind === "full"){ g += `<rect x="${ox}" y="${oy}" width="${sw}" height="${sh}" fill="url(#adhfull)"/>`; }
   else if(b.kind === "splatter"){ g += splatPts(sw, sh, 0.06).map(([x,y,r])=>`<circle cx="${(ox+x).toFixed(1)}" cy="${(oy+y).toFixed(1)}" r="${r.toFixed(2)}" fill="#4aa3df" fill-opacity=".8"/>`).join(""); }
   g += `<text x="${ox+sw/2}" y="${oy+sh+13}" text-anchor="middle" font-size="9" fill="#1f2a36">${mem ? "substrate under the membrane sheet" : (W === 96 ? "8'" : "4'") + " x 4' board"}</text>`;
@@ -3637,6 +3638,13 @@ function serpD(x0, x1, y, amp, wl){
   const d = Math.max(1, wl/2), r = Math.min(d/2, amp*0.9), h = Math.max(0, amp - r); let x = x0, up = true, out = `M${x.toFixed(1)} ${(y + h).toFixed(1)}`;
   while(x + d <= x1 + 0.01){ const yy = up ? y - h : y + h; out += ` L${x.toFixed(1)} ${yy.toFixed(1)} A${(d/2).toFixed(2)} ${r.toFixed(2)} 0 0 ${up ? 1 : 0} ${(x + d).toFixed(1)} ${yy.toFixed(1)}`; x += d; up = !up; }
   return out + ` L${x.toFixed(1)} ${(up ? y + h : y - h).toFixed(1)}`; }
+/* one continuous Flexible FAST bead laid like in the field: straight passes across the board's 4 ft width (top to bottom here),
+   a U-turn at each end, stepping along the board at the bead spacing. w x h in drawing units, sp = spacing, pad = margin */
+function serpBoardD(w, h, sp, pad){ const n = Math.max(1, Math.floor((w - 2*pad) / sp + 1e-6) + 1), x0 = (w - (n-1)*sp) / 2, r = sp/2, t = pad + r, b = h - pad - r;
+  let d = `M${x0.toFixed(1)} ${(pad).toFixed(1)}`;
+  for(let i=0;i<n;i++){ const x = x0 + i*sp, down = i % 2 === 0; d += ` L${x.toFixed(1)} ${(down ? b : t).toFixed(1)}`;
+    if(i < n-1) d += ` A${r.toFixed(2)} ${r.toFixed(2)} 0 0 ${down ? 0 : 1} ${(x + sp).toFixed(1)} ${(down ? b : t).toFixed(1)}`; }
+  const xl = x0 + (n-1)*sp; return d + ` L${xl.toFixed(1)} ${((n-1) % 2 === 0 ? h - pad : pad).toFixed(1)}`; }
 /* splatter: speckles over about half the surface, same every time (seeded) */
 function splatPts(w, h, dens){ let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647, out = [], n = Math.round(w*h*dens);
   for(let i=0;i<n;i++) out.push([rnd()*w, rnd()*h, 0.5 + rnd()*1.3]); return out; }
@@ -3644,7 +3652,7 @@ function membBoards(p, c){ const m = membAdh(c); if(!m) return [];
   if(m.kind === "full") return [{kind:"full", surf:"memb", title:m.name, zones:["Every zone"], sub:"full coverage, both surfaces"}];
   if(!m.rib){ const out = []; p.Z.forEach((z, i)=>{ const b = fastBeads(c), r = i >= 2 ? b.p : b.f, hit = out.find(x=>x.rib === r); if(hit) hit.zones.push(PLAN_ZN[i]); else out.push({kind:"beads", surf:"memb", rib:r, sz:"4x8", title:`Flexible FAST ribbons ${r}" o.c.`, zones:[PLAN_ZN[i]], sub:"Carlisle minimum: confirm with the spec"}); }); return out; }
   if(m.full) return [{kind:"splatter", surf:"memb", rib:m.rib, sz:"4x8", title:`Full: splatter or ${m.rib}" o.c. ribbons`, zones:["Every zone (as listed)"], sub:"splatter at about 50% coverage, 1 gal/sq"}];
-  return [{kind:"beads", surf:"memb", rib:m.rib, sz:"4x8", title:`Flexible FAST ribbons ${m.rib}" o.c.`, zones:["Every zone (as listed)"], sub:"under the FleeceBACK sheet"}]; }
+  return [{kind:"beads", surf:"memb", rib:m.rib, sz:"4x8", title:`Flexible FAST ribbons ${m.rib}" o.c.`, zones:["Every zone (as listed)"], sub:"serpentine on the substrate, sheet rolled into it"}]; }
 function planBoardsSvg(p, c){
   const B = planBoards(p, c), M = membBoards(p, c), m = membAdh(c); if(!B.length && !m) return "";
   let h = "";
@@ -3685,7 +3693,7 @@ async function planPdf(c, opt){
   const drawBoards = (head, note, list) => { if(!list.length) return; ty -= 4; page.drawText(clean(head).slice(0,70), {x:tx, y:ty, size:8.5, font:FB}); ty -= 11; wrap(note, F, 6.6).forEach(l=>{ page.drawText(l, {x:tx, y:ty, size:6.6, font:F}); ty -= 8.4; }); ty -= 4;
     let bx = tx; const s = 1.2; list.forEach(b=>{ const W = (b.sz === "4x4" ? 48 : 96), bw = W*s, bh = 48*s; if(bx + bw > tx + tw){ bx = tx; ty -= bh + 34; }
       page.drawRectangle({x:bx, y:ty-bh, width:bw, height:bh, color:hx(b.surf === "memb" ? "#ffffff" : "#f6efe0"), borderColor:hx(b.surf === "memb" ? "#5b6878" : "#1d3fb8"), borderWidth:1});
-      if(b.kind === "beads"){ const n = Math.max(1, Math.round(48 / b.rib)), amp = bh/n*0.36; for(let i=0;i<n;i++){ page.drawSvgPath(serpD(3, bw-3, (i+0.5)*bh/n, amp, amp*2.6), {x:bx, y:ty, borderColor:hx("#4aa3df"), borderWidth:1}); } }
+      if(b.kind === "beads") page.drawSvgPath(serpBoardD(bw, bh, b.rib*s, 3*s), {x:bx, y:ty, borderColor:hx("#4aa3df"), borderWidth:1.2});
       else if(b.kind === "splatter"){ splatPts(bw, bh, 0.06).forEach(([x,y,r])=>page.drawCircle({x:bx+x, y:ty-y, size:r*0.8, color:hx("#4aa3df"), opacity:.8})); }
       else if(b.kind === "full"){ for(let d=-bh; d<bw; d+=4){ const x0 = Math.max(bx, bx+d), y0 = ty - (x0 - (bx+d)), x1 = Math.min(bx+bw, bx+d+bh), y1 = ty - (x1 - (bx+d)); page.drawLine({start:{x:x0, y:y0}, end:{x:x1, y:y1}, thickness:.6, color:hx("#b39a55")}); } }
       else if(b.over) page.drawText("over the largest pattern", {x:bx+4, y:ty-bh/2-2, size:6.2, font:FB, color:hx("#c0392b")});
