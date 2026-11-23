@@ -236,6 +236,7 @@ table.kv td.t-ok{color:var(--ok);font-weight:700} table.kv td.t-warn{color:var(-
 .plg{margin:8px 0 0;padding-left:18px;font-size:13px;display:grid;gap:3px}
 .pcn{margin-top:12px;border-top:1px solid var(--line);padding-top:8px;font-size:13px}.pbd{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px}.pbd figure{margin:0;display:flex;gap:6px;align-items:flex-start;font-size:12px;max-width:190px}
 .rbottom{display:grid;gap:10px;margin-top:6px;border-top:1px solid var(--line);padding-top:14px}.ropts{border:1px solid var(--line);border-radius:6px;padding:8px 12px;grid-column:1 / -1}.ropts summary{cursor:pointer;font-weight:600}.rol{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px}.rol label{display:flex;gap:6px;align-items:center;font-size:13.5px}
+.pbd figure.bfig{margin:0;display:grid;gap:4px;font-size:12px;max-width:270px;align-items:start}.bfig svg{max-width:100%;height:auto}
 .fcase{margin:14px 0 6px;font:700 14px/1.3 var(--display);color:var(--blue)}.fcase:first-child{margin-top:0}
 .ptabs{position:sticky;top:0;z-index:20;display:flex;gap:6px;flex-wrap:wrap;background:var(--bg,#fff);padding:8px 0;border-bottom:1px solid var(--line)}
 .ptabs button{flex:1 1 160px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);font-weight:600;cursor:pointer}
@@ -281,6 +282,7 @@ table.kv td.t-ok{color:var(--ok);font-weight:700} table.kv td.t-warn{color:var(-
         <div id="calcZones"></div>
         <div id="calcDraw"></div>
         <div id="calcAsm" class="casm"></div>
+        <div id="calcPat" class="casm"></div>
       </div>
     </div>
     <div id="calcGeo" class="cplan"></div>
@@ -1554,7 +1556,7 @@ function shapeGrid(P, h, parapet, adj){
     // a point on a curve (the edge turns less than 30 degrees there) is not a corner: no Zone 3, the edge bands just follow the curve
     const l1 = Math.hypot(v[0]-a[0], v[1]-a[1]), l2 = Math.hypot(b[0]-v[0], b[1]-v[1]), dot = ((v[0]-a[0])*(b[0]-v[0]) + (v[1]-a[1])*(b[1]-v[1])) / Math.max(1e-9, l1*l2);
     convexAll.add(v); if(dot < Math.cos(30*Math.PI/180)) corners.push({v, legs:[a, b], lim:[legIn(i), legOut(i)]}); }
-  // bands follow the edges square: each edge's band runs past an inside (re-entrant) corner, so the band turns a right angle instead of rounding
+  // bands follow the edges square: at an inside (re-entrant) corner the bands meet in a mitred corner instead of rounding
   const convex = convexAll;
   // each edge is split into its roof-edge pieces; adjoining stretches carry no band and a band stops square where one starts
   const gentle = P.map((v, i)=>{ const a = P[(i-1+P.length)%P.length], b = P[(i+1)%P.length], l1 = Math.hypot(v[0]-a[0], v[1]-a[1]), l2 = Math.hypot(b[0]-v[0], b[1]-v[1]);
@@ -1564,13 +1566,19 @@ function shapeGrid(P, h, parapet, adj){
     let p0 = 0; const pieces = []; SP[i].forEach(([s0,s1])=>{ if(s0 - p0 > tol) pieces.push([p0, s0]); p0 = Math.max(p0, s1); }); if(L - p0 > tol) pieces.push([p0, L]);
     // at a point on a curve (gentle turn) the band is measured round the point, so it follows the traced edge exactly
     const j = (i+1)%P.length;
-    pieces.forEach(([q0,q1])=>E.push({a:[a[0]+ux*q0, a[1]+uy*q0], L:q1-q0, ux, uy, nx, ny, r0: q0 <= tol && gentle[i], r1: q1 >= L - tol && gentle[j],
-      ext0: q0 > tol || gentle[i] ? 0 : (convex.has(a) ? 0 : (tall ? w2 : w1)), ext1: q1 < L - tol || gentle[j] ? 0 : (convex.has(b) ? 0 : (tall ? w2 : w1))})); });
+    pieces.forEach(([q0,q1])=>E.push({i, a:[a[0]+ux*q0, a[1]+uy*q0], L:q1-q0, ux, uy, nx, ny, s0: q0 <= tol, s1: q1 >= L - tol, r0: q0 <= tol && gentle[i], r1: q1 >= L - tol && gentle[j]})); });
+  // inside (re-entrant) corners: the two bands meet in a mitred corner, each band edge an exact offset of its roof edge at any corner angle
+  const W = []; P.forEach((v, i)=>{ const pa = P[(i-1+nP)%nP], pb = P[(i+1)%nP]; if(gentle[i] || ((v[0]-pa[0])*(pb[1]-v[1]) - (v[1]-pa[1])*(pb[0]-v[0]) > 0) === ccw) return;   // convex corners need no wedge
+    const k = (i-1+nP)%nP, A = E.find(e=>e.i===k && e.s1), B = E.find(e=>e.i===i && e.s0); if(!A && !B) return;
+    const nrm = j => { const a = P[j], b = P[(j+1)%nP], L = Math.hypot(b[0]-a[0], b[1]-a[1]) || 1; let nx = -(b[1]-a[1])/L, ny = (b[0]-a[0])/L; const e = E.find(e=>e.i===j); if(e){ nx = e.nx; ny = e.ny; } else if(!inPoly((a[0]+b[0])/2 + nx*0.01, (a[1]+b[1])/2 + ny*0.01, P)){ nx = -nx; ny = -ny; } return [nx, ny]; };
+    const nA = nrm(k), nB = nrm(i), det = nA[0]*nB[1] - nA[1]*nB[0]; if(Math.abs(det) < 1e-9) return; W.push({v, nA, nB, det}); });
   const inCorner = (x, y) => corners.some(({v, legs, lim})=>legs.some((e, li)=>{ const dx = e[0]-v[0], dy = e[1]-v[1], L = Math.hypot(dx,dy); if(!L) return false; const ux = dx/L, uy = dy/L, t = (x-v[0])*ux + (y-v[1])*uy, n = Math.abs((x-v[0])*uy - (y-v[1])*ux); return t >= 0 && t <= Math.min(clen, L, lim ? lim[li] : Infinity) && n <= cwid; }));
   // exact zone at any point (null = off the roof); the grid below samples it at cell centers
   const zoneXY = (x, y) => { if(!inPoly(x, y, P)) return null;
-    let d = Infinity; for(const e of E){ const rx = x - e.a[0], ry = y - e.a[1], t = rx*e.ux + ry*e.uy, n = rx*e.nx + ry*e.ny; if(n >= -1e-9 && t >= -e.ext0 && t <= e.L + e.ext1) d = Math.min(d, Math.max(n, -t, t - e.L));
+    let d = Infinity; for(const e of E){ const rx = x - e.a[0], ry = y - e.a[1], t = rx*e.ux + ry*e.uy, n = rx*e.nx + ry*e.ny; if(n >= -1e-9 && t >= -1e-9 && t <= e.L + 1e-9) d = Math.min(d, n);
       else if(t < 0 && e.r0) d = Math.min(d, Math.hypot(rx, ry)); else if(t > e.L && e.r1) d = Math.min(d, Math.hypot(rx - e.ux*e.L, ry - e.uy*e.L)); }
+    for(const w of W){ const qx = x - w.v[0], qy = y - w.v[1], a = (qx*w.nB[1] - qy*w.nB[0]) / w.det, b = (w.nA[0]*qy - w.nA[1]*qx) / w.det;   // q = a nA + b nB: inside the corner's wedge
+      if(a >= -1e-9 && b >= -1e-9) d = Math.min(d, Math.max(qx*w.nA[0] + qy*w.nA[1], qx*w.nB[0] + qy*w.nB[1])); }
     let z = d < w2 ? 2 : d < w1 ? 1 : 0; if(!parapet && inCorner(x, y)) z = 3; return z; };
   const cells = [], cnt = [0,0,0,0];
   for(let r=0;r<nr;r++){ const row = []; for(let c=0;c<nc;c++){ const z = zoneXY((c+0.5)*cw, (r+0.5)*ch); row.push(z); if(z != null) cnt[z]++; }
@@ -2783,6 +2791,8 @@ function calcRenderOut(){
   $("calcWar").innerHTML = rows.length ? `<div class="xpan"><div class="xh">${esc(calcText(AW_S,"A21"))}</div><div class="xb">${(CALC.roofs[CALC.active].calc||{}).openNote ? `<p class="missing" style="margin:0 0 8px"><b>${esc(CALC.roofs[CALC.active].calc.openNote)}</b></p>` : ""}<p class="hint">Using the #${sel} ranked approval. Click a row in the Top 5 to change it. These values drive the zone attachment above and the roof project summary.</p><table class="kv"><tr><th colspan="2">${esc(calcText(AW_S,"D22"))}</th></tr>${asm.map(([k,v])=>`<tr><td>${esc(k)}</td><td class="grn">${esc(v)}</td></tr>`).join("")}</table></div></div>
     <div class="xpan"><div class="xh">${esc(calcText(AW_S,"H21"))}</div><div class="xb"><table class="kv">${war.map(([k,v])=>`<tr><td>${esc(k)}</td><td class="${tone(v)?"t-"+tone(v):""}">${esc(v)}</td></tr>`).join("")}</table></div></div>` : "";
   $("calcAsm").innerHTML = r.calc ? `<b>Assembly (illustration, not to scale)</b>${asmSvg(r.calc)}` : "";
+  { let ph = ""; try{ const pc = r.calc, pp = pc ? sheetPlan(pc, Object.assign({}, pc.planOpt, {flutes: fluteCases(pc.planOpt||{})[0].flutes || "Length"})) : null; ph = pp ? planBoardsSvg(pp, pc) : ""; }catch(e){ console.warn(e); }
+    $("calcPat").innerHTML = ph ? `<b>Fastening and adhesive patterns</b>${ph}` : ""; }
   $("calcSumBtn").disabled = !r.calc;
   try{ specRender(); }catch(e){ console.warn(e); }
 }
@@ -3286,9 +3296,10 @@ function planZoneInfo(c){
     const spT = String(a[5]||""), sp = spT.match(/(\d+(?:\.\d+)?)\s*(?:"|in\.?)\s*o\.?c/i);
     const per4 = spT.match(/(\d+)\s*per\s*4x8/i), psq = spT.match(/(\d+(?:\.\d+)?)\s*plates\s*\/\s*sq/i);
     // fastened insulation and RhinoBond: the higher of the 8 / 12 / 16 minimum (field / perimeter / corner) and the listing count extrapolated by pressure, rounded up to a 4x8 pattern
-    const FLOOR = [8, 8, 12, 16], snap = n => { n = Math.ceil(+n||0); return FBC17_4x8.find(v=>v>=n) || n; };
+    const RBs = /RhinoBond/i.test(c.system||"") || /RhinoBond/i.test(sheetTxt), SET = RBs ? RB_N : FBC17_4x8;   // RhinoBond: Carlisle FP-1 / FP-2 patterns only
+    const FLOOR = [8, 8, 12, 16], snap = n => { n = Math.ceil(+n||0); return SET.find(v=>v>=n) || n; };
     const need = per4 ? +per4[1] : psq ? Math.ceil(parseFloat(psq[1]) * 0.32 - 1e-9) : null;
-    const per = need ? snap(Math.max(need, FLOOR[z])) : null, cap = 32;
+    const per = need ? snap(Math.max(need, FLOOR[z])) : null, cap = RBs ? 24 : 32;
     let spTxt = spT;
     if(need){ const unit = psq ? "plates per 4x8 board" : "per 4x8";
       spTxt = per > cap ? `${per} ${unit} required: over the ${cap} pattern, use smaller boards or a design professional` : `${per} ${unit}` + (per !== need ? ` (${need} calculated; min. 8 / 12 / 16, rounded up to a pattern)` : ""); }
@@ -3446,22 +3457,9 @@ function planSvg(c, opt){
   const key = planKey(p, c), zl = (opt && opt.zoneLegend) || "";
   const side = `<div class="pkey">${zl}<b>Key</b>${key.map(k=>`<div class="pk"><i style="background:${k.fill}"></i><span><b>${esc(k.name)}</b><br>${esc(k.txt)}</span></div>`).join("")}${p.MA ? '<div class="pk"><i style="border-top:2px dotted #1f2a36;height:0;margin-top:8px"></i><span>Fasteners in sheet laps</span></div><div class="pk"><i style="border-top:2px dashed #c0392b;height:0;margin-top:8px"></i><span>Seam fastening plate row with cover strip (subdivided sheet)</span></div>' : ""}${(p.adj||[]).length ? '<div class="pk"><i style="border-top:3px dashed #1a73e8;height:0;margin-top:8px"></i><span>Runs into an adjoining roof (no perimeter or corner zones)</span></div>' : ""}</div>`;
   const svg = `<div class="pwrap">${side}<svg viewBox="0 0 ${(Wpx+pad*2).toFixed(0)} ${(Hpx+pad*2).toFixed(0)}" class="psvg" role="img" aria-label="Sheet layout and fastening plan">${S}${dims}${arrow}</svg></div>`;
-  return svg + `<ul class="plg">${planLegend(p).map(t=>`<li>${esc(t)}</li>`).join("")}</ul>` + planBoardsSvg(p, c);
+  return svg + `<ul class="plg">${planLegend(p).map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`;
 }
 /* insulation attachment per 4x8 board, per zone */
-function planBoards(p, c){
-  const ins = String((c.raw||{}).G11||""), out = [];
-  p.Z.forEach((z,i)=>{
-    let n = null, rib = null, lab = "";
-    if(p.MA) return;
-    if(p.RB){ n = z.per; lab = z.per ? (z.per > 32 ? `${z.per} needed, over 32 max` : `${z.per} plates / board`) : "see approval"; }
-    else if(p.FA && /^Fastened/i.test(ins)){ n = z.per; lab = n ? (n > 32 ? `${n} needed, over 32 max` : `${n} / board`) : "see approval"; }
-    else if(p.FA && /^Adhered/i.test(ins)){ rib = z.rib || "12"; lab = `ribbons ${rib}" o.c.`; }
-    if(z.sheetTxt || n || rib) out.push({zone:PLAN_ZN[i], n, rib, lab});
-  });
-  return out;
-}
-function boardNote(p, c){ const ins = String((c.raw||{}).G11||""); return p.MA ? "" : p.RB ? "RhinoBond plates per 4x8 board by zone (FBC Note 17 patterns)." : (p.FA && /^Fastened/i.test(ins)) ? "Fastened insulation per 4x8 board by zone (FBC Note 17 patterns)." : (p.FA && /^Adhered/i.test(ins)) ? "Flexible FAST ribbon spacing by zone." : ""; }
 /* fastening patterns from the Carlisle 4x8 board chart: [x along the 96 in. side, y along the 48 in. side] in inches */
 const BOARD_PAT = (()=>{ const g = (xs, ys) => ys.flatMap(y=>xs.map(x=>[x,y])), X6 = [6,24,42,54,72,90], X8 = [6,18,30,42,54,66,78,90];
   return {
@@ -3501,24 +3499,92 @@ const FBC17_PAT = (()=>{ const g = (xs, ys) => ys.flatMap(y=>xs.map(x=>[x,y])), 
     32: g([6,18,30,42],[6,18,30,42,54,66,78,90])
   }; })();
 const FBC17_4x8 = [4,6,8,9,10,11,12,16,17,18,20,24,32];
-/* a board to draw: FBC patterns upright (4 ft wide, 8 ft tall) like the approval; Carlisle RhinoBond and insulation charts on their side (8 ft wide) like those charts */
-function boardShape(n, kind){
-  // every board (insulation and RhinoBond) is drawn from the FBC Note 17 patterns, upright as in the approval
-  if(FBC17_PAT[n]) return {W:4, H:8, pts:FBC17_PAT[n].map(([a,b])=>[a/12, b/12])};
-  if(!n) return {W:4, H:8, pts:[]};
-  let cols = Math.max(1, Math.round(Math.sqrt(n/2) + 0.25)), rows = Math.ceil(n/cols); while(cols*rows - n >= cols && rows > 1) rows--; const d = [];
-  for(let r=0;r<rows;r++) for(let c=0;c<cols && d.length<n;c++) d.push([(c+0.5)/cols*4, (r+0.5)/rows*8]); return {W:4, H:8, pts:d};
+/* insulation attachment drawn on a 4 x 8 board the way Carlisle draws it (board on its side, 96 in. wide by 48 in. tall, [x, y] in inches):
+   RhinoBond: Carlisle Induction Welding FP-1 / FP-2 patterns; fastened insulation: Carlisle Insulation Field Guide patterns (FBC Note 17
+   pattern turned on its side for counts the guide doesn't draw); adhered insulation and FleeceBACK: Flexible FAST beads; BareBack: full coverage */
+const RB_N = [6,8,9,10,12,15,16,18,20,24], INS_N = [6,8,10,12,16,20,24,32];
+function boardPts(n, rb){
+  if(rb && RB_PAT[n]) return RB_PAT[n];
+  if(n === 5) return [[12,12],[84,12],[48,24],[12,36],[84,36]];   // Carlisle spec 3.04 C.2 minimum: four corners and the center
+  if(!rb && INS_N.includes(n) && BOARD_PAT[n]) return BOARD_PAT[n];
+  if(FBC17_PAT[n]) return FBC17_PAT[n].map(([a,b])=>[b, a]);
+  if(!n) return [];
+  let cols = Math.max(1, Math.round(Math.sqrt(n*2) + 0.25)), rows = Math.ceil(n/cols); const d = [];
+  for(let r=0;r<rows;r++) for(let c=0;c<cols && d.length<n;c++) d.push([(c+0.5)/cols*96, (r+0.5)/rows*48]); return d;
 }
-function boardKind(p, c){ return p.RB ? "rb" : /NOA/i.test(c.source||(c.raw||{}).G14||"") ? "csg" : "fbc"; }
+/* Flexible FAST bead spacing, field and perimeter, in inches. Flexible FAST Dual Tank PDS (02/2026): 12 in. o.c. field, 6 in. o.c. perimeter for
+   55 mph warranties; Carlisle Insulation Field Guide (09/2026), adhered top layer: 12 / 6 up to 90 mph, 6 / 4 at 100 mph, 4 / 4 at 110 and 120 mph.
+   The approval's ribbon spacing is used where it is tighter. */
+function fastBeads(c){
+  const mph = parseFloat((c.raw||{}).G13 || (typeof CALC !== "undefined" && CALC.job ? CALC.job.G13 : "") || 55) || 55;
+  const [f, p] = mph >= 110 ? [4, 4] : mph >= 100 ? [6, 4] : [12, 6];
+  const h = parseFloat((c.raw||{}).B10) || 0, band = h <= 25 ? 4 : h <= 50 ? 8 : h <= 75 ? 12 : h <= 100 ? 16 : 24;   // PDS perimeter band by building height
+  return {f, p, mph, band};
+}
+function beadAt(c, z, i){ const b = fastBeads(c), t = i >= 2 ? b.p : b.f, r = parseFloat(z && z.rib); return r > 0 ? Math.min(t, r) : t; }
+function membAdh(c){
+  const raw = c.raw || {}, fb = /FleeceBACK/i.test(raw.MEMB || "") || /FleeceBACK/i.test(c.memb || "");
+  if(!/Adhered/i.test(c.system||"")) return null;
+  if(fb) return {kind:"beads", name:"Flexible FAST adhesive (FleeceBACK membrane)", note:"Beads min. 1.5 in. wide foamed, or splatter at 50% coverage on smooth flat surfaces only (Flexible FAST PDS). Keep adhesive out of the end laps."};
+  const pvc = /PVC|KEE/i.test(c.source || raw.G14 || "");
+  return {kind:"full", name: c.adhPref === "CG" ? (pvc ? "CAV-GRIP PVC adhesive" : "CAV-GRIP III adhesive / primer") : (pvc ? "Sure-Flex PVC Low-VOC Bonding Adhesive" : "Sure-Weld Bonding Adhesive"), note:"Full coverage, applied to both the membrane underside and the substrate, mated when tacky (no beads)."};
+}
+function planBoards(p, c){
+  const ins = String((c.raw||{}).G11||""), out = [], add = (zs, o) => { const k = JSON.stringify([o.kind, o.n || 0, o.rib || 0, o.sz || ""]); const hit = out.find(b=>b.key === k); if(hit) hit.zones.push(...zs); else out.push(Object.assign({key:k, zones:zs.slice()}, o)); };
+  const present = new Set(); if(p.g) for(const row of p.g.cells) for(const v of row) if(v!=null && !isNaN(v)) present.add(Math.max(0, Math.min(3, v)));
+  const has = i => !present.size || present.has(i);
+  if(p.MA && !p.RB){ let per = null; try{ const L = asmModel(c).layers, tb = L.find(l=>l.plates === "maIns"); per = tb ? tb.maPer : null; }catch(e){}
+    if(per) add(PLAN_ZN.filter((_, i)=>has(i)), {kind:"fast", n:per, title:`${per} Insulation Fasteners & Plates`, sub:"every zone (Carlisle spec 3.04 C.2)"});
+    return out; }
+  p.Z.forEach((z, i)=>{ if(!has(i)) return;
+    if(p.RB){ if(z.per) add([PLAN_ZN[i]], {kind:"rb", n:z.per, over: z.per > 24, title: z.per > 24 ? `${z.per} RhinoBond plates needed (over the 24 pattern)` : `${z.per} RhinoBond Plates`, sub: z.per > 24 ? "No Carlisle pattern: contact Carlisle Design Services" : "Induction Welding FP-1 / FP-2"}); }
+    else if(p.FA && /^Fastened/i.test(ins)){ if(z.per) add([PLAN_ZN[i]], {kind:"fast", n:z.per, over: z.per > 32, title: z.per > 32 ? `${z.per} fasteners needed (over the 32 pattern)` : `${z.per} Insulation Fasteners & Plates`, sub: z.per > 32 ? "No 4x8 pattern: use 4' x 4' boards or a design professional" : "Carlisle insulation fastening pattern"}); }
+    else if(p.FA && /^Adhered/i.test(ins)){ const r = beadAt(c, z, i); add([PLAN_ZN[i]], {kind:"beads", rib:r, sz: r >= 12 ? "4x4" : "4x8", title:`Flexible FAST beads ${r}" o.c.`, sub: r >= 12 ? "4' x 4' boards (max. at 12 in. o.c.)" : "4' x 8' boards"}); }
+  });
+  return out;
+}
+function boardNote(p, c){ const ins = String((c.raw||{}).G11||""), b = fastBeads(c);
+  if(p.MA && !p.RB) return "Insulation fastened through the top board, the same pattern in every zone (Carlisle Sure-Weld / Sure-Flex spec 3.04 C.2: 5 per 4x8 board for insulation 1-1/2 in. and thicker, 8 under 1-1/2 in.). Keep fasteners at least 6 in. from board edges.";
+  if(p.RB) return "RhinoBond plates per 4x8 board by zone, Carlisle Induction Welding attachment patterns FP-1 / FP-2. For FM insured projects, consult FM Global before installation.";
+  if(p.FA && /^Fastened/i.test(ins)) return "Insulation fasteners and plates per 4x8 board by zone (Carlisle Insulation Field Guide patterns). Never put a fastener less than 6 in. from a board edge.";
+  if(p.FA && /^Adhered/i.test(ins)) return `Flexible FAST beads: ${b.f} in. o.c. field, ${b.p} in. o.c. perimeter and corners (${b.mph} mph warranty; Flexible FAST PDS and Carlisle Insulation Field Guide; tighter where the approval says so). Carlisle perimeter band at least ${b.band} ft for this building height. Max. 4' x 4' boards at 12 in. o.c.` + (/Steel/i.test(String(c.deck||(c.raw||{}).G7||"")) ? " Steel deck: beads run along, and on top of, the flutes." : "");
+  return "";
+}
+function boardShape(n, kind){ return {W:8, H:4, pts:boardPts(n, kind === "rb").map(([x,y])=>[x/12, y/12])}; }
+function boardKind(p, c){ return p.RB ? "rb" : "fbc"; }
+/* one board as SVG: dimension strings along the top and the right side like the Carlisle charts */
+function boardSvg(b){
+  const k = 2.4, W = (b.sz === "4x4" ? 48 : 96), H = 48, ox = 8, oy = 26, sw = W*k, sh = H*k, mem = b.surf === "memb";
+  const pts = (b.kind === "rb" || b.kind === "fast") && !b.over ? boardPts(b.n, b.kind === "rb") : [];
+  const dimRow = (vals, len) => { const v = [0, ...[...new Set(vals.map(x=>+x.toFixed(2)))].sort((a,c)=>a-c), len]; return v.slice(1).map((x, i)=>[v[i], x]).filter(([a, c])=>c - a > 0.5); };
+  let g = mem ? `<rect x="${ox}" y="${oy}" width="${sw}" height="${sh}" fill="#ffffff" stroke="#5b6878" stroke-width="1.5" stroke-dasharray="6 3"/>` : `<rect x="${ox}" y="${oy}" width="${sw}" height="${sh}" fill="#f6efe0" stroke="#1d3fb8" stroke-width="2"/>`;
+  if(b.over) g += `<text x="${ox+sw/2}" y="${oy+sh/2+4}" text-anchor="middle" font-size="11" font-weight="700" fill="#c0392b">over the largest pattern</text>`;
+  else if(b.kind === "rb" || b.kind === "fast"){
+    const xs = [...new Set(pts.map(p=>p[0]))], ys = [...new Set(pts.map(p=>p[1]))];
+    xs.forEach(x=>g += `<line x1="${ox+x*k}" y1="${oy}" x2="${ox+x*k}" y2="${oy+sh}" stroke="#3d7a5a" stroke-width=".7" stroke-dasharray="1.5 2.5"/>`);
+    ys.forEach(y=>g += `<line x1="${ox}" y1="${oy+y*k}" x2="${ox+sw}" y2="${oy+y*k}" stroke="#3d7a5a" stroke-width=".7" stroke-dasharray="1.5 2.5"/>`);
+    pts.forEach(([x,y])=>{ const cx = ox+x*k, cy = oy+y*k;
+      g += b.kind === "rb" ? `<circle cx="${cx}" cy="${cy}" r="5" fill="#9ec5ff" stroke="#1d3fb8" stroke-width="1.2"/><circle cx="${cx}" cy="${cy}" r="1.3" fill="#1d3fb8"/>`
+        : `<circle cx="${cx}" cy="${cy}" r="5" fill="#fff" stroke="#c0392b" stroke-width="1.3"/><path d="M${cx-3} ${cy-3}L${cx+3} ${cy+3}M${cx+3} ${cy-3}L${cx-3} ${cy+3}" stroke="#c0392b" stroke-width="1.2"/>`; });
+    dimRow(xs, W).forEach(([a, c])=>{ const x0 = ox+a*k, x1 = ox+c*k; g += `<line x1="${x0}" y1="${oy-8}" x2="${x1}" y2="${oy-8}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x0}" y1="${oy-12}" x2="${x0}" y2="${oy-4}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x1}" y1="${oy-12}" x2="${x1}" y2="${oy-4}" stroke="#1f2a36" stroke-width=".7"/><text x="${(x0+x1)/2}" y="${oy-11}" text-anchor="middle" font-size="${(c-a) < 8 ? 7 : 8.5}" fill="#1f2a36">${+(c-a).toFixed(1)}"</text>`; });
+    dimRow(ys, H).forEach(([a, c])=>{ const y0 = oy+a*k, y1 = oy+c*k, x = ox+sw+8; g += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y1}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x-4}" y1="${y0}" x2="${x+4}" y2="${y0}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x-4}" y1="${y1}" x2="${x+4}" y2="${y1}" stroke="#1f2a36" stroke-width=".7"/><text x="${x+6}" y="${(y0+y1)/2+3}" font-size="8.5" fill="#1f2a36">${+(c-a).toFixed(1)}"</text>`; });
+  } else if(b.kind === "beads"){
+    const n = Math.max(1, Math.round(H / b.rib)); for(let i=0;i<n;i++){ const y = oy + (i+0.5)*sh/n; g += `<line x1="${ox+4}" y1="${y}" x2="${ox+sw-4}" y2="${y}" stroke="#4aa3df" stroke-width="${Math.max(2.5, 1.5*k)}" stroke-linecap="round"/>`; }
+    const y0 = oy + 0.5*sh/n, y1 = oy + 1.5*sh/n, x = ox+sw+8; if(n > 1) g += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y1}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x-4}" y1="${y0}" x2="${x+4}" y2="${y0}" stroke="#1f2a36" stroke-width=".7"/><line x1="${x-4}" y1="${y1}" x2="${x+4}" y2="${y1}" stroke="#1f2a36" stroke-width=".7"/><text x="${x+6}" y="${(y0+y1)/2+3}" font-size="8.5" fill="#1f2a36">${b.rib}" o.c.</text>`;
+  } else if(b.kind === "full"){ g += `<rect x="${ox}" y="${oy}" width="${sw}" height="${sh}" fill="url(#adhfull)"/>`; }
+  g += `<text x="${ox+sw/2}" y="${oy+sh+13}" text-anchor="middle" font-size="9" fill="#1f2a36">${mem ? "substrate under the membrane sheet" : (W === 96 ? "8'" : "4'") + " x 4' board"}</text>`;
+  const vw = ox + sw + 44, vh = oy + sh + 18;
+  return `<figure class="bfig"><svg viewBox="0 0 ${vw} ${vh}" width="${vw}" height="${vh}" role="img" aria-label="${esc(b.title)}"><defs><pattern id="adhfull" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#e8dcb5"/><line x1="0" y1="0" x2="0" y2="6" stroke="#b39a55" stroke-width="2"/></pattern></defs>${g}</svg><figcaption><b>${esc(b.title)}</b><br>${esc(b.zones.join(", "))}${b.sub ? `<br><span class="hint">${esc(b.sub)}</span>` : ""}</figcaption></figure>`;
+}
+function membBoards(p, c){ const m = membAdh(c); if(!m) return [];
+  if(m.kind === "full") return [{kind:"full", surf:"memb", title:m.name, zones:["Every zone"], sub:"full coverage, both surfaces"}];
+  const out = []; p.Z.forEach((z, i)=>{ const r = beadAt(c, z, i), hit = out.find(b=>b.rib === r); if(hit) hit.zones.push(PLAN_ZN[i]); else out.push({kind:"beads", surf:"memb", rib:r, sz:"4x8", title:`Flexible FAST beads ${r}" o.c.`, zones:[PLAN_ZN[i]], sub:"under the FleeceBACK sheet"}); }); return out; }
 function planBoardsSvg(p, c){
-  const B = planBoards(p, c); if(!B.length) return "";
-  const k = boardKind(p, c);
-  return `<p class="hint" style="margin:10px 0 0">${esc(boardNote(p, c))}</p><div class="pbd">` + B.map(b=>{
-    const bs = boardShape(b.n, k), cell = bs.W*8.5, h = bs.H*8.5;
-    const dots = bs.pts.map(([x,y])=>`<circle cx="${(4+x*8.5).toFixed(1)}" cy="${(4+y*8.5).toFixed(1)}" r="2.2" fill="#1f2a36"/>`).join("");
-    const ribs = b.rib ? Array.from({length: Math.max(1, Math.round(96/ +b.rib))}, (_,i)=>`<line x1="4" x2="${4+cell}" y1="${(4+(i+0.5)*h/Math.max(1,Math.round(96/ +b.rib))).toFixed(1)}" y2="${(4+(i+0.5)*h/Math.max(1,Math.round(96/ +b.rib))).toFixed(1)}" stroke="#3d94cb" stroke-width="2"/>`).join("") : "";
-    return `<figure><svg viewBox="0 0 ${cell+8} ${h+8}" width="${cell+8}" height="${h+8}"><rect x="4" y="4" width="${cell}" height="${h}" fill="#f3e3c3" stroke="#8a6d3b"/>${ribs}${dots}</svg><figcaption><b>${esc(b.zone)}</b><br>${esc(b.lab)}</figcaption></figure>`;
-  }).join("") + `</div>`;
+  const B = planBoards(p, c), M = membBoards(p, c), m = membAdh(c); if(!B.length && !M.length) return "";
+  let h = "";
+  if(B.length) h += `<h4 class="fcase">Insulation attachment per board</h4><p class="hint" style="margin:0 0 6px">${esc(boardNote(p, c))}</p><div class="pbd">${B.map(boardSvg).join("")}</div>`;
+  if(M.length) h += `<h4 class="fcase">Membrane adhesive: ${esc(m.name)}</h4><p class="hint" style="margin:0 0 6px">${esc(m.note)}${m.kind === "beads" ? ` Spacing shown is the minimum for the ${fastBeads(c).mph} mph warranty; confirm with Carlisle for longer warranties.` : ""}</p><div class="pbd">${M.map(boardSvg).join("")}</div>`;
+  return h;
 }
 /* PDF page: same geometry drawn with pdf-lib */
 async function planPdf(c, opt){
@@ -3543,15 +3609,26 @@ async function planPdf(c, opt){
   page.drawText("Legend", {x:tx, y:ty, size:9, font:FB}); ty -= 13;
   planLegend(p).forEach(t=>{ wrap(t, F, 7.2).forEach(l=>{ page.drawText(l, {x:tx, y:ty, size:7.2, font:F}); ty -= 9; }); ty -= 3; });
   planKey(p, c).forEach(k=>{ page.drawRectangle({x:tx, y:ty-6, width:10, height:8, color:hx(k.fill), borderColor:hx("#8a96a3"), borderWidth:.4}); const kl = wrap(k.name + ": " + k.txt, F, 6.8).map(l=>l); kl.forEach((l,i)=>page.drawText(l, {x:tx+14, y:ty-4.5-i*8.5, size:6.8, font:F})); ty -= 3 + 8.5*Math.max(1, kl.length); });
-  const B = planBoards(p, c); if(B.length){ ty -= 4; page.drawText("Insulation attachment per 4x8 board", {x:tx, y:ty, size:8.5, font:FB}); ty -= 11; wrap(boardNote(p, c), F, 7).forEach(l=>{ page.drawText(l, {x:tx, y:ty, size:7, font:F}); ty -= 9; }); ty -= 2;
-    const k = boardKind(p, c); let bx = tx; B.forEach(b=>{ const bs = boardShape(b.n, k), bw = bs.W*5.5, bh = bs.H*5.5; if(bx + bw > tx + tw){ bx = tx; ty -= 44 + 34; }
-      page.drawRectangle({x:bx, y:ty-bh, width:bw, height:bh, color:hx("#f3e3c3"), borderColor:hx("#8a6d3b"), borderWidth:0.6});
-      if(b.rib){ const n = Math.max(1, Math.round(96/ +b.rib)); for(let i=0;i<n;i++){ const yy = ty - (i+0.5)*bh/n; page.drawLine({start:{x:bx, y:yy}, end:{x:bx+bw, y:yy}, thickness:1.2, color:hx("#3d94cb")}); } }
-      bs.pts.forEach(([x,y])=>page.drawCircle({x:bx + x*5.5, y:ty - y*5.5, size:1.4, color:hx("#1f2a36")}));
-      page.drawText(b.zone, {x:bx, y:ty-bh-9, size:6.5, font:FB}); page.drawText(clean(b.lab).slice(0,16), {x:bx, y:ty-bh-17, size:6, font:F});
-      bx += Math.max(50, bw + 8); });
-  }
   page.drawText("Illustration from the selected approval and RAS 137 extrapolation. Confirm sheet layout against the roof plan and deck direction on site.", {x:30, y:24, size:6.5, font:F, color:hx("#5b6878")});
+  if(!(opt||{}).both || opt.both === "A"){   // fastening and adhesive patterns: their own page, once per roof
+    const pg2 = doc.addPage([792, 612]); { const page = pg2; let ty = 612-80; const tx = 40, tw = 712;
+      page.drawRectangle({x:30, y:612-52, width:732, height:22, color:hx("#0b4f9c")});
+      page.drawText(clean("FASTENING AND ADHESIVE PATTERNS" + (multiRoof() ? "  |  " + roofTag(c) : "") + (c.approval ? "  |  " + c.approval : "")).slice(0,140), {x:38, y:612-45, size:10, font:FB, color:rgb(1,1,1)});
+      const wrap = (t, f, sz) => { const out = []; let ln = ""; for(const w of clean(t).split(" ")){ if(f.widthOfTextAtSize((ln+" "+w).trim(), sz) > tw){ out.push(ln); ln = w; } else ln = (ln+" "+w).trim(); } if(ln) out.push(ln); return out; };
+  const B = planBoards(p, c), MB = membBoards(p, c), ma = membAdh(c);
+  const drawBoards = (head, note, list) => { if(!list.length) return; ty -= 4; page.drawText(clean(head).slice(0,70), {x:tx, y:ty, size:8.5, font:FB}); ty -= 11; wrap(note, F, 6.6).forEach(l=>{ page.drawText(l, {x:tx, y:ty, size:6.6, font:F}); ty -= 8.4; }); ty -= 4;
+    let bx = tx; const s = 1.2; list.forEach(b=>{ const W = (b.sz === "4x4" ? 48 : 96), bw = W*s, bh = 48*s; if(bx + bw > tx + tw){ bx = tx; ty -= bh + 34; }
+      page.drawRectangle({x:bx, y:ty-bh, width:bw, height:bh, color:hx(b.surf === "memb" ? "#ffffff" : "#f6efe0"), borderColor:hx(b.surf === "memb" ? "#5b6878" : "#1d3fb8"), borderWidth:1});
+      if(b.kind === "beads"){ const n = Math.max(1, Math.round(48 / b.rib)); for(let i=0;i<n;i++){ const yy = ty - (i+0.5)*bh/n; page.drawLine({start:{x:bx+2, y:yy}, end:{x:bx+bw-2, y:yy}, thickness:1.6, color:hx("#4aa3df")}); } }
+      else if(b.kind === "full"){ for(let d=-bh; d<bw; d+=4){ const x0 = Math.max(bx, bx+d), y0 = ty - (x0 - (bx+d)), x1 = Math.min(bx+bw, bx+d+bh), y1 = ty - (x1 - (bx+d)); page.drawLine({start:{x:x0, y:y0}, end:{x:x1, y:y1}, thickness:.6, color:hx("#b39a55")}); } }
+      else if(b.over) page.drawText("over the largest pattern", {x:bx+4, y:ty-bh/2-2, size:6.2, font:FB, color:hx("#c0392b")});
+      else boardPts(b.n, b.kind === "rb").forEach(([x,y])=>{ const cx = bx + x*s, cy = ty - y*s; if(b.kind === "rb"){ page.drawCircle({x:cx, y:cy, size:2.6, color:hx("#9ec5ff"), borderColor:hx("#1d3fb8"), borderWidth:.6}); }
+        else { page.drawCircle({x:cx, y:cy, size:2.6, color:hx("#ffffff"), borderColor:hx("#c0392b"), borderWidth:.7}); page.drawLine({start:{x:cx-1.7, y:cy-1.7}, end:{x:cx+1.7, y:cy+1.7}, thickness:.6, color:hx("#c0392b")}); page.drawLine({start:{x:cx-1.7, y:cy+1.7}, end:{x:cx+1.7, y:cy-1.7}, thickness:.6, color:hx("#c0392b")}); } });
+      page.drawText(clean(b.title).slice(0, 40), {x:bx, y:ty-bh-9, size:6.4, font:FB}); page.drawText(clean(b.zones.join(", ")).slice(0, 48), {x:bx, y:ty-bh-17, size:5.8, font:F});
+      bx += Math.max(bw + 24, 150); }); ty -= 48*s + 30; };
+      drawBoards("Insulation attachment per board", boardNote(p, c), B);
+      if(ma) drawBoards("Membrane adhesive: " + ma.name, ma.note, MB);
+      if(!B.length && !MB.length) doc.removePage(doc.getPageCount()-1); } }
   return doc;
 }
 /* ---------- general code notes that apply to the chosen job (FL14083 / FL14165 evaluation report notes; NOA general limitations) ---------- */
@@ -3618,7 +3695,7 @@ function planKey(p, c){
       t += z.spTxt ? ", fasteners " + z.spTxt : "";
     }
     else if(p.RB) t = (z.per ? z.per + " plates per 4x8 board" : "plates per approval");
-    else if(p.FA && /^Adhered/i.test(ins)) t = "insulation beads " + (z.spTxt || (z.rib ? z.rib + " in. o.c." : "per approval"));
+    else if(p.FA && /^Adhered/i.test(ins)) t = `insulation: Flexible FAST beads ${beadAt(c, z, i)} in. o.c.`;
     else if(p.FA && /^Fastened/i.test(ins)) t = z.per ? z.per + " insulation fasteners per 4x8 board" : (z.spTxt || "per approval");
     else if(p.FA) t = "membrane adhered (no insulation)";
     out.push({z:i, fill:PLAN_FILL[i], name:PLAN_ZN[i], txt:t});
