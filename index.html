@@ -3305,7 +3305,9 @@ function specFor(i){
 function specApply(c, sp){
   if(!c || !sp) return;
   const {o, s} = sp, L = adhLabels(o);
-  const withThk = (v, k) => { if(!v || /^None/i.test(v)) return v || ""; const t = s[k + "Thk"]; return t ? v.replace(/,\s*min\.\s*[\d.]+"/i, "") + ", " + t + '"' : v; };
+  const g12 = String((c.raw||{}).G12||"").toLowerCase(), g12T = (()=>{ const m = g12.match(/(\d+(?:\.\d+)?)(?:\/(\d+))?"/); return m ? (m[2] ? +m[1]/+m[2] : +m[1]) : 0; })();
+  const withThk = (v, k) => { if(!v || /^None/i.test(v)) return v || ""; const nm = v.replace(/,\s*min\.\s*[\d.]+"/i, "").toLowerCase(), mn = parseFloat((v.match(/min\.\s*([\d.]+)/i)||[])[1]) || 0;
+    const t = s[k + "Thk"] || ((k === "cover" || k === "top") && g12T >= mn - 1e-9 && g12.includes(nm) ? String(g12T) : ""); return t ? v.replace(/,\s*min\.\s*[\d.]+"/i, "") + ", " + t + '"' : v; };
   c.spec = {insul: withThk(s.insul, "insul"), top: withThk(s.top, "top"), under: withThk(s.under, "under"), cover: withThk(s.cover, "cover"), adhPref: s.adh === "BA" ? "BA" : s.adh === "CG" ? "CG" : "", adhName: s.adh === "BA" ? L.BA : s.adh === "CG" ? L.CG : (s.adh || ""),
     adhListed: s.adh === "BA" ? !!(o.adh && o.adh.ba) : s.adh === "CG" ? !!(o.adh && o.adh.cg) : true, umbrella: !!((o.insul && o.insul.items.length > 1) || !!o.under || (o.cover && o.cover.items.length > 1) || (o.adh && (o.adh.ba + o.adh.cg + o.adh.other.length) > 1))};
   c.adhPref = c.spec.adhPref;
@@ -3316,8 +3318,10 @@ function specRender(){
   const r = CALC.roofs[CALC.active]; const sp = r.calc ? specFor(CALC.active) : null;
   if(!sp){ box.innerHTML = ""; return; }
   const {o, s} = sp, L = adhLabels(o);
+  const g12 = String(r.v.G12||"").toLowerCase(), pinnedBy = layer => g12 && !/^(none|any)/.test(g12) && layer.items.some(x=>g12.includes(x.name.toLowerCase()));
   const sel = (key, label, layer, noneLabel) => {
     if(!layer || (!layer.items.length && !layer.none)) return "";
+    const pin = (key === "cover" || key === "top") && pinnedBy(layer);
     const opts = layer.items.map(fmtItem); if(layer.optional || layer.none) opts.push("None");
     if(opts.length < 1) return "";
     let thk = "";
@@ -3325,9 +3329,13 @@ function specRender(){
       const cur = layer.items.find(x=>fmtItem(x)===s[key]); const mn = cur && cur.min ? parseFloat(cur.min) : 0;
       if(cur && mn){ const steps = [0.25,0.5,0.75,1,1.25,1.5,2,2.5,3,3.5,4,4.5,5,6].filter(v=>v>=mn-1e-9); const tk = key + "Thk";
         if(!steps.some(v=>String(v)===String(s[tk]))) s[tk] = String(mn);
+        if(pin){ const m = g12.match(/(\d+(?:\.\d+)?)(?:\/(\d+))?(?:-[\d.]+)?"\s*(\+)?/); const g = m ? (m[2] ? +m[1]/+m[2] : +m[1]) : 0;
+          if(g >= mn - 1e-9 && !m[3] && !/-[\d.]+"/.test(m[0])){ s[tk] = String(g); return ""; }   // the input above already gives an exact thickness
+          if(g >= mn - 1e-9 && !s[tk + "Set"]) s[tk] = String(steps.find(v=>v >= g - 1e-9) || mn); }
         thk = `<label class="f cf half"><span>Thickness (in)</span><select data-spec="${tk}">${steps.map(v=>`<option value="${v}"${String(v)===String(s[tk])?" selected":""}>${v}"${Math.abs(v-mn)<1e-9?" (listed min.)":""}</option>`).join("")}</select></label>`; }
     }
-    if(thk && opts.length === 1) return thk.replace('class="f cf half"', 'class="f cf"').replace("<span>Thickness (in)</span>", `<span>${esc(label)}: ${esc(opts[0].replace(/,\s*min\.\s*[\d.]+"/i, ""))}, thickness (in)</span>`);
+    if(pin && !thk) return "";
+    if(thk && (opts.length === 1 || pin)) return thk.replace('class="f cf half"', 'class="f cf"').replace("<span>Thickness (in)</span>", `<span>${esc(label)}: ${esc((pin ? s[key] : opts[0]).replace(/,\s*min\.\s*[\d.]+"/i, ""))}, thickness (in)</span>`);
     return `<label class="f cf${thk?" half":""}"><span class="fl">${esc(label)} ${qTip(layer.items.length + " option" + (layer.items.length === 1 ? "" : "s") + " listed in this approval" + (layer.optional ? ", optional" : ""))}</span><select data-spec="${key}">${opts.map(x=>`<option${x===s[key]?" selected":""}>${esc(x)}</option>`).join("")}</select></label>` + thk;
   };
   let adhHtml = "";
@@ -3342,9 +3350,9 @@ function specRender(){
   }
   const vbo = (/Adhered/i.test(String(calcVal(IN_S,"G6"))) && /^FBC/i.test(String(calcVal(IN_S,"G14")))) ? String(calcVal(AF_S,"AB68")||"") : "", vbs = String(calcVal(IN_S,"B14")||"");
   const vbHtml = vbs && vbs !== "None" ? `<p class="hint" style="margin:0"><b>Vapor barrier:</b> ${esc(vbs)}${vbo ? " (" + esc(vbo.split(":")[0].replace(/^Note 16A option /,"Note 16A, ")) + ")" : ""}</p>` : "";
-  const body = sel("under", "Additional layer under the insulation (insulation required over it)", o.under) + sel("top", "Top insulation layer", o.top) + sel("cover", "Cover board", o.cover) + adhHtml + vbHtml;
-  box.innerHTML = body ? `<div class="xpan xspec"><div class="xh">Specify from approval ${qTip("Approvals are often umbrella listings with several product options. Pick the option you are specifying; the drawing, data sheets, assembly letter request and summary use these picks." + (o.raw.base||o.raw.top ? " As listed: " + [o.raw.base, o.raw.top].filter(x=>x && x!=="—").join(" | ") : ""))}</div><div class="xb"><div class="cfields">${body}</div></div></div>` : "";
-  box.querySelectorAll("[data-spec]").forEach(el=>el.onchange=()=>{ CALC.roofs[CALC.active].spec[el.dataset.spec] = el.value; calcRunActive(true); });
+  const body = sel("under", "Additional layer under the insulation (insulation required over it)", o.under) + sel("top", "Top insulation layer", o.top) + sel("cover", "Cover board", o.cover) + adhHtml + (vbo ? vbHtml : "");   // vapor barrier only when it adds the Note 16A option (the product is picked above)
+  box.innerHTML = body ? `<div class="xpan xspec"><div class="xh">Product picks in this approval ${qTip("This approval lists more than one product for some layers. Pick the one you are specifying (choices already set in the inputs above are not repeated here); the drawing, data sheets, assembly letter request and summary use these picks." + (o.raw.base||o.raw.top ? " As listed: " + [o.raw.base, o.raw.top].filter(x=>x && x!=="—").join(" | ") : ""))}</div><div class="xb"><div class="cfields">${body}</div></div></div>` : "";
+  box.querySelectorAll("[data-spec]").forEach(el=>el.onchange=()=>{ CALC.roofs[CALC.active].spec[el.dataset.spec] = el.value; if(/Thk$/.test(el.dataset.spec)) CALC.roofs[CALC.active].spec[el.dataset.spec + "Set"] = 1; calcRunActive(true); });
 }
 function adhOptionsFor(idx){
   const o = approvalOpts(idx); if(!o || !o.adh || o.fb) return "";
@@ -3607,8 +3615,8 @@ function membAdh(c){
     let lt = ""; try{ const ix = c.appr && c.appr.idx; lt = ix ? (dbVal(ix, "Roof Cover Application") || dbVal(ix, "Fastener / Plate / Membrane adhesive")) : ""; }catch(e){}
     const m = lt.match(/(\d+(?:\.\d+)?)\s*-?\s*inch\s*o\.?\s*c/i), full = /\(FULL\)|full coverage/i.test(lt), spl = /SPLATTER/i.test(lt);
     const rib = m ? +m[1] : full ? 4 : null;
-    const b = fastBeads(c), src = m ? `Approval listing: ribbons ${rib} in. o.c.` : full ? "Approval listing: full coverage (4 in. o.c. ribbons or 1 gal/sq)" : `The approval listing gives no ribbon spacing: shown at the Carlisle minimum for the ${b.mph} mph warranty (${b.f} in. o.c. field, ${b.p} in. o.c. perimeter and corners); confirm against the Carlisle spec`;
-    return {kind:"beads", rib, full, name:"Flexible FAST adhesive (FleeceBACK membrane)", note:`${src}${spl ? " (splatter also listed)" : ""}. Beads min. 1.5 in. wide foamed; splatter at 50% coverage on smooth flat surfaces only (Flexible FAST PDS). Keep adhesive out of the end laps.`}; }
+    const b = fastBeads(c), src = m ? `Approval listing: ribbons ${rib} in. o.c.` : full ? "Approval listing: full coverage" : `The approval listing gives no ribbon spacing: shown at the Carlisle minimum for the ${b.mph} mph warranty (${b.f} in. o.c. field, ${b.p} in. o.c. perimeter and corners); confirm against the Carlisle spec`;
+    return {kind:"beads", rib, full, name:"Flexible FAST adhesive (FleeceBACK membrane)", note:`${src}${spl ? " (splatter also listed)" : ""}. Keep adhesive out of the end laps.`}; }
   const pvc = /PVC|KEE/i.test(c.source || raw.G14 || "");
   return {kind:"full", name: c.adhPref === "CG" ? (pvc ? "CAV-GRIP PVC or Sure-Flex PVC Low-VOC Bonding Adhesive" : "CAV-GRIP III or Sure-Weld Bonding Adhesive") : (pvc ? "Sure-Flex PVC Low-VOC Bonding Adhesive" : "Sure-Weld Bonding Adhesive"), note:"Full coverage, applied to both the membrane underside and the substrate, mated when tacky (no beads)."};
 }
@@ -3684,7 +3692,7 @@ function splatPts(w, h, dens){ let sd = 7; const rnd = () => (sd = (sd * 16807) 
 function membBoards(p, c){ const m = membAdh(c); if(!m) return [];
   if(m.kind === "full") return [{kind:"full", surf:"memb", title:m.name, zones:["Every zone"], sub:"full coverage, both surfaces"}];
   if(!m.rib){ const out = []; p.Z.forEach((z, i)=>{ const b = fastBeads(c), r = i >= 2 ? b.p : b.f, hit = out.find(x=>x.rib === r); if(hit) hit.zones.push(PLAN_ZN[i]); else out.push({kind:"beads", surf:"memb", rib:r, sz:"4x8", title:`Flexible FAST ribbons ${r}" o.c.`, zones:[PLAN_ZN[i]], sub:"Carlisle minimum: confirm with the spec"}); }); return out; }
-  if(m.full) return [{kind:"splatter", surf:"memb", rib:m.rib, sz:"4x8", title:`Full: splatter or ${m.rib}" o.c. ribbons`, zones:["Every zone (as listed)"], sub:"splatter at about 50% coverage, 1 gal/sq"}];
+  if(m.full) return [{kind:"splatter", surf:"memb", rib:m.rib, sz:"4x8", title:`Full: splatter or ${m.rib}" o.c. ribbons`, zones:["Every zone (as listed)"], sub:"splatter or ribbons, as listed"}];
   return [{kind:"beads", surf:"memb", rib:m.rib, sz:"4x8", title:`Flexible FAST ribbons ${m.rib}" o.c.`, zones:["Every zone (as listed)"], sub:"serpentine on the substrate, sheet rolled into it"}]; }
 function planBoardsSvg(p, c){
   const B = planBoards(p, c), M = membBoards(p, c), m = membAdh(c); if(!B.length && !m) return "";
