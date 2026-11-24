@@ -15619,5 +15619,1200 @@
   "boards": [
    "6 Insulation Fasteners & Plates @ Zone 1'/Zone 1/Zone 2/Zone 3"
   ]
+ },
+ "gypFA": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-66.6",
+    "-40.0",
+    "-45.0",
+    "29,184",
+    "291.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-115.9",
+    "-69.6",
+    "-75.0",
+    "14,112",
+    "141.1"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-152.9",
+    "-91.7",
+    "-97.5",
+    "15,984",
+    "159.8"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-208.4",
+    "-125.0",
+    "-127.5",
+    "720",
+    "7.2"
+   ]
+  ],
+  "appr": "G-7 PEER-CRL-003.A.R39 for FL14083-R38",
+  "approval": "G-7 – FL14083 Non-HVHZ (Tbl 6A, p. 105)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "—",
+    "Adhesive Beads",
+    "—",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "40.0",
+    "OK as tested",
+    "Up to 16' sheet",
+    "—",
+    "6 in. o.c.",
+    "—",
+    "228' × 128'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "69.6",
+    "OK as tested",
+    "Up to 16' sheet",
+    "—",
+    "6 in. o.c.",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "91.7",
+    "OK as tested",
+    "Up to 16' sheet",
+    "—",
+    "4 in. o.c.",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "125.0",
+    "OK as tested",
+    "Up to 16' sheet",
+    "—",
+    "4 in. o.c.",
+    "—",
+    "6 × 18 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    16,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    32,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    48,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    64,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    80,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    96,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    112,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    128,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    144,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    160,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    176,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    192,
+    8,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ]
+  ],
+  "fingers": [],
+  "emptyStrips": 0,
+  "legend": [
+   "Roof zones only. A sheet layout is drawn for mechanically attached systems; fully adhered membrane is not laid out by sheet here."
+  ],
+  "boards": [
+   "Flexible FAST beads 6\" o.c. @ Zone 1'/Zone 1",
+   "Flexible FAST beads 4\" o.c. @ Zone 2/Zone 3",
+   "Sure-Weld Bonding Adhesive @ Every zone"
+  ]
+ },
+ "gypMA": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-66.6",
+    "-40.0",
+    "-45.0",
+    "29,184",
+    "291.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-115.9",
+    "-69.6",
+    "-75.0",
+    "14,112",
+    "141.1"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-152.9",
+    "-91.7",
+    "-97.5",
+    "15,984",
+    "159.8"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-208.4",
+    "-125.0",
+    "-127.5",
+    "720",
+    "7.2"
+   ]
+  ],
+  "appr": null,
+  "approval": "—",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "Row Spacing (in)",
+    "Fastener Spacing",
+    "Fasteners / Sq",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "40.0",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "228' × 128'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "69.6",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "91.7",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "125.0",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "6 × 18 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 10,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    10,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    20,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    30,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    40,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    50,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    60,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    70,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    80,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    90,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    100,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    110,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    120,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    130,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    140,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    150,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    160,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    170,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    180,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    190,
+    10,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ]
+  ],
+  "fingers": [],
+  "emptyStrips": 0,
+  "legend": [
+   "Sheets run along the length: 20 x 10' sheets.",
+   "Along edges that run parallel to the sheets the perimeter gets narrower perimeter sheets; field sheets that cross a perimeter or corner band are subdivided by a row of seam fastening plates with cover strip through that band only."
+  ],
+  "boards": [
+   "5 Insulation Fasteners & Plates @ Zone 1'/Zone 1/Zone 2/Zone 3"
+  ]
+ },
+ "tecFA": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-66.6",
+    "-40.0",
+    "-45.0",
+    "29,184",
+    "291.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-115.9",
+    "-69.6",
+    "-75.0",
+    "14,112",
+    "141.1"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-152.9",
+    "-91.7",
+    "-97.5",
+    "15,984",
+    "159.8"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-208.4",
+    "-125.0",
+    "-127.5",
+    "720",
+    "7.2"
+   ]
+  ],
+  "appr": "CWF-6 PEER-CRL-003.A.R39 for FL14083-R38",
+  "approval": "CWF-6 – FL14083 Non-HVHZ (Tbl 5A, p. 101)",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "—",
+    "Adhesive Beads",
+    "—",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "40.0",
+    "OK as tested",
+    "Up to 16' sheet",
+    "—",
+    "4 in. o.c.",
+    "—",
+    "228' × 128'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "69.6",
+    "OK as tested",
+    "Up to 16' sheet",
+    "—",
+    "4 in. o.c.",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "91.7",
+    "OK as tested",
+    "Up to 16' sheet",
+    "—",
+    "4 in. o.c.",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "125.0",
+    "OK as tested",
+    "Up to 16' sheet",
+    "—",
+    "4 in. o.c.",
+    "—",
+    "6 × 18 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    16,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    32,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    48,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    64,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    80,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    96,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    112,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    128,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    144,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    160,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    176,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    192,
+    8,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ]
+  ],
+  "fingers": [],
+  "emptyStrips": 0,
+  "legend": [
+   "Roof zones only. A sheet layout is drawn for mechanically attached systems; fully adhered membrane is not laid out by sheet here."
+  ],
+  "boards": [
+   "Flexible FAST beads 4\" o.c. @ Zone 1'/Zone 1/Zone 2/Zone 3",
+   "Sure-Weld Bonding Adhesive @ Every zone"
+  ]
+ },
+ "woodFA": {
+  "press": [
+   [
+    "Roof Zone",
+    "GCp",
+    "Ultimate\n(psf)",
+    "ASD\n(psf)",
+    "FBC / MDP\n(psf)",
+    "Zone Area\n(sf)",
+    "Squares"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "-0.90",
+    "-66.6",
+    "-40.0",
+    "-45.0",
+    "29,184",
+    "291.8"
+   ],
+   [
+    "Zone 1 (Field)",
+    "-1.70",
+    "-115.9",
+    "-69.6",
+    "-75.0",
+    "14,112",
+    "141.1"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "-2.30",
+    "-152.9",
+    "-91.7",
+    "-97.5",
+    "15,984",
+    "159.8"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "-3.20",
+    "-208.4",
+    "-125.0",
+    "-127.5",
+    "720",
+    "7.2"
+   ]
+  ],
+  "appr": null,
+  "approval": "—",
+  "attach": [
+   [
+    "Roof Zone",
+    "ASD (psf)",
+    "vs. MDP",
+    "Sheet Width",
+    "—",
+    "Adhesive Beads",
+    "—",
+    "Zone Width"
+   ],
+   [
+    "Zone 1' (Field Prime)",
+    "40.0",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "228' × 128'"
+   ],
+   [
+    "Zone 1 (Field)",
+    "69.6",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 2 (Perimeter)",
+    "91.7",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "18 ft"
+   ],
+   [
+    "Zone 3 (Corner)",
+    "125.0",
+    "Extrapolate",
+    "No approval",
+    "—",
+    "No approval",
+    "—",
+    "6 × 18 ft"
+   ]
+  ],
+  "zoneSheets": [
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   },
+   {
+    "w": 16,
+    "n": 1,
+    "wide": null
+   }
+  ],
+  "strips": [
+   [
+    0,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    16,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    32,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    48,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    64,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    80,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    96,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    112,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    128,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    144,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    160,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    176,
+    16,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ],
+   [
+    192,
+    8,
+    0,
+    [
+     [
+      0,
+      300
+     ]
+    ]
+   ]
+  ],
+  "fingers": [],
+  "emptyStrips": 0,
+  "legend": [
+   "Roof zones only. A sheet layout is drawn for mechanically attached systems; fully adhered membrane is not laid out by sheet here."
+  ],
+  "boards": [
+   "Flexible FAST beads 6\" o.c. @ Zone 1'/Zone 1",
+   "Flexible FAST beads 4\" o.c. @ Zone 2/Zone 3",
+   "Sure-Weld Bonding Adhesive @ Every zone"
+  ]
  }
 }
