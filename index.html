@@ -3273,7 +3273,7 @@ function approvalOpts(idx){
   }
   return out;
 }
-function epsName(n){ return String(n||"").replace(/\s*\(Insul[Ff]oam\)/g, "").replace(/\bInsul[Ff]oam(?:\s+(?:I|II|VIII|IX|X|XV|XIV))?\b(?!\s*HD)/g, "EPS"); }   // a generic EPS listing: any EPS meeting the type can be used, not only Insulfoam
+function epsName(n){ return String(n||"").replace(/\s*\(Insul[Ff]oam\)/g, "").replace(/\bInsul[Ff]oam(?:\s+(?:I|II|VIII|IX|X|XV|XIV))?\b(?!\s*HD)/g, "EPS").replace(/\bEPS(?:\s*(?:,|\/|\bor\b|\band\b)\s*EPS\b)+/g, "EPS"); }   // a generic EPS listing: any EPS meeting the type can be used, not only Insulfoam
 const fmtItem = x => epsName(x.name) + (x.min ? ", min. " + x.min + '"' : "");
 function adhLabels(o){
   const pvc = o && o.adh && o.adh.pvc;
@@ -3322,7 +3322,7 @@ function specRender(){
   const sel = (key, label, layer, noneLabel) => {
     if(!layer || (!layer.items.length && !layer.none)) return "";
     const pin = (key === "cover" || key === "top") && pinnedBy(layer);
-    const opts = layer.items.map(fmtItem); if(layer.optional || layer.none) opts.push("None");
+    const opts = [...new Set(layer.items.map(fmtItem))]; if(layer.optional || layer.none) opts.push("None");
     if(opts.length < 1) return "";
     let thk = "";
     if(key==="insul" || key==="top" || key==="under" || key==="cover"){
@@ -3336,7 +3336,7 @@ function specRender(){
     }
     if(pin && !thk) return "";
     if(thk && (opts.length === 1 || pin)) return thk.replace('class="f cf half"', 'class="f cf"').replace("<span>Thickness (in)</span>", `<span>${esc(label)}: ${esc((pin ? s[key] : opts[0]).replace(/,\s*min\.\s*[\d.]+"/i, ""))}, thickness (in)</span>`);
-    return `<label class="f cf${thk?" half":""}"><span class="fl">${esc(label)} ${qTip(layer.items.length + " option" + (layer.items.length === 1 ? "" : "s") + " listed in this approval" + (layer.optional ? ", optional" : ""))}</span><select data-spec="${key}">${opts.map(x=>`<option${x===s[key]?" selected":""}>${esc(x)}</option>`).join("")}</select></label>` + thk;
+    return `<label class="f cf${thk?" half":""}"><span class="fl">${esc(label)} ${qTip(opts.filter(x=>x!=="None").length + " option" + (opts.filter(x=>x!=="None").length === 1 ? "" : "s") + " listed in this approval" + (layer.optional ? ", optional" : ""))}</span><select data-spec="${key}">${opts.map(x=>`<option${x===s[key]?" selected":""}>${esc(x)}</option>`).join("")}</select></label>` + thk;
   };
   let adhHtml = "";
   if(o.adh && !o.fb){
