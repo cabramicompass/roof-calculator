@@ -2891,6 +2891,7 @@ function insLabel(prod, t){
   if(!p) return ("Insulation" + (t ? ", " + t : "")).replace(/\bMin\./g, "min.");
   const thk = /min\.|\d"/i.test(p) ? "" : (t ? ", " + t : "");
   if(!/insulation|polyiso|\bEPS\b/i.test(p)) p = p.replace(/^(InsulBase|SecurShield|ACFoam[^,]*|ENRGY[^,]*|H-Shield[^,]*)/i, "$1 polyiso");
+  if(/^(DensDeck|Dens Deck|SECUROCK|EcoStorm|HP Recovery)/i.test(p)) return (p + thk).replace(/\bMin\./g, "min.");   // boards, not insulation
   if(!/insulation/i.test(p)) p = p.replace(/^([^,]+)/, "$1 insulation");
   return (p + thk).replace(/\bMin\./g, "min.");
 }
@@ -2923,6 +2924,8 @@ function asmLayers(c){
   else if(steel) L.push({k:"steel", t:"Steel deck" + ga, h:26});
   else if(conc) L.push({k:"conc", t:"Structural concrete deck", h:28});
   else if(wood) L.push({k:"wood", t:"Wood deck", h:18});
+  else if(/Gypsum/i.test(deck)) L.push({k:"lwc", t:"Gypsum deck", h:22});
+  else if(/Tectum/i.test(deck)) L.push({k:"wood", t:"Tectum (cementitious wood fiber) deck", h:18});
   else L.push({k:"conc", t:deck || "Deck", h:26});
   if(/flute/i.test(top) && steel && !lwc) L[L.length-1].fill = true;
   if(/^Recover/i.test(app) && !/metal retrofit/i.test(app)){
